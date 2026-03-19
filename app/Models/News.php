@@ -8,16 +8,13 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 class News extends Model
 {
     protected $fillable = [
-        'title',
         'content',
-        'slug',
         'image_path',
         'telegram_message_id',
         'telegram_chat_id',
         'telegram_author_id',
         'telegram_author_name',
         'views',
-        'status',
         'published_at',
     ];
 

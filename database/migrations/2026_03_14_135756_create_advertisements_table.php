@@ -14,7 +14,6 @@ return new class extends Migration
         Schema::create('advertisements', function (Blueprint $table) {
             $table->id();
             $table->text('content');
-            $table->string('slug')->unique()->nullable();
             $table->string('image_path')->nullable();
             $table->timestamp('published_at')->nullable();
             $table->string('telegram_message_id')->nullable()->unique();

@@ -11,7 +11,6 @@ class Review extends Model
     protected $fillable = [
         'content',
         'rating',
-        'user_id',
         'telegram_message_id',
         'telegram_chat_id',
         'telegram_author_id',
