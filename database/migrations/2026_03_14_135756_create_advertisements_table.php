@@ -15,8 +15,13 @@ return new class extends Migration
             $table->id();
             $table->string('title');
             $table->text('content');
-            $table->string('slug')->unique();
-            $table->string('image')->nullable();
+            $table->string('slug')->unique()->nullable();
+            $table->string('image_path')->nullable();
+            $table->timestamp('published_at')->nullable();
+            $table->string('telegram_message_id')->nullable()->unique();
+            $table->string('telegram_chat_id')->nullable();
+            $table->string('telegram_author_id')->nullable();
+            $table->string('telegram_author_name')->nullable();
             $table->timestamps();
         });
     }

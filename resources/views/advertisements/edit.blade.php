@@ -3,147 +3,66 @@
 @section('title', 'Редактировать объявление')
 
 @section('content')
-    <div class="container">
-        <div class="header-with-back">
-            <h1>Редактировать объявление</h1>
-            <a href="{{ route('advertisements.show', $advertisement['id']) }}" class="back-btn">← Назад к объявлению</a>
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="mb-6">
+            <a href="{{ route('advertisements.show', $advertisement) }}" class="text-blue-600 hover:text-blue-800">← Назад к объявлению</a>
         </div>
 
-        <form action="{{ route('advertisements.update', $advertisement['id']) }}" method="POST" class="advertisement-form" enctype="multipart/form-data">
-            @csrf
-            @method('PUT')
-
-            <div class="form-group">
-                <label for="title">Заголовок *</label>
-                <input type="text"
-                       id="title"
-                       name="title"
-                       class="form-control @error('title') is-invalid @enderror"
-                       value="{{ old('title', $advertisement['title']) }}"
-                       required>
-                @error('title')
-                <div class="invalid-feedback">{{ $message }}</div>
-                @enderror
+        <div class="bg-white rounded-xl shadow-md overflow-hidden">
+            <div class="px-6 py-4 bg-gray-50 border-b border-gray-200">
+                <h1 class="text-2xl font-bold text-gray-900">Редактировать объявление</h1>
             </div>
 
-            <div class="form-group">
-                <label for="category">Категория *</label>
-                <select id="category" name="category" class="form-control @error('category') is-invalid @enderror" required>
-                    <option value="">Выберите категорию</option>
-                    <option value="Недвижимость" {{ old('category', $advertisement['category']) == 'Недвижимость' ? 'selected' : '' }}>Недвижимость</option>
-                    <option value="Транспорт" {{ old('category', $advertisement['category']) == 'Транспорт' ? 'selected' : '' }}>Транспорт</option>
-                    <option value="Работа" {{ old('category', $advertisement['category']) == 'Работа' ? 'selected' : '' }}>Работа</option>
-                    <option value="Услуги" {{ old('category', $advertisement['category']) == 'Услуги' ? 'selected' : '' }}>Услуги</option>
-                    <option value="Товары" {{ old('category', $advertisement['category']) == 'Товары' ? 'selected' : '' }}>Товары</option>
-                </select>
-                @error('category')
-                <div class="invalid-feedback">{{ $message }}</div>
-                @enderror
-            </div>
+            <form action="{{ route('advertisements.update', $advertisement) }}" method="POST" class="p-6">
+                @csrf @method('PUT')
 
-            <div class="form-group">
-                <label for="price">Цена (₽)</label>
-                <input type="number"
-                       id="price"
-                       name="price"
-                       class="form-control @error('price') is-invalid @enderror"
-                       value="{{ old('price', $advertisement['price']) }}"
-                       min="0">
-                @error('price')
-                <div class="invalid-feedback">{{ $message }}</div>
-                @enderror
-            </div>
+                <div class="space-y-4">
+                    <div>
+                        <label for="title" class="block text-sm font-medium text-gray-700 mb-1">Заголовок *</label>
+                        <input type="text" name="title" id="title" value="{{ old('title', $advertisement->title) }}"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 @error('title') border-red-500 @enderror">
+                        @error('title') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
+                    </div>
 
-            <div class="form-group">
-                <label for="description">Описание *</label>
-                <textarea id="description"
-                          name="description"
-                          rows="6"
-                          class="form-control @error('description') is-invalid @enderror"
-                          required>{{ old('description', $advertisement['description']) }}</textarea>
-                @error('description')
-                <div class="invalid-feedback">{{ $message }}</div>
-                @enderror
-            </div>
+                    <div>
+                        <label for="content" class="block text-sm font-medium text-gray-700 mb-1">Содержание *</label>
+                        <textarea name="content" id="content" rows="8"
+                                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 @error('content') border-red-500 @enderror">{{ old('content', $advertisement->content) }}</textarea>
+                        @error('content') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
+                    </div>
 
-            @if(isset($advertisement['image']))
-                <div class="current-image">
-                    <label>Текущее изображение:</label>
-                    <img src="{{ $advertisement['image'] }}" alt="Current image" class="preview-image">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="price" class="block text-sm font-medium text-gray-700 mb-1">Цена (₽)</label>
+                            <input type="number" name="price" id="price" value="{{ old('price', $advertisement->price) }}"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+
+                        <div>
+                            <label for="city" class="block text-sm font-medium text-gray-700 mb-1">Город</label>
+                            <input type="text" name="city" id="city" value="{{ old('city', $advertisement->city) }}"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label for="status" class="block text-sm font-medium text-gray-700 mb-1">Статус</label>
+                        <select name="status" id="status" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="active" {{ old('status', $advertisement->status) == 'active' ? 'selected' : '' }}>Активно</option>
+                            <option value="inactive" {{ old('status', $advertisement->status) == 'inactive' ? 'selected' : '' }}>Не активно</option>
+                        </select>
+                    </div>
                 </div>
-            @endif
 
-            <div class="form-group">
-                <label for="image">Новое изображение (оставьте пустым, чтобы не менять)</label>
-                <input type="file"
-                       id="image"
-                       name="image"
-                       class="form-control @error('image') is-invalid @enderror"
-                       accept="image/*">
-                <small class="form-text text-muted">Поддерживаемые форматы: jpeg, png, jpg, gif (макс. 2MB)</small>
-                @error('image')
-                <div class="invalid-feedback">{{ $message }}</div>
-                @enderror
-            </div>
-
-            <div class="form-group">
-                <label for="contact_info">Контактная информация *</label>
-                <input type="text"
-                       id="contact_info"
-                       name="contact_info"
-                       class="form-control @error('contact_info') is-invalid @enderror"
-                       value="{{ old('contact_info', $advertisement['contact_info']) }}"
-                       placeholder="Телефон, email или способ связи"
-                       required>
-                @error('contact_info')
-                <div class="invalid-feedback">{{ $message }}</div>
-                @enderror
-            </div>
-
-            <div class="form-group">
-                <label for="city">Город</label>
-                <input type="text"
-                       id="city"
-                       name="city"
-                       class="form-control @error('city') is-invalid @enderror"
-                       value="{{ old('city', $advertisement['city'] ?? '') }}"
-                       placeholder="Например: Москва">
-                @error('city')
-                <div class="invalid-feedback">{{ $message }}</div>
-                @enderror
-            </div>
-
-            <div class="form-checkbox">
-                <input type="checkbox" id="is_active" name="is_active" value="1" {{ old('is_active', $advertisement['is_active'] ?? true) ? 'checked' : '' }}>
-                <label for="is_active">Активно</label>
-            </div>
-
-            <div class="form-actions">
-                <button type="submit" class="btn-submit">Сохранить изменения</button>
-                <a href="{{ route('advertisements.show', $advertisement['id']) }}" class="btn-cancel">Отмена</a>
-            </div>
-        </form>
+                <div class="mt-6 flex justify-end space-x-3">
+                    <a href="{{ route('advertisements.show', $advertisement) }}" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-lg">
+                        Отмена
+                    </a>
+                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg">
+                        Сохранить
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
-@endsection
-
-@section('styles')
-    <style>
-        .current-image {
-            margin-bottom: 1.5rem;
-        }
-
-        .current-image label {
-            display: block;
-            margin-bottom: 0.5rem;
-            font-weight: 500;
-            color: #333;
-        }
-
-        .preview-image {
-            max-width: 200px;
-            max-height: 200px;
-            border-radius: 5px;
-            border: 1px solid #ddd;
-        }
-    </style>
 @endsection

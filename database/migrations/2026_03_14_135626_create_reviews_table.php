@@ -13,11 +13,16 @@ return new class extends Migration
     {
         Schema::create('reviews', function (Blueprint $table) {
             $table->id();
-            $table->unsignedSmallInteger('rating');
-            $table->string('author');
-            $table->string('phone_number');
-            $table->text('content');
+            $table->integer('rating')->nullable(); // 1-5
+            $table->string('author')->nullable();
+            $table->string('phone_number')->nullable();
+            $table->text('content')->nullable();
+            $table->timestamp('published_at')->nullable();
             $table->string('slug')->unique();
+            $table->string('telegram_message_id')->nullable()->unique();
+            $table->string('telegram_chat_id')->nullable();
+            $table->string('telegram_author_id')->nullable();
+            $table->string('telegram_author_name')->nullable();
             $table->timestamps();
         });
     }

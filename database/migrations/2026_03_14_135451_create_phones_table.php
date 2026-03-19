@@ -13,8 +13,9 @@ return new class extends Migration
     {
         Schema::create('phones', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id');
-            $table->string('number')->unique();
+            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+            $table->string('phone_number');
+            $table->boolean('is_primary')->default(false);
             $table->timestamps();
         });
     }

@@ -13,6 +13,11 @@ return [
     | a conventional file to locate the various service credentials.
     |
     */
+    'telegram' => [
+        'token' => env('TELEGRAM_TOKEN'),
+        'bot_username' => env('TELEGRAM_BOT_USERNAME'),
+        'polling_timeout' => env('TELEGRAM_POLLING_TIMEOUT', 30),
+    ],
 
     'postmark' => [
         'key' => env('POSTMARK_API_KEY'),
