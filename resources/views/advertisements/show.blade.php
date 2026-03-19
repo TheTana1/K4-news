@@ -1,6 +1,6 @@
 @extends('layouts.main')
 
-@section('title', $advertisement->title)
+@section('title', substr($advertisement->content,0,10))
 
 @section('content')
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -10,13 +10,11 @@
             <span class="mx-2 text-gray-500">/</span>
             <a href="{{ route('advertisements.index') }}" class="text-gray-500 hover:text-gray-700">Объявления</a>
             <span class="mx-2 text-gray-500">/</span>
-            <span class="text-gray-900">{{ $advertisement->title }}</span>
         </nav>
 
         <div class="bg-white rounded-xl shadow-md overflow-hidden">
             <!-- Заголовок -->
             <div class="px-6 py-4 bg-gray-50 border-b border-gray-200 flex justify-between items-center">
-                <h1 class="text-2xl font-bold text-gray-900">{{ $advertisement->title }}</h1>
                 <div class="flex space-x-2">
                     <a href="{{ route('advertisements.edit', $advertisement) }}" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm">
                         Редактировать

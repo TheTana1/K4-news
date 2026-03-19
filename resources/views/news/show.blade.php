@@ -1,6 +1,6 @@
 @extends('layouts.main')
 
-@section('title', $news->title)
+@section('title', substr($news->content,0,10))
 
 @section('content')
     <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -10,13 +10,11 @@
             <span class="mx-2 text-gray-500">/</span>
             <a href="{{ route('news.index') }}" class="text-gray-500 hover:text-gray-700">Новости</a>
             <span class="mx-2 text-gray-500">/</span>
-            <span class="text-gray-900">{{ $news->title }}</span>
         </nav>
 
         <div class="bg-white rounded-xl shadow-md overflow-hidden">
             <!-- Заголовок -->
             <div class="px-6 py-4 bg-gray-50 border-b border-gray-200 flex justify-between items-center">
-                <h1 class="text-2xl font-bold text-gray-900">{{ $news->title }}</h1>
                 <div class="flex space-x-2">
                     <a href="{{ route('news.edit', $news) }}" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm">
                         Редактировать
@@ -39,7 +37,7 @@
                 </div>
 
                 <!-- Содержимое -->
-                <div class="prose max-w-none">
+                <div class="prose max-w-none ">
                     {!! nl2br(e($news->content)) !!}
                 </div>
 

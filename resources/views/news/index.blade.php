@@ -28,8 +28,7 @@
                     @forelse($news as $item)
                         <tr class="hover:bg-gray-50">
                             <td class="px-6 py-4">
-                                <div class="text-sm font-medium text-gray-900">{{ $item->title }}</div>
-                                <div class="text-sm text-gray-500">{{ Str::limit($item->content, 50) }}</div>
+                                <div class="text-sm text-gray-900">{{ Str::limit($item->content, 50) }}</div>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                 {{ $item->author?->name ?? $item->telegram_author_name ?? 'Неизвестно' }}

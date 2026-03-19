@@ -3,11 +3,16 @@
 namespace App\Http\Controllers;
 
 use App\Models\News;
+use App\Repositories\NewsRepository;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class NewsController extends Controller
 {
+    public function __construct(readonly NewsRepository $newsRepository)
+    {
+
+    }
     public function index():View
     {
         $news = News::latest()->paginate(10)->withQueryString();

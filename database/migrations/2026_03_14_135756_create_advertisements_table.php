@@ -13,7 +13,6 @@ return new class extends Migration
     {
         Schema::create('advertisements', function (Blueprint $table) {
             $table->id();
-            $table->string('title');
             $table->text('content');
             $table->string('slug')->unique()->nullable();
             $table->string('image_path')->nullable();

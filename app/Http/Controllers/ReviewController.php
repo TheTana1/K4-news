@@ -3,11 +3,16 @@
 namespace App\Http\Controllers;
 
 use App\Models\Review;
+use App\Repositories\ReviewRepository;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class ReviewController extends Controller
 {
+    public function __construct(readonly ReviewRepository $reviewRepository)
+    {
+
+    }
     public function index():View
     {
         $reviews = Review::query()->paginate(10)->withQueryString();

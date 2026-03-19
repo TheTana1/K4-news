@@ -29,8 +29,7 @@
                     @forelse($advertisements as $ad)
                         <tr class="hover:bg-gray-50">
                             <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm font-medium text-gray-900">{{ $ad->title }}</div>
-                                <div class="text-sm text-gray-500">{{ Str::limit($ad->content, 50) }}</div>
+                                <div class="text-sm text-gray-900">{{ Str::limit($ad->content, 50) }}</div>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                 {{ $ad->author?->name ?? $ad->telegram_author_name ?? 'Неизвестно' }}

@@ -18,7 +18,6 @@ return new class extends Migration
             $table->string('phone_number')->nullable();
             $table->text('content')->nullable();
             $table->timestamp('published_at')->nullable();
-            $table->string('slug')->unique();
             $table->string('telegram_message_id')->nullable()->unique();
             $table->string('telegram_chat_id')->nullable();
             $table->string('telegram_author_id')->nullable();

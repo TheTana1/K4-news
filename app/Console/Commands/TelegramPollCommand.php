@@ -53,7 +53,7 @@ class TelegramPollCommand extends Command
                 }
 
                 // Небольшая пауза, чтобы не нагружать процессор
-                usleep(100000); // 0.1 секунды
+                usleep(600000);
 
             } catch (\Exception $e) {
                 $this->error('❌ Error: ' . $e->getMessage());

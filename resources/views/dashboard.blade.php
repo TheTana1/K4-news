@@ -87,7 +87,7 @@
                     @forelse($recentAds ?? [] as $ad)
                         <div class="border-b border-gray-100 pb-2 last:border-0">
                             <a href="{{ route('advertisements.show', $ad) }}" class="text-blue-600 hover:text-blue-800 font-medium">
-                                {{ $ad->title }}
+                                {{ mb_substr($ad->content,0,30) }}
                             </a>
                             <p class="text-sm text-gray-500">{{ $ad->created_at->diffForHumans() }}</p>
                         </div>
@@ -104,7 +104,7 @@
                     @forelse($recentNews ?? [] as $news)
                         <div class="border-b border-gray-100 pb-2 last:border-0">
                             <a href="{{ route('news.show', $news) }}" class="text-green-600 hover:text-green-800 font-medium">
-                                {{ $news->title }}
+                                {{ mb_substr($news->content,0 ,30) }}
                             </a>
                             <p class="text-sm text-gray-500">{{ $news->created_at->diffForHumans() }}</p>
                         </div>
