@@ -14,20 +14,9 @@ class UserSeeder extends Seeder
      */
     public function run(): void
     {
-        User::factory(23)
+        User::factory(5)
             ->has(Phone::factory()->count(rand(1,3)))
             ->create();
-
-        User::factory()
-            ->has(Phone::factory()->count(1))
-            ->create([
-                'name' => 'Admin',
-                'email' => 'admin@mail.ru',
-            ]);
-
-
-
-
 
     }
 }

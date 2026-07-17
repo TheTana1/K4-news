@@ -21,13 +21,7 @@ return new class extends Migration
             $table->foreignId('role_id')->nullable()->constrained()->nullOnDelete();
             $table->date('birthday')->nullable();
             $table->boolean('gender')->nullable()->comment('0 - мужской, 1 - женский');
-            $table->integer('likes')->default(0);
-            $table->string('telegram_id')->nullable()->unique();
-            $table->string('telegram_username')->nullable();
-            $table->boolean('is_active_in_group')->default(false);
-            $table->timestamp('joined_at')->nullable();
-            $table->timestamp('left_at')->nullable();
-            $table->timestamp('last_post_at')->nullable();
+
             $table->rememberToken();
             $table->timestamps();
         });

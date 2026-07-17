@@ -20,13 +20,6 @@ class User extends Authenticatable
         'role_id',
         'birthday',
         'gender',
-        'likes',
-        'telegram_id',
-        'telegram_username',
-        'is_active_in_group',
-        'joined_at',
-        'left_at',
-        'last_post_at',
     ];
 
     protected $hidden = [

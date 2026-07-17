@@ -23,18 +23,13 @@ class UserRepository
         try {
             $validatedData = $request->validated();
 
-            // Исправляем: проверяем наличие файла правильно
             if ($request->hasFile('avatar_path')) {
                 $path = $request->file('avatar_path')->store('avatars', 'public');
                 $validatedData['avatar_path'] = 'storage/' . $path;
             }
-
-            // Хешируем пароль
             if (isset($validatedData['password'])) {
                 $validatedData['password'] = Hash::make($validatedData['password']);
             }
-
-            // Устанавливаем значение по умолчанию
             $validatedData['likes'] = $validatedData['likes'] ?? 0;
 
             // Создаем пользователя
@@ -89,9 +84,7 @@ class UserRepository
             }
             unset($validatedData['avatar']); // Удаляем avatar из данных, чтобы не было конфликта
 
-            // Хешируем пароль, если он передан и не пустой
-
-            if (isset($validatedData['password']) && !empty($validatedData['password'])) {
+            if (!empty($validatedData['password'])) {
                 $validatedData['password'] = Hash::make($validatedData['password']);
             } else {
                 unset($validatedData['password']); // Не обновляем пароль, если он пустой

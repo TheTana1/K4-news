@@ -27,9 +27,7 @@ class ReviewRequest extends FormRequest
         };
     }
 
-    /**
-     * Правила для создания отзыва
-     */
+
     protected function storeRules(): array
     {
         return [
@@ -44,9 +42,6 @@ class ReviewRequest extends FormRequest
         ];
     }
 
-    /**
-     * Правила для обновления отзыва
-     */
     protected function updateRules(): array
     {
         return [
@@ -56,9 +51,6 @@ class ReviewRequest extends FormRequest
         ];
     }
 
-    /**
-     * Кастомные сообщения об ошибках
-     */
     public function messages(): array
     {
         return [
@@ -75,9 +67,6 @@ class ReviewRequest extends FormRequest
         ];
     }
 
-    /**
-     * Подготовка данных перед валидацией
-     */
     protected function prepareForValidation(): void
     {
         // Приводим рейтинг к целому числу

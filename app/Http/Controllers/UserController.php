@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Repositories\UserRepository;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\View\View;
 
@@ -30,6 +31,7 @@ class UserController extends Controller
 
     public function edit(User $user): View
     {
+
         return view('users.edit', [
             'user'=>$user,'roles'=>Role::all(),
         ]);
@@ -37,7 +39,12 @@ class UserController extends Controller
 
     public function show(User $user): View
     {
-        return view('users.show', compact('user'));
+        $comments = $user->comments()->paginate(5)->withQueryString();
+        foreach ($comments as $comment) {
+            $content = $comment->commentable_type::findOrFail($comment->commentable_id)->content;
+            $comment['source'] = urldecode($content);;
+        }
+        return view('users.show', compact('user','comments'));
     }
 
     public function store(UserRequest $request): RedirectResponse

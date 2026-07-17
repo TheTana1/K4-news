@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AdvertisementController;
+use App\Http\Controllers\CommentController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\NewsController;
 use App\Http\Controllers\ReviewController;
@@ -14,6 +15,7 @@ Route::resource('users', UserController::class);
 Route::resource('advertisements', AdvertisementController::class);
 Route::resource('news', NewsController::class);
 Route::resource('reviews', ReviewController::class);
+Route::resource('comments', CommentController::class);
 
 Auth::routes();
 

@@ -12,4 +12,10 @@ class AdvertisementRepository
         $validated = $request->validated();
         return Advertisement::query()->create($validated);
     }
+    final public function update(AdvertisementRequest $request, Advertisement $advertisement): Advertisement
+    {
+        $validated = $request->validated();
+        $advertisement->update($validated);
+        return $advertisement;
+    }
 }

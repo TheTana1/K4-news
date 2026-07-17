@@ -1,65 +1,64 @@
-@extends('layouts.main')
+@extends('layouts.app')
 
 @section('title', 'Оставить отзыв')
 
 @section('content')
-    <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div class="mb-6">
-            <a href="{{ route('reviews.index') }}" class="text-blue-600 hover:text-blue-800">← Назад к отзывам</a>
-        </div>
-
-        <div class="bg-white rounded-xl shadow-md overflow-hidden">
-            <div class="px-6 py-4 bg-gray-50 border-b border-gray-200">
-                <h1 class="text-2xl font-bold text-gray-900">Оставить отзыв</h1>
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="mb-3">
+                <a href="{{ route('reviews.index') }}" class="btn btn-outline-secondary btn-sm">
+                    &larr; Назад к отзывам
+                </a>
             </div>
 
-            <form action="{{ route('reviews.store') }}" method="POST" class="p-6">
-                @csrf
-
-                <div class="space-y-4">
-                    <!-- Рейтинг -->
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Оценка</label>
-                        <div class="flex space-x-2" x-data="{ rating: {{ old('rating', 5) }} }">
-                            @for($i = 1; $i <= 5; $i++)
-                                <button type="button" @click="rating = {{ $i }}" class="focus:outline-none">
-                                    <svg class="w-8 h-8" :class="rating >= {{ $i }} ? 'text-yellow-400' : 'text-gray-300'" fill="currentColor" viewBox="0 0 20 20">
-                                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
-                                    </svg>
-                                </button>
-                            @endfor
-                            <input type="hidden" name="rating" x-model="rating">
-                        </div>
-                    </div>
-
-                    <!-- Имя (если не авторизован) -->
-                    @guest
-                        <div>
-                            <label for="author_name" class="block text-sm font-medium text-gray-700 mb-1">Ваше имя</label>
-                            <input type="text" name="author_name" id="author_name" value="{{ old('author_name') }}"
-                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        </div>
-                    @endguest
-
-                    <!-- Текст отзыва -->
-                    <div>
-                        <label for="content" class="block text-sm font-medium text-gray-700 mb-1">Ваш отзыв *</label>
-                        <textarea name="content" id="content" rows="6"
-                                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 @error('content') border-red-500 @enderror"
-                                  placeholder="Поделитесь своим мнением...">{{ old('content') }}</textarea>
-                        @error('content') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
-                    </div>
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Оставить отзыв</h5>
                 </div>
+                <div class="card-body">
+                    <form action="{{ route('reviews.store') }}" method="POST">
+                        @csrf
 
-                <div class="mt-6 flex justify-end space-x-3">
-                    <a href="{{ route('reviews.index') }}" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-lg">
-                        Отмена
-                    </a>
-                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg">
-                        Отправить
-                    </button>
+                        <!-- Рейтинг -->
+                        <div class="mb-3">
+                            <label class="form-label">Оценка</label>
+                            <div class="d-flex gap-2" x-data="{ rating: {{ old('rating', 5) }} }">
+                                @for($i = 1; $i <= 5; $i++)
+                                    <button type="button" @click="rating = {{ $i }}" class="btn btn-link p-0 border-0" style="font-size: 2rem; line-height: 1;">
+                                        <span x-text="rating >= {{ $i }} ? '★' : '☆'" class="text-warning"></span>
+                                    </button>
+                                @endfor
+                                <input type="hidden" name="rating" x-model="rating">
+                            </div>
+                            @error('rating') <div class="text-danger small">{{ $message }}</div> @enderror
+                        </div>
+
+                        <!-- Имя для гостей -->
+                        @guest
+                            <div class="mb-3">
+                                <label for="author_name" class="form-label">Ваше имя</label>
+                                <input type="text" name="author_name" id="author_name" value="{{ old('author_name') }}"
+                                       class="form-control @error('author_name') is-invalid @enderror">
+                                @error('author_name') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                            </div>
+                        @endguest
+
+                        <!-- Текст отзыва -->
+                        <div class="mb-3">
+                            <label for="content" class="form-label">Ваш отзыв <span class="text-danger">*</span></label>
+                            <textarea name="content" id="content" rows="6"
+                                      class="form-control @error('content') is-invalid @enderror"
+                                      placeholder="Поделитесь своим мнением...">{{ old('content') }}</textarea>
+                            @error('content') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-2">
+                            <a href="{{ route('reviews.index') }}" class="btn btn-secondary">Отмена</a>
+                            <button type="submit" class="btn btn-primary">Отправить</button>
+                        </div>
+                    </form>
                 </div>
-            </form>
+            </div>
         </div>
     </div>
 

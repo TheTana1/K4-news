@@ -68,38 +68,4 @@ class AdvertisementRequest extends FormRequest
         ];
     }
 
-    /**
-     * Подготовка данных перед валидацией
-     */
-    protected function prepareForValidation(): void
-    {
-        // Устанавливаем статус по умолчанию, если не передан
-        if (!$this->has('status')) {
-            $this->merge([
-                'status' => 'active'
-            ]);
-        }
-
-        // Очищаем контент от лишних пробелов
-        if ($this->has('content')) {
-            $this->merge([
-                'content' => trim($this->content)
-            ]);
-        }
-
-    }
-
-    /**
-     * Дополнительная валидация после основной
-     */
-    public function withValidator($validator): void
-    {
-        $validator->after(function ($validator) {
-            // Проверяем, что контент не состоит только из пробелов
-            if ($this->has('content') && strlen(trim($this->content)) < 10) {
-                $validator->errors()->add('content', 'Содержание не может состоять только из пробелов');
-            }
-        });
-    }
-
 }

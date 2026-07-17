@@ -42,6 +42,6 @@ class AdvertisementController extends Controller
 
     public function update(AdvertisementRequest $request, Advertisement $advertisement):RedirectResponse
     {
-        return '';
+        return redirect()->route('advertisements.show', $this->advertisementRepository->update($request,$advertisement));
     }
 }
