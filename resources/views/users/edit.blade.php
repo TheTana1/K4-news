@@ -29,7 +29,11 @@
                                         @endif
                                     </div>
                                     <label for="avatar" class="position-absolute bottom-0 end-0 bg-white rounded-circle p-1 shadow-sm cursor-pointer" style="transform:translate(10%,10%);">
-                                        <i class="bi bi-camera fs-6"></i>
+                                        <!-- SVG иконка камеры вместо bi-camera -->
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-600">
+                                            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+                                            <circle cx="12" cy="13" r="4" />
+                                        </svg>
                                     </label>
                                     <input type="file" id="avatar" name="avatar" class="d-none" accept="image/*">
                                 </div>
@@ -56,7 +60,7 @@
                             <div class="col-md-6">
                                 <label for="password" class="form-label">Новый пароль</label>
                                 <input type="password" name="password" id="password"
-                                       class="form-control @error('password') is-invalid @enderror">
+                                       value="{{ old('password', $user->password) }}">
                                 <small class="text-muted">Оставьте пустым, чтобы не менять</small>
                                 @error('password') <div class="invalid-feedback">{{ $message }}</div> @enderror
                             </div>
@@ -93,11 +97,6 @@
                                     <option value="0" {{ old('gender', $user->gender) === 0 ? 'selected' : '' }}>Мужской</option>
                                     <option value="1" {{ old('gender', $user->gender) === 1 ? 'selected' : '' }}>Женский</option>
                                 </select>
-                            </div>
-                            <div class="col-md-6">
-                                <label for="likes" class="form-label">Лайки</label>
-                                <input type="number" name="likes" id="likes" value="{{ old('likes', $user->likes) }}"
-                                       class="form-control">
                             </div>
                         </div>
 

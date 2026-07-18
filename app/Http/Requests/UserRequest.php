@@ -14,7 +14,7 @@ class UserRequest extends FormRequest
 
     public function rules(): array
     {
-
+$this->dd();
         $userId = $this->route('user')?->id;
 
         return match ($this->method()) {
@@ -90,16 +90,17 @@ class UserRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
-        if ($this->has('is_active_in_group')) {
-            $this->merge([
-                'is_active_in_group' => filter_var($this->is_active_in_group, FILTER_VALIDATE_BOOLEAN)
-            ]);
-        }
 
-        if ($this->has('gender') && $this->gender !== null && $this->gender !== '') {
-            $this->merge([
-                'gender' => (int) $this->gender
-            ]);
-        }
+//        if ($this->has('is_active_in_group')) {
+//            $this->merge([
+//                'is_active_in_group' => filter_var($this->is_active_in_group, FILTER_VALIDATE_BOOLEAN)
+//            ]);
+//        }
+//
+//        if ($this->has('gender') && $this->gender !== null && $this->gender !== '') {
+//            $this->merge([
+//                'gender' => (int) $this->gender
+//            ]);
+//        }
     }
 }

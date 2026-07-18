@@ -20,6 +20,7 @@ class User extends Authenticatable
         'role_id',
         'birthday',
         'gender',
+        'is_active_in_group',
     ];
 
     protected $hidden = [
@@ -30,13 +31,9 @@ class User extends Authenticatable
     protected function casts(): array
     {
         return [
-            'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'birthday' => 'date',
             'gender' => 'boolean',
-            'joined_at' => 'datetime',
-            'left_at' => 'datetime',
-            'last_post_at' => 'datetime',
             'is_active_in_group' => 'boolean',
         ];
     }

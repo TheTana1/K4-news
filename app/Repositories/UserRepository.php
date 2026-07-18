@@ -5,17 +5,28 @@ namespace App\Repositories;
 use App\Http\Requests\UserRequest;
 use App\Models\User;
 use App\Models\Phone;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
 class UserRepository
 {
-    /**
-     * Создание нового пользователя
-     */
+    private const USER_PER_PAGE = 10;
+    private const COMMENTS_PER_PAGE = 10;
+    final public function paginate(int $countPaginate=self::USER_PER_PAGE)
+    {
+        return User::query()->with('role')->paginate($countPaginate)->withQueryString();
+    }
+    final public function paginateUserComments(User $user,int $countPaginate = self::COMMENTS_PER_PAGE)
+    {
+        return $user->comments()
+            ->with(['commentable'])
+            ->latest()
+            ->paginate($countPaginate)
+            ->withQueryString();
+    }
     final public function store(UserRequest $request): User
     {
         DB::beginTransaction();
@@ -36,7 +47,7 @@ class UserRepository
             $user = User::query()->create($validatedData);
 
             // Сохраняем телефоны, если есть
-            if ($request->has('phones') && is_array($request->phones)) {
+            if ($request->has('phones')) {
                 foreach ($request->phones as $phoneData) {
                     if (!empty($phoneData['number'])) {
                         $user->phones()->create([
@@ -62,39 +73,26 @@ class UserRepository
         }
     }
 
-    /**
-     * Обновление пользователя
-     */
     final public function update(UserRequest $request, User $user): User
     {
         DB::beginTransaction();
-
         try {
             $validatedData = $request->validated();
 
-            // Обработка аватара
-            if ($request->hasFile('avatar')) { // Исправлено: avatar вместо avatar_path
-                // Удаляем старый аватар, если есть
-                if ($user->avatar_path && file_exists(public_path($user->avatar_path))) {
-                    unlink(public_path($user->avatar_path));
+            if (!empty($validatedData['avatar'])) {
+                if ($user->avatar_path) {
+                    Storage::disk('public')->delete($user->avatar_path);
                 }
-
-                $path = $request->file('avatar')->store('avatars', 'public'); // Исправлено: avatar вместо avatar_path
-                $validatedData['avatar_path'] = 'storage/' . $path;
+                $path = 'storage/' . $request->
+                    file('avatar')->store('avatars', 'public');
+                $validatedData['avatar'] = $path;
             }
-            unset($validatedData['avatar']); // Удаляем avatar из данных, чтобы не было конфликта
+
 
             if (!empty($validatedData['password'])) {
-                $validatedData['password'] = Hash::make($validatedData['password']);
-            } else {
-                unset($validatedData['password']); // Не обновляем пароль, если он пустой
-            }
 
-            // Удаляем пустые значения, чтобы не обновлять их
-            foreach ($validatedData as $key => $value) {
-                if ($value === null || $value === '') {
-                    unset($validatedData[$key]);
-                }
+                $validatedData['password'] = Hash::make($validatedData['password']);
+
             }
 
             // Обновляем пользователя

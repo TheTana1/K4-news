@@ -12,54 +12,65 @@ use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\View\View;
 
+
 class UserController extends Controller
 {
+
+
+
     public function __construct(readonly UserRepository $userRepository)
     {
 
     }
     public function index():View
     {
-        $users = User::query()->paginate(10)->withQueryString();
+        $users = $this->userRepository->paginate();
         return view('users.index', compact('users'));
     }
 
     public function create(): View
     {
-        return view('users.create', ['roles' => Role::all()]);
+        $roles = $this->getRoles();
+        return view('users.create', compact('roles'));
     }
 
     public function edit(User $user): View
     {
+        $roles = $this->getRoles();
 
-        return view('users.edit', [
-            'user'=>$user,'roles'=>Role::all(),
-        ]);
+        return view('users.edit', compact('roles', 'user'));
     }
 
     public function show(User $user): View
     {
-        $comments = $user->comments()->paginate(5)->withQueryString();
-        foreach ($comments as $comment) {
-            $content = $comment->commentable_type::findOrFail($comment->commentable_id)->content;
-            $comment['source'] = urldecode($content);;
-        }
+
+        $comments =$this->userRepository->paginateUserComments($user);
         return view('users.show', compact('user','comments'));
     }
 
     public function store(UserRequest $request): RedirectResponse
     {
 
-        return redirect()->route('users.show', $this->userRepository->store($request));
+        return redirect()->route('users.show', $this->userRepository->store($request))
+            ->with('success', 'Пользователь успешно создан');
     }
 
     public function update(UserRequest $request, User $user): RedirectResponse
     {
-        return redirect()->route('users.show', $this->userRepository->update($request, $user));
+        return redirect()->route('users.show', $this->userRepository->update($request, $user))
+            ->with('success', 'Пользователь успешно обновлён');
     }
 
     public function destroy(User $user): RedirectResponse
     {
-        return redirect()->route('users.index', $this->userRepository->destroy($user));
+        $result = $this->userRepository->destroy($user);
+        return $result ?
+            redirect()->route('users.index')->with('success','Успешное удаление пользователя'):
+            redirect()->route('users.index')->with('error','Ошибка удаления пользователя');
+    }
+
+    private function getRoles()
+    {
+        return Role::all();
     }
 }

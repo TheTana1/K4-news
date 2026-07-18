@@ -33,4 +33,17 @@ class NewsController extends Controller
     {
         return view('news.edit', compact('news'));
     }
+
+    public function store(Request $request,News $news):View
+    {
+
+    }
+    public function update(Request $request, News $news):View
+    {
+
+    }
+    public function destroy(News $news):View
+    {
+
+    }
 }

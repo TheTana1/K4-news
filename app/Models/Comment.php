@@ -22,7 +22,7 @@ class Comment extends Model
         'created_at' => 'datetime',
         'deleted_at' => 'datetime',
     ];
-
+    protected $appends = ['source'];
     /**
      * Получить родительскую модель (Advertisement, News или Review)
      */
@@ -30,6 +30,29 @@ class Comment extends Model
     {
         return $this->morphTo();
     }
+    public function getSourceAttribute(): ?string
+    {
+        if (!$this->commentable) {
+            return 'Удалено';
+        }
+        return $this->commentable->content;
+    }
+//    public function getSourceTypeAttribute(): string
+//    {
+//        if (!$this->commentable) {
+//            return 'Удалено';
+//        }
+//
+//        return class_basename($this->commentable);
+//    }
+//
+//    public function getSourceIdAttribute(): int
+//    {
+//        if(!$this->commentable){
+//            return 'Удалено';
+//        }
+//        return $this->commentable->id;
+//    }
 
     public function user(): BelongsTo
     {

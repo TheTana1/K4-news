@@ -16,9 +16,9 @@ class CommentController extends Controller
     public function show(Comment $comment)
     {
         $model = $comment->commentable_type;
-        $class= strtolower(class_basename($model));
+        $responseClass= strtolower(class_basename($model));
         $object =  $model::find($comment->commentable_id);
-        return view($class.'s.show', [$class => $object]);
+        return view($responseClass.'s.show', [$responseClass => $object]);
     }
     public function store(CommentRequest $request)
     {
@@ -40,10 +40,7 @@ class CommentController extends Controller
         }
     }
 
-    public function edit(Comment $comment)
-    {
-        return view('comments.edit', compact('comment'));
-    }
+
 
     public function update(CommentRequest $request, Comment $comment)
     {
