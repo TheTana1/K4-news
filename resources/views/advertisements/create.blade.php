@@ -16,7 +16,7 @@
                     <h5 class="mb-0">Создать новое объявление</h5>
                 </div>
                 <div class="card-body">
-                    <form action="{{ route('advertisements.store') }}" method="POST">
+                    <form action="{{ route('advertisements.store') }}" method="POST" enctype="multipart/form-data">
                         @csrf
                         <div class="mb-3">
                             <label for="content" class="form-label">Содержание <span class="text-danger">*</span></label>
@@ -36,6 +36,16 @@
                         <div class="d-flex justify-content-end gap-2">
                             <a href="{{ route('advertisements.index') }}" class="btn btn-secondary">Отмена</a>
                             <button type="submit" class="btn btn-primary">Создать</button>
+                        </div>
+                        <div class="mb-3">
+                            <label for="files" class="form-label">Прикрепить файлы</label>
+                            <input type="file" name="files[]" id="files" multiple
+                                   accept=".pdf,.txt,.jpg,.jpeg,.png,.gif,.bmp,.webp,.svg"
+                                   class="form-control @error('files.*') is-invalid @enderror">
+                            <small class="text-muted">Можно загрузить: PDF, TXT, изображения (JPG, PNG, GIF, BMP, WEBP, SVG)</small>
+                            @error('files.*')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                         </div>
                     </form>
                 </div>

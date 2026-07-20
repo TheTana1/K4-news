@@ -37,6 +37,7 @@ class Comment extends Model
         }
         return $this->commentable->content;
     }
+
 //    public function getSourceTypeAttribute(): string
 //    {
 //        if (!$this->commentable) {

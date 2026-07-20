@@ -20,51 +20,42 @@ class AdvertisementRequest extends FormRequest
      */
     public function rules(): array
     {
-        $advertisementId = $this->route('advertisement')?->id;
 
-        return match ($this->method()) {
-            'POST' => $this->storeRules(),
-            'PUT', 'PATCH' => $this->updateRules($advertisementId),
-            default => [],
+        switch ($this->method()) {
+            case 'POST':  return [
+                'content' => 'required|string|min:10|max:10000',
+                'status' => 'nullable|in:active,inactive',
+                'author_id' => 'nullable|exists:users,id',
+                'telegram_author_name' => 'nullable|string|max:255',
+                'files' => 'nullable|array',
+                'files.*' => 'nullable|file|mimes:pdf,txt,jpg,jpeg,png,gif,bmp,webp,svg|max:10240'
+            ];
+
+            case 'PUT':  return [
+                'content' => 'sometimes|string|min:10|max:10000',
+                'status' => 'nullable|in:active,inactive',
+                'author_id' => 'nullable|exists:users,id',
+                'telegram_author_name' => 'nullable|string|max:255',
+                'files' => 'nullable|array',
+                'files.*' => 'nullable|file|mimes:pdf,txt,jpg,jpeg,png,gif,bmp,webp,svg|max:10240',
+                'delete_files' => 'nullable|array',
+                'delete_files.*' => 'exists:files,id'
+            ];
         };
+        return [];
     }
 
-    /**
-     * Правила для создания объявления
-     */
-    protected function storeRules(): array
-    {
-        return [
-            'content' => 'required|string|min:10|max:10000',
-            'image_path' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg',
-        ];
-    }
-
-    /**
-     * Правила для обновления объявления
-     */
-    protected function updateRules($advertisementId): array
-    {
-        return [
-            'content' => 'sometimes|string|min:10|max:10000',
-            'image_path' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg',
-        ];
-    }
-
-    /**
-     * Кастомные сообщения об ошибках
-     */
     public function messages(): array
     {
         return [
-
-            // Содержание
             'content.required' => 'Содержание объявления обязательно',
             'content.min' => 'Содержание должно содержать минимум :min символов',
             'content.max' => 'Содержание не может быть длиннее :max символов',
-
-            // Статус
             'status.in' => 'Статус должен быть active или inactive',
+            'files.*.file' => 'Загруженный файл должен быть валидным',
+            'files.*.max' => 'Размер файла не должен превышать :max KB',
+            'files.*.mimes' => 'Разрешены только файлы форматов: :values',
+            'delete_files.*.exists' => 'Выбранный файл для удаления не существует',
         ];
     }
 

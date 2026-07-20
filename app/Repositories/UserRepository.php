@@ -6,6 +6,7 @@ use App\Http\Requests\UserRequest;
 use App\Models\User;
 use App\Models\Phone;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
@@ -79,13 +80,13 @@ class UserRepository
         try {
             $validatedData = $request->validated();
 
-            if (!empty($validatedData['avatar'])) {
+            if ($request->hasFile('avatar')) {
                 if ($user->avatar_path) {
-                    Storage::disk('public')->delete($user->avatar_path);
+                    File::delete(public_path($user->avatar_path));
                 }
-                $path = 'storage/' . $request->
-                    file('avatar')->store('avatars', 'public');
-                $validatedData['avatar'] = $path;
+                $path = '/storage/'.$request->file('avatar')->store('avatars', 'public');
+                $user->avatar_path = $path;
+                unset($validatedData['avatar']);
             }
 
 

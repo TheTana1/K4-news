@@ -25,9 +25,12 @@
                                          class="rounded-circle border border-3 border-white shadow" width="120"
                                          height="120" style="object-fit: cover;">
                                 @else
-                                    <div
-                                        class="rounded-circle bg-gradient-to-r from-blue-500 to-purple-600 d-flex align-items-center justify-content-center text-white mx-auto"
-                                        style="width:120px;height:120px;font-size:3rem;">
+                                    @php
+                                        $colors = ['primary', 'secondary', 'success', 'danger', 'warning', 'info', 'dark'];
+                                        $color = $colors[abs(crc32($user->name)) % count($colors)];
+                                    @endphp
+                                    <div class="rounded-circle d-flex align-items-center justify-content-center text-white mx-auto bg-{{ $color }}"
+                                         style="width:120px;height:120px;font-size:3rem;">
                                         {{ mb_strtoupper(mb_substr($user->name, 0, 1)) }}
                                     </div>
                                 @endif

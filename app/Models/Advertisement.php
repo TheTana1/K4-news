@@ -9,13 +9,15 @@ class Advertisement extends Model
 {
     protected $fillable = [
         'content',
-        'image_path',
         'telegram_message_id',
-        'telegram_chat_id',
-        'telegram_author_id',
         'telegram_author_name',
-        'views',
         'published_at',
+        'file_path',
+        'file_name',
+        'file_size',
+        'mime_type',
+        'disk',
+        'status',
     ];
 
     protected $casts = [
@@ -23,6 +25,10 @@ class Advertisement extends Model
         'views' => 'integer',
         'price' => 'integer',
     ];
+    public function files():MorphMany
+    {
+        return $this->morphMany(File::class, 'fileable');
+    }
 
     public function comments(): MorphMany
     {

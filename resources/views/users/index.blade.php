@@ -91,7 +91,11 @@
                                         @if($user->avatar_path)
                                             <img src="{{ asset($user->avatar_path) }}" alt="{{ $user->name }}" class="rounded-circle" width="40" height="40" style="object-fit: cover;">
                                         @else
-                                            <div class="rounded-circle bg-gradient-to-r from-blue-500 to-purple-600 d-flex align-items-center justify-content-center text-white fw-bold" style="width:40px;height:40px;font-size:1.2rem;">
+                                            @php
+                                                $colors = ['primary', 'secondary', 'success', 'danger', 'warning', 'info', 'dark'];
+                                                $color = $colors[abs(crc32($user->name)) % count($colors)];
+                                            @endphp
+                                            <div class="rounded-circle bg-gradient-to-r from-blue-500 to-purple-600 d-flex align-items-center justify-content-center text-white fw-bold bg-{{ $color }}" style="width:40px;height:40px;font-size:1.2rem;">
                                                 {{ mb_strtoupper(mb_substr($user->name, 0, 1)) }}
                                             </div>
                                         @endif

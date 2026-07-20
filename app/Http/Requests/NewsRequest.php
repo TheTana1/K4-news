@@ -20,42 +20,20 @@ class NewsRequest extends FormRequest
      */
     public function rules(): array
     {
-        $newsId = $this->route('news')?->id;
+        switch ($this->method()) {
+            case 'POST':          return [
+                'content' => 'required|string|min:10|max:10000',
+                'status' => 'nullable|in:active,inactive',
+            ];
 
-        return match ($this->method()) {
-            'POST' => $this->storeRules(),
-            'PUT', 'PATCH' => $this->updateRules($newsId),
-            default => [],
+            case 'PUT': return [
+                'content' => 'sometimes|string|min:10|max:10000',
+                'status' => 'nullable|in:active,inactive',
+            ];
         };
+        return [];
     }
 
-    /**
-     * Правила для создания новости
-     */
-    protected function storeRules(): array
-    {
-        return [
-            'content' => 'required|string|min:10|max:10000',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
-            'status' => 'nullable|in:active,inactive',
-        ];
-    }
-
-    /**
-     * Правила для обновления новости
-     */
-    protected function updateRules($newsId): array
-    {
-        return [
-            'content' => 'sometimes|string|min:10|max:10000',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
-            'status' => 'nullable|in:active,inactive',
-        ];
-    }
-
-    /**
-     * Кастомные сообщения об ошибках
-     */
     public function messages(): array
     {
         return [
@@ -75,30 +53,6 @@ class NewsRequest extends FormRequest
         ];
     }
 
-    /**
-     * Подготовка данных перед валидацией
-     */
-    protected function prepareForValidation(): void
-    {
 
-        // Очищаем контент от лишних пробелов
-        if ($this->has('content')) {
-            $this->merge([
-                'content' => trim($this->content)
-            ]);
-        }
-    }
 
-    /**
-     * Дополнительная валидация после основной
-     */
-    public function withValidator($validator): void
-    {
-        $validator->after(function ($validator) {
-            // Проверяем, что контент не состоит только из пробелов
-            if ($this->has('content') && strlen(trim($this->content)) < 10) {
-                $validator->errors()->add('content', 'Содержание не может состоять только из пробелов');
-            }
-        });
-    }
 }
