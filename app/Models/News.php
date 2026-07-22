@@ -9,7 +9,6 @@ class News extends Model
 {
     protected $fillable = [
         'content',
-        'telegram_message_id',
         'telegram_author_name',
         'published_at',
         'file_path',

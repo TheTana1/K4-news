@@ -30,7 +30,7 @@ class TelegramPolling extends Command
             try {
                 $updates = TeleBot::getUpdates([
                     'offset' => $lastUpdateId + 1,
-                    'timeout' => 30,
+                    'timeout' => config('telebot.bots.default.timeout'),
                 ]);
 
                 foreach ($updates as $update) {
@@ -41,7 +41,7 @@ class TelegramPolling extends Command
                 }
 
                 if (empty($updates)) {
-                    usleep(10000);//200000
+                    usleep(200000);
                 }
             } catch (\Exception $e) {
                 $this->error('❌ Error: ' . $e->getMessage());

@@ -1,14 +1,15 @@
 <?php
+// app/Telegram/Handlers/NewNewsHandler.php
 
 namespace App\Telegram\Handlers;
 
 use App\Services\UserRegistrationService;
 use WeStacks\TeleBot\Laravel\TeleBot;
-use App\Models\Advertisement;
+use App\Models\News;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
 
-class NewAdHandler
+class NewNewsHandler
 {
     public function __construct(readonly UserRegistrationService $userRegistrationService)
     {
@@ -37,32 +38,31 @@ class NewAdHandler
             return;
         }
 
-        // ✅ ИСПРАВЛЕНО: используем $userDb->id вместо $user->id
-        session(["ad_user_{$chatId}" => [
+        session(["news_user_{$chatId}" => [
             'name' => $userDb->name,
             'telegram_id' => $telegramUser->id,
             'telegram_username' => $telegramUser->username ?? null,
-            'user_id' => $userDb->id, // ID в вашей БД
+            'user_id' => $userDb->id,
         ]]);
 
-        // Проверяем, есть ли незавершённое объявление
-        $sessionKey = "ad_{$chatId}";
+        // Проверяем, есть ли незавершённая новость
+        $sessionKey = "news_{$chatId}";
         if (session()->has($sessionKey)) {
             $data = session($sessionKey);
             if ($data['step'] == 2) {
-                return $this->askForFile($chatId);
+                return $this->askForPhotos($chatId);
             }
             if ($data['step'] == 3) {
-                return $this->confirmAd($chatId, $data);
+                return $this->confirmNews($chatId, $data);
             }
         }
 
         // Начинаем новый процесс
-        session([$sessionKey => ['step' => 1, 'files' => []]]);
+        session([$sessionKey => ['step' => 1, 'photos' => []]]);
 
         return TeleBot::sendMessage([
             'chat_id' => $chatId,
-            'text' => "📝 Напишите текст вашего объявления.\n\n" .
+            'text' => "📝 Напишите текст новости.\n\n" .
                 "Для отмены нажмите /cancel",
             'reply_markup' => [
                 'keyboard' => [
@@ -79,17 +79,17 @@ class NewAdHandler
         if (!$chatId) return;
 
         $text = $message->text ?? '';
-        $sessionKey = "ad_{$chatId}";
-        $data = session($sessionKey, ['step' => 1, 'files' => []]);
+        $sessionKey = "news_{$chatId}";
+        $data = session($sessionKey, ['step' => 1, 'photos' => []]);
 
         // Отмена
         if ($text === '❌ Отмена' || $text === '/cancel') {
             session()->forget($sessionKey);
-            session()->forget("ad_user_{$chatId}");
+            session()->forget("news_user_{$chatId}");
 
             return TeleBot::sendMessage([
                 'chat_id' => $chatId,
-                'text' => '❌ Создание объявления отменено.',
+                'text' => '❌ Создание новости отменено.',
                 'reply_markup' => ['remove_keyboard' => true],
             ]);
         }
@@ -99,7 +99,7 @@ class NewAdHandler
             if (empty($text)) {
                 return TeleBot::sendMessage([
                     'chat_id' => $chatId,
-                    'text' => '❌ Текст объявления не может быть пустым. Попробуйте снова.',
+                    'text' => '❌ Текст новости не может быть пустым. Попробуйте снова.',
                 ]);
             }
 
@@ -107,63 +107,77 @@ class NewAdHandler
             $data['step'] = 2;
             session([$sessionKey => $data]);
 
-            return $this->askForFile($chatId);
+            return $this->askForPhotos($chatId);
         }
 
+        // Шаг 2: Получаем фото
         if ($data['step'] == 2) {
-            // ✅ Добавляем обработку "Готово"
+            // ✅ Обработка кнопки "Готово"
             if ($text === '✅ Готово') {
+                if (empty($data['photos'])) {
+                    return TeleBot::sendMessage([
+                        'chat_id' => $chatId,
+                        'text' => '❌ Добавьте хотя бы одно фото или нажмите "Пропустить".',
+                    ]);
+                }
+
                 $data['step'] = 3;
                 session([$sessionKey => $data]);
-                return $this->confirmAd($chatId, $data);
+                return $this->confirmNews($chatId, $data);
             }
 
             if ($text === '⏭ Пропустить') {
-                $data['files'] = [];
+                $data['photos'] = [];
                 $data['step'] = 3;
                 session([$sessionKey => $data]);
-                return $this->confirmAd($chatId, $data);
+                return $this->confirmNews($chatId, $data);
             }
 
-            // Обрабатываем файлы...
-            $filesInfo = $this->processAllFiles($message);
+            // ✅ Проверяем наличие фото (ТОЛЬКО ФОТО!)
+            if (isset($message->photo) && !empty($message->photo)) {
+                $photoInfo = $this->processPhoto($message->photo);
 
-            if (!empty($filesInfo)) {
-                foreach ($filesInfo as $fileInfo) {
-                    $data['files'][] = $fileInfo;
+                if ($photoInfo) {
+                    $data['photos'][] = $photoInfo;
+                    session([$sessionKey => $data]);
+
+                    $count = count($data['photos']);
+                    $text = "✅ Загружено фото: {$count}\n\n";
+                    $text .= "Отправьте еще фото или нажмите 'Готово' для продолжения.";
+
+                    return TeleBot::sendMessage([
+                        'chat_id' => $chatId,
+                        'text' => $text,
+                        'reply_markup' => [
+                            'keyboard' => [
+                                [['text' => '✅ Готово']],
+                                [['text' => '⏭ Пропустить']],
+                                [['text' => '❌ Отмена']],
+                            ],
+                            'resize_keyboard' => true,
+                        ],
+                    ]);
                 }
+            }
 
-                session([$sessionKey => $data]);
-
-                $count = count($data['files']);
-                $text = "✅ Загружено файлов: {$count}\n\n";
-                $text .= "Отправьте еще файлы или нажмите 'Готово' для продолжения.";
-
+            // ❌ Если прислали документ вместо фото
+            if (isset($message->document)) {
                 return TeleBot::sendMessage([
                     'chat_id' => $chatId,
-                    'text' => $text,
-                    'reply_markup' => [
-                        'keyboard' => [
-                            [['text' => '✅ Готово']],
-                            [['text' => '⏭ Пропустить']],
-                            [['text' => '❌ Отмена']],
-                        ],
-                        'resize_keyboard' => true,
-                    ],
+                    'text' => '❌ Для новости можно отправлять только фотографии. Пожалуйста, отправьте фото.',
                 ]);
             }
 
             return TeleBot::sendMessage([
                 'chat_id' => $chatId,
-                'text' => '❌ Пожалуйста, отправьте фото, документ или нажмите "Готово".',
+                'text' => '❌ Пожалуйста, отправьте фото или нажмите "Пропустить".',
             ]);
         }
-
 
         // Шаг 3: Подтверждение
         if ($data['step'] == 3) {
             if ($text === '✅ Опубликовать') {
-                return $this->publishAd($chatId, $data);
+                return $this->publishNews($chatId, $data);
             }
 
             if ($text === '✏️ Изменить текст') {
@@ -172,7 +186,7 @@ class NewAdHandler
 
                 return TeleBot::sendMessage([
                     'chat_id' => $chatId,
-                    'text' => "✏️ Введите новый текст объявления:",
+                    'text' => "✏️ Введите новый текст новости:",
                     'reply_markup' => [
                         'keyboard' => [
                             [['text' => '❌ Отмена']],
@@ -184,17 +198,17 @@ class NewAdHandler
 
             if ($text === '❌ Отмена') {
                 session()->forget($sessionKey);
-                session()->forget("ad_user_{$chatId}");
+                session()->forget("news_user_{$chatId}");
 
                 return TeleBot::sendMessage([
                     'chat_id' => $chatId,
-                    'text' => '❌ Создание объявления отменено.',
+                    'text' => '❌ Создание новости отменено.',
                     'reply_markup' => ['remove_keyboard' => true],
                 ]);
             }
 
             // Если просто текстовое сообщение - показываем подтверждение
-            return $this->confirmAd($chatId, $data);
+            return $this->confirmNews($chatId, $data);
         }
 
         return TeleBot::sendMessage([
@@ -203,14 +217,19 @@ class NewAdHandler
         ]);
     }
 
-    private function askForFile($chatId)
+    /**
+     * Запрос на отправку фото
+     */
+    private function askForPhotos($chatId)
     {
         return TeleBot::sendMessage([
             'chat_id' => $chatId,
-            'text' => "📸 Отправьте фото или файлы для объявления.\n" .
-                "Или нажмите 'Пропустить'",
+            'text' => "📸 Отправьте фотографии для новости.\n" .
+                "Можно отправить несколько фото по одному.\n" .
+                "Когда закончите, нажмите 'Готово'",
             'reply_markup' => [
                 'keyboard' => [
+                    [['text' => '✅ Готово']],
                     [['text' => '⏭ Пропустить']],
                     [['text' => '❌ Отмена']],
                 ],
@@ -219,111 +238,88 @@ class NewAdHandler
         ]);
     }
 
-    private function confirmAd($chatId, $data)
+    /**
+     * Подтверждение новости
+     */
+    private function confirmNews($chatId, $data)
     {
-        $text = "✅ Проверьте объявление:\n\n";
+        $text = "✅ Проверьте новость:\n\n";
         $text .= "📝 Текст:\n{$data['text']}\n\n";
 
-        if (!empty($data['files']) && is_array($data['files'])) {
-            $text .= "📎 Файлы (всего: " . count($data['files']) . "):\n";
-            foreach ($data['files'] as $index => $file) {
-                $text .= "  " . ($index + 1) . ". {$file['file_name']}\n";
+        if (!empty($data['photos']) && is_array($data['photos'])) {
+            $text .= "📸 Фото (всего: " . count($data['photos']) . "):\n";
+            foreach ($data['photos'] as $index => $photo) {
+                $text .= "  " . ($index + 1) . ". {$photo['file_name']}\n";
             }
         } else {
-            $text .= "📎 Без файлов\n";
+            $text .= "📸 Без фото\n";
         }
 
         $text .= "\nПодтвердите публикацию или отредактируйте.";
 
+        $replyMarkup = [
+            'keyboard' => [
+                [
+                    ['text' => '✅ Опубликовать'],
+                    ['text' => '✏️ Изменить текст']
+                ],
+                [
+                    ['text' => '❌ Отмена']
+                ]
+            ],
+            'resize_keyboard' => true,
+        ];
+
         return TeleBot::sendMessage([
             'chat_id' => $chatId,
             'text' => $text,
-            'reply_markup' => [
-                'keyboard' => [
-                    [['text' => '✅ Опубликовать'], ['text' => '✏️ Изменить текст']],
-                    [['text' => '❌ Отмена']],
-                ],
-                'resize_keyboard' => true,
-            ],
+            'reply_markup' => $replyMarkup,
         ]);
     }
+
     /**
-     * Обработка всех файлов в сообщении
+     * Обработка фото
      */
-    private function processAllFiles($message)
-    {
-        $files = [];
-
-        // 1. Обрабатываем фото (массив фото разных размеров)
-        if (isset($message->photo) && !empty($message->photo)) {
-            // ✅ Используем array_key_last() или берем по индексу
-            $photoArray = $message->photo;
-            $lastKey = array_key_last($photoArray);
-            $photo = $photoArray[$lastKey];  // Берем самое большое фото
-
-            $fileInfo = $this->processPhoto($photo);
-            if ($fileInfo) {
-                $files[] = $fileInfo;
-            }
-        }
-
-        // 2. Обрабатываем документы (может быть несколько)
-        if (isset($message->document)) {
-            $fileInfo = $this->processDocument($message->document);
-            if ($fileInfo) {
-                $files[] = $fileInfo;
-            }
-        }
-
-
-        return $files;
-    }
     private function processPhoto($photo)
     {
         try {
+            // Берем самое большое фото (последнее в массиве)
+            if (is_array($photo) && !empty($photo)) {
+                $photoArray = $photo;
+                $lastKey = array_key_last($photoArray);
+                $photo = $photoArray[$lastKey];
+            }
+
             $fileId = $photo->file_id;
             $fileName = 'photo_' . time() . '_' . uniqid() . '.jpg';
             $mimeType = 'image/jpeg';
 
-            return $this->downloadAndSaveFile($fileId, $fileName, $mimeType);
+            return $this->downloadAndSavePhoto($fileId, $fileName, $mimeType);
         } catch (\Exception $e) {
             Log::error('Ошибка обработки фото: ' . $e->getMessage());
             return null;
         }
     }
 
-    private function processDocument($document)
-    {
-        try {
-            $fileId = $document->file_id;
-            $fileName = $document->file_name ?? 'document_' . time() . '_' . uniqid();
-            $mimeType = $document->mime_type ?? 'application/octet-stream';
-
-            return $this->downloadAndSaveFile($fileId, $fileName, $mimeType);
-        } catch (\Exception $e) {
-            Log::error('Ошибка обработки документа: ' . $e->getMessage());
-            return null;
-        }
-    }
-
-    private function downloadAndSaveFile($fileId, $fileName, $mimeType)
+    /**
+     * Скачивание и сохранение фото
+     */
+    private function downloadAndSavePhoto($fileId, $fileName, $mimeType)
     {
         try {
             $file = TeleBot::getFile(['file_id' => $fileId]);
-
-            // ✅ ИСПРАВЛЕНО: не передаем токен в url()
             $fileContent = file_get_contents($file->url(config('telebot.bots.default.token')));
 
             if ($fileContent === false) {
-                Log::error('Не удалось скачать файл: ' . $fileId);
+                Log::error('Не удалось скачать фото: ' . $fileId);
                 return null;
             }
 
-            // ✅ ИСПРАВЛЕНО: безопасное получение последнего ID
-            $lastAd = Advertisement::query()->latest('id')->first();
-            $nextId = $lastAd ? $lastAd->id + 1 : 1;
+            // Получаем следующий ID для папки
+            $lastNews = News::query()->latest('id')->first();
+            $nextId = $lastNews ? $lastNews->id + 1 : 1;
 
-            $path = 'advertisements/' . $nextId . '/' . $fileName;
+            $path = 'news/' . $nextId . '/' . $fileName;
             Storage::disk('public')->put($path, $fileContent);
 
             return [
@@ -335,54 +331,54 @@ class NewAdHandler
                 'file_id' => $fileId,
             ];
         } catch (\Exception $e) {
-            Log::error('Ошибка скачивания файла: ' . $e->getMessage());
+            Log::error('Ошибка скачивания фото: ' . $e->getMessage());
             return null;
         }
     }
 
-    private function publishAd($chatId, $data)
+    /**
+     * Публикация новости
+     */
+    private function publishNews($chatId, $data)
     {
         try {
-            $telegramUser = session("ad_user_{$chatId}") ?? null;
+            $telegramUser = session("news_user_{$chatId}") ?? null;
 
-            $ad = Advertisement::create([
+            $news = News::create([
                 'content' => $data['text'],
-                'telegram_author_name' => $telegramUser['telegram_username'] ?? null,
+                'telegram_author_name' => $telegramUser['name'] ?? null,
                 'status' => 'active',
                 'published_at' => now(),
             ]);
 
-            // ✅ ИСПРАВЛЕНО: правильный цикл для сохранения файлов
-            if (!empty($data['files']) && is_array($data['files'])) {
-                foreach ($data['files'] as $fileData) {
-                    // Проверяем, что данные файла корректны
-                    if (empty($fileData['file_path']) || empty($fileData['file_name'])) {
-                        Log::warning('Incomplete file data', ['fileData' => $fileData]);
+            // Сохраняем фото
+            if (!empty($data['photos']) && is_array($data['photos'])) {
+                foreach ($data['photos'] as $photoData) {
+                    if (empty($photoData['file_path']) || empty($photoData['file_name'])) {
                         continue;
                     }
 
-                    // Перемещаем файл в папку с ID объявления
-                    $oldPath = $fileData['file_path'];
-                    $newPath = 'advertisements/' . $ad->id . '/' . $fileData['file_name'];
+                    // Перемещаем фото в папку с ID новости
+                    $oldPath = $photoData['file_path'];
+                    $newPath = 'news/' . $news->id . '/' . $photoData['file_name'];
 
                     if (Storage::disk('public')->exists($oldPath)) {
                         Storage::disk('public')->move($oldPath, $newPath);
-                        $fileData['file_path'] = $newPath;
+                        $photoData['file_path'] = $newPath;
                     }
 
-                    // ✅ ИСПРАВЛЕНО: создаем запись для каждого файла
-                    $ad->files()->create($fileData);
+                    $news->files()->create($photoData);
                 }
             }
 
             // Очищаем сессию
-            session()->forget("ad_{$chatId}");
-            session()->forget("ad_user_{$chatId}");
+            session()->forget("news_{$chatId}");
+            session()->forget("news_user_{$chatId}");
 
             return TeleBot::sendMessage([
                 'chat_id' => $chatId,
-                'text' => "✅ Объявление успешно опубликовано!\n\n" .
-                    "🆔 ID: {$ad->id}\n" .
+                'text' => "✅ Новость успешно опубликована!\n\n" .
+                    "🆔 ID: {$news->id}\n" .
                     "📅 Дата: " . now()->format('d.m.Y H:i'),
                 'reply_markup' => [
                     'keyboard' => [
@@ -392,7 +388,7 @@ class NewAdHandler
             ]);
 
         } catch (\Exception $e) {
-            Log::error('Ошибка публикации объявления: ' . $e->getMessage(), [
+            Log::error('Ошибка публикации новости: ' . $e->getMessage(), [
                 'chat_id' => $chatId,
                 'data' => $data,
                 'trace' => $e->getTraceAsString()

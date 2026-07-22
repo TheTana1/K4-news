@@ -2,120 +2,118 @@
 
 namespace App\Services;
 
-use Illuminate\Support\Facades\DB;
+use App\Telegram\Handlers\NewNewsHandler;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Log;
 use WeStacks\TeleBot\Laravel\TeleBot;
 use App\Telegram\Handlers\StartHandler;
 use App\Telegram\Handlers\NewAdHandler;
-use App\Telegram\Handlers\NewReviewHandler;
+use App\Telegram\Handlers\ReviewHandler;
 use App\Models\User;
-use App\Models\Advertisement;
+use Illuminate\Support\Facades\Log;
 
 class TelegramBotService
 {
+    public function __construct(
+        readonly UserRegistrationService $userRegistrationService
+    ) {
+    }
+
     public function handleUpdate($update)
     {
-        $chatId = $update->message->chat->id ?? null;
         $message = $update->message ?? null;
+        if (!$message) {
+            Log::debug('No message in update');
+            return;
+        }
+
+        $chatId = $message->chat->id ?? null;
         $text = $message->text ?? '';
 
         // Регистрируем пользователя
-        if ($message) {
-            $this->registerUser($update);
-        }
+        $user = $this->userRegistrationService->registerFromTelegram($message->from);
 
         // === Обработка команд ===
-        if ($text === '/start') {
-            return (new StartHandler($this))->handle($update);
+        if ($text === '/start' || $text === '❌ Отмена' || $text === '🏠 На главную') {
+            return (new StartHandler($this->userRegistrationService))->handle($update);
         }
 
-        if ($text === '/new_ad' || $text === '📝 Создать объявление') {
-            return (new NewAdHandler($this))->handle($update);
+        if ($text === '/new_ad' || $text === '📝 Новое объявление') {
+            return (new NewAdHandler($this->userRegistrationService))->handle($update);
         }
 
-        if ($text === '/new_review' || $text === '⭐ Оставить отзыв') {
-            return (new NewReviewHandler($this))->handle($update);
+        if ($text === '/new_news' || $text === '📝 Новая новость') {
+            return app(NewNewsHandler::class)->handle($update);
         }
 
         if ($text === '/help' || $text === '❓ Помощь') {
             return $this->sendHelp($chatId);
         }
 
-        if ($text === '📋 Мои объявления') {
-            return $this->showMyAds($chatId);
-        }
+        // === Пошаговые обработчики (состояния) ===
 
-        // === Пошаговые обработчики ===
+        // 1. Проверяем активную сессию объявления
         if ($chatId && $this->isInSession($chatId, 'ad')) {
-            return (new NewAdHandler($this))->handleMessage($update, $message);
+            return (new NewAdHandler($this->userRegistrationService))->handleMessage($message);
         }
 
+        // 2. Проверяем активную сессию новости
+        if ($chatId && $this->isInSession($chatId, 'news')) {
+            return (new NewNewsHandler($this->userRegistrationService))->handleMessage($message);
+        }
+
+        // 3. Проверяем активную сессию отзыва
         if ($chatId && $this->isInSession($chatId, 'review')) {
-            return (new NewReviewHandler($this))->handleMessage($update, $message);
+            return (new ReviewHandler(
+                $this->userRegistrationService,
+                app(ReviewParserService::class)
+            ))->handle($update);
         }
 
-        // === Обработка файлов ===
-        if ($message && ($message->photo ?? false || $message->document ?? false)) {
-            return $this->handleFileUpload($chatId);
+        // === Обработка отзывов (проверяем наличие звёзд в тексте) ===
+        if (!empty($text) && $this->hasStars($text)) {
+            Log::info('⭐ Stars detected in message, processing as review', [
+                'chat_id' => $chatId,
+                'text_preview' => mb_substr($text, 0, 50)
+            ]);
+
+            return (new ReviewHandler(
+                $this->userRegistrationService,
+                new ReviewParserService()
+            ))->handle($update);
         }
 
         // === Ответ по умолчанию ===
         return $this->sendDefaultMessage($chatId);
     }
 
-    public function registerUser($update)
+    /**
+     * Проверка наличия звёзд в тексте
+     */
+    private function hasStars($text): bool
     {
-        DB::beginTransaction();
-        try {
-            $telegramUser = $update->message->from ?? null;
-
-            if ($telegramUser && isset($telegramUser->id)) {
-                User::updateOrCreate(
-                    ['telegram_id' => $telegramUser->id],
-                    [
-                        'name' => trim(($telegramUser->first_name ?? $telegramUser->id) . ' ' . ($telegramUser->last_name ?? '')),
-                        'email' => trim(($telegramUser->first_name ?? $telegramUser->id) . ($telegramUser->last_name ?? '')) . '@email.com',
-                        'telegram_username' => $telegramUser->username,
-                        'is_active_in_group' => true,
-                        'password' => Hash::make($telegramUser->username ?? $telegramUser->id),
-                        'role_id' => 3,
-                    ]
-                );
-                DB::commit();
-                Log::info('User created successfully', ['telegramUser_id' => $telegramUser->id]);
-                return true;
-            }
-        } catch (\Exception $exception) {
-            DB::rollBack();
-            Log::critical('Failed to create user: ' . $exception->getMessage(), [
-                'telegramUser_id' => $telegramUser->id ?? null,
-                'trace' => $exception->getTraceAsString()
-            ]);
-            return false;
-        }
-        return false;
+        return preg_match('/[★☆⭐]/', $text);
     }
 
-    public function showMainMenu($chatId)
-    {
-        return (new StartHandler($this))->showMainMenu($chatId);
-    }
-
-    private function isInSession($chatId, $type)
+    /**
+     * Проверка наличия активной сессии
+     */
+    private function isInSession($chatId, $type): bool
     {
         return session()->has("{$type}_{$chatId}");
     }
 
+    /**
+     * Отправка справки
+     */
     private function sendHelp($chatId)
     {
         if (!$chatId) return;
 
         $text = "📖 Помощь по боту:\n\n";
         $text .= "📝 /new_ad - Создать объявление\n";
-        $text .= "⭐ /new_review - Оставить отзыв\n";
-        $text .= "📋 Мои объявления - Просмотр моих объявлений\n";
+        $text .= "📝 /new_news - Создать новость\n";
         $text .= "❓ /help - Эта справка\n\n";
+        $text .= "⭐ Отправьте сообщение со звёздами (★) для создания отзыва\n\n";
         $text .= "Также вы можете использовать кнопки в меню.";
 
         return TeleBot::sendMessage([
@@ -123,88 +121,26 @@ class TelegramBotService
             'text' => $text,
             'reply_markup' => [
                 'keyboard' => [
-                    [['text' => '📝 Создать объявление']],
-                    [['text' => '⭐ Оставить отзыв']],
+                    [['text' => '📝 Новое объявление']],
+                    [['text' => '📝 Новая новость']],
                     [['text' => '❓ Помощь']],
-                    [['text' => '📋 Мои объявления']],
                 ],
                 'resize_keyboard' => true,
             ],
         ]);
     }
 
+    /**
+     * Сообщение по умолчанию
+     */
     private function sendDefaultMessage($chatId)
     {
         if (!$chatId) return;
 
         return TeleBot::sendMessage([
             'chat_id' => $chatId,
-            'text' => "👋 Используйте /start для начала работы или /help для помощи.",
-        ]);
-    }
-
-    private function handleFileUpload($chatId)
-    {
-        if (!$chatId) return;
-
-        return TeleBot::sendMessage([
-            'chat_id' => $chatId,
-            'text' => "📎 Файл получен!\n\n" .
-                "Используйте /new_ad для создания объявления с файлом.",
-        ]);
-    }
-
-    private function showMyAds($chatId)
-    {
-        if (!$chatId) return;
-
-        $user = User::where('telegram_id', $chatId)->first();
-        if (!$user) {
-            return TeleBot::sendMessage([
-                'chat_id' => $chatId,
-                'text' => "⚠️ Пользователь не найден. Используйте /start для регистрации.",
-            ]);
-        }
-
-        $ads = Advertisement::where('telegram_author_name', $user->name)
-            ->orderBy('created_at', 'desc')
-            ->limit(10)
-            ->get();
-
-        if ($ads->isEmpty()) {
-            return TeleBot::sendMessage([
-                'chat_id' => $chatId,
-                'text' => "📋 У вас пока нет объявлений.\n\n" .
-                    "Создайте первое объявление через /new_ad",
-                'reply_markup' => [
-                    'keyboard' => [
-                        [['text' => '📝 Создать объявление']],
-                        [['text' => '⭐ Оставить отзыв']],
-                        [['text' => '❓ Помощь']],
-                    ],
-                    'resize_keyboard' => true,
-                ],
-            ]);
-        }
-
-        $text = "📋 Ваши объявления (последние 10):\n\n";
-        foreach ($ads as $index => $ad) {
-            $text .= ($index + 1) . ". " . mb_substr($ad->content, 0, 50) . "...\n";
-            $text .= "   ID: {$ad->id} | Просмотров: {$ad->views}\n";
-            $text .= "   Создано: " . $ad->created_at->format('d.m.Y H:i') . "\n\n";
-        }
-
-        return TeleBot::sendMessage([
-            'chat_id' => $chatId,
-            'text' => $text,
-            'reply_markup' => [
-                'keyboard' => [
-                    [['text' => '📝 Создать объявление']],
-                    [['text' => '⭐ Оставить отзыв']],
-                    [['text' => '❓ Помощь']],
-                ],
-                'resize_keyboard' => true,
-            ],
+            'text' => "👋 Используйте /start для начала работы или /help для помощи.\n\n" .
+                "⭐ Отправьте сообщение со звёздами (★) для создания отзыва",
         ]);
     }
 }

@@ -2,39 +2,41 @@
 
 namespace App\Telegram\Handlers;
 
-use App\Services\TelegramBotService;
+use App\Services\UserRegistrationService;
 use WeStacks\TeleBot\Laravel\TeleBot;
+use App\Models\User;
 
 class StartHandler
 {
-    public function __construct(private readonly TelegramBotService $telegramBotService)
+    public function __construct(readonly UserRegistrationService $userRegistrationService)
     {
     }
 
     public function handle($update)
     {
-        $chatId = $update->message->chat->id ?? null;
-        if (empty($chatId)) return false;
+        $message = $update->message;
+        $chatId = $message->chat->id ?? null;
+        if (!$chatId) return;
 
-        $this->telegramBotService->registerUser($update);
+        $telegramUser = $message->from ?? null;
 
-        return $this->showMainMenu($chatId);
-    }
+        $this->userRegistrationService->registerFromTelegram($telegramUser->id);
 
-    public function showMainMenu($chatId)
-    {
-        $text = "🏠 Главное меню\n\n";
-        $text .= "Выберите действие:";
+        $text = "👋 Привет!\n\n";
+        $text .= "Я бот для публикации объявлений и отзывов.\n\n";
+        $text .= "📌 Доступные команды:\n";
+        $text .= "/new_ad - Создать объявление\n";
+        $text .= "/new_news - Создать новость\n";
+        $text .= "/help - Помощь\n";
 
         return TeleBot::sendMessage([
             'chat_id' => $chatId,
             'text' => $text,
             'reply_markup' => [
                 'keyboard' => [
-                    [['text' => '📝 Создать объявление']],
-                    [['text' => '⭐ Оставить отзыв']],
+                    [['text' => '📝 Новое объявление']],
+                    [['text' => '📝 Новая новость']],
                     [['text' => '❓ Помощь']],
-                    [['text' => '📋 Мои объявления']],
                 ],
                 'resize_keyboard' => true,
             ],
