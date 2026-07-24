@@ -12,10 +12,9 @@
     </nav>
 
     <div class="row g-4">
-        <!-- Три колонки сверху -->
         <div class="col-lg-12">
             <div class="row g-4">
-                <!-- Колонка 1: Аватар + кнопки -->
+                <!-- Колонка 1: Аватар -->
                 <div class="col-md-4">
                     <div class="card h-100">
                         <div class="card-body text-center">
@@ -38,11 +37,11 @@
                             <h4 class="mb-1">{{ $user->name }}</h4>
                             @if($user->telegram_username)
                                 <p class="text-muted small">
-                                    <i class="bi bi-telegram me-1"></i> @ {{ $user->telegram_username }}
+                                    <i class="bi bi-telegram me-1"></i> {{ '@'.$user->telegram_username }}
                                 </p>
                             @endif
 
-                            <div class="d-flex justify-content-center gap-2 flex-wrap mb-3">
+                            <div class="info-item">
                                 @if($user->role)
                                     @php
                                         $roleColors = [
@@ -51,7 +50,7 @@
                                             'user' => 'bg-gray-100 text-gray-800',
                                         ];
                                     @endphp
-                                    <span class="badge {{ $roleColors[$user->role->slug] ?? $roleColors['user'] }}">
+                                    <span class="{{ $roleColors[$user->role->slug] ?? $roleColors['user'] }}">
                                         {{ $user->role->label }}
                                     </span>
                                 @endif

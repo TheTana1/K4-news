@@ -42,7 +42,7 @@
                         <div class="mb-3">
                             <label for="files" class="form-label">Прикрепить файлы</label>
                             <input type="file" name="files[]" id="files" multiple
-                                   accept=".jpg,.jpeg,.png,.gif,.bmp,.webp,.svg"
+                                   accept="image/*"
                                    class="form-control @error('files.*') is-invalid @enderror">
                             <small class="text-muted">Можно загрузить несколько файлов изображений (JPG, PNG, GIF, BMP, WEBP, SVG)</small>
                             @error('files.*')

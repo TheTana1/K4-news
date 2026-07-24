@@ -7,17 +7,11 @@ use Illuminate\Validation\Rule;
 
 class NewsRequest extends FormRequest
 {
-    /**
-     * Определяет, авторизован ли пользователь для выполнения запроса
-     */
     public function authorize(): bool
     {
-        return true; // Разрешаем всем авторизованным, можно добавить проверку прав
+        $user = auth()->user();
+        return $user->isAdmin()||$user->isModerator();
     }
-
-    /**
-     * Правила валидации в зависимости от метода запроса
-     */
     public function rules(): array
     {
         switch ($this->method()) {
@@ -38,17 +32,16 @@ class NewsRequest extends FormRequest
     {
         return [
 
-            // Содержание
+
             'content.required' => 'Содержание новости обязательно',
             'content.min' => 'Содержание должно содержать минимум :min символов',
             'content.max' => 'Содержание не может быть длиннее :max символов',
+            'content.string' => 'Новость должна быть заполнена текстом',
 
-            // Изображение
             'image.image' => 'Файл должен быть изображением',
             'image.mimes' => 'Допустимые форматы: jpeg, png, jpg, gif, webp',
             'image.max' => 'Размер файла не должен превышать 2MB',
 
-            // Статус
             'status.in' => 'Статус должен быть active или inactive',
         ];
     }

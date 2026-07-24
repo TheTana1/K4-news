@@ -21,16 +21,10 @@ class AdvertisementRepository
             ->paginate($perPage)
             ->withQueryString();
     }
-    final public function findWithRelations(int $id): ?Advertisement
-    {
-        return Advertisement::with(['author', 'files', 'comments.user'])
-            ->find($id);
-    }
 
     final public function store(AdvertisementRequest $request): Advertisement
     {
         DB::beginTransaction();
-
         try {
             $validatedData = $request->validated();
             if (auth()->check() && !isset($validatedData['author_id'])) {
@@ -43,7 +37,7 @@ class AdvertisementRepository
 
             DB::commit();
 
-            Log::info('Advertisement created successfully', [
+            Log::info('Объявление успешно создано: ', [
                 'advertisement_id' => $advertisement->id,
                 'user_id' => auth()->id()
             ]);
@@ -52,7 +46,7 @@ class AdvertisementRepository
 
         } catch (\Exception $exception) {
             DB::rollBack();
-            Log::critical('Failed to create advertisement: ' . $exception->getMessage(), [
+            Log::error('Ошибка при создании объявления: ' . $exception->getMessage(), [
                 'trace' => $exception->getTraceAsString()
             ]);
             throw new BadRequestHttpException('Ошибка при создании объявления: ' . $exception->getMessage());
@@ -64,17 +58,16 @@ class AdvertisementRepository
 
         try {
             $validatedData = $request->validated();
-            $advertisement->update($validatedData);
             if ($request->hasFile('files')) {
                 $this->uploadFiles($request->file('files'), $advertisement);
             }
             if ($request->has('delete_files') && is_array($request->delete_files)) {
                 $this->deleteFiles($advertisement, $request->delete_files);
             }
-
+            $advertisement->update($validatedData);
             DB::commit();
 
-            Log::info('Advertisement updated successfully', [
+            Log::info('Объявление успешно обновлено:', [
                 'advertisement_id' => $advertisement->id,
                 'user_id' => auth()->id()
             ]);
@@ -83,7 +76,7 @@ class AdvertisementRepository
 
         } catch (\Exception $exception) {
             DB::rollBack();
-            Log::critical('Failed to update advertisement: ' . $exception->getMessage(), [
+            Log::critical('Ошибка при обновлении объявления: ' . $exception->getMessage(), [
                 'advertisement_id' => $advertisement->id,
                 'trace' => $exception->getTraceAsString()
             ]);
@@ -100,7 +93,7 @@ class AdvertisementRepository
 
             DB::commit();
 
-            Log::info('Advertisement deleted successfully', [
+            Log::info('Объявление успешно удалено:', [
                 'advertisement_id' => $advertisement->id
             ]);
 
@@ -108,7 +101,7 @@ class AdvertisementRepository
 
         } catch (\Exception $exception) {
             DB::rollBack();
-            Log::critical('Failed to delete advertisement: ' . $exception->getMessage(), [
+            Log::critical('Ошибка при удалении объявления: ' . $exception->getMessage(), [
                 'advertisement_id' => $advertisement->id,
                 'trace' => $exception->getTraceAsString()
             ]);
@@ -118,7 +111,7 @@ class AdvertisementRepository
     protected function uploadFiles(array $files, Advertisement $advertisement): void
     {
         foreach ($files as $file) {
-            if ($file->isValid()) {
+
                 $path = $file->store('advertisements/' . $advertisement->id, 'public');
 
                 $advertisement->files()->create([
@@ -128,7 +121,7 @@ class AdvertisementRepository
                     'mime_type' => $file->getMimeType(),
                     'disk' => 'public'
                 ]);
-            }
+
         }
     }
 
@@ -146,28 +139,6 @@ class AdvertisementRepository
             Storage::disk($file->disk)->delete($file->file_path);
             $file->delete();
         }
-    }
-
-    final public function search(string $query, int $perPage = self::PER_PAGE)
-    {
-        return Advertisement::query()
-            ->with(['author', 'files'])
-            ->where('title', 'like', "%{$query}%")
-            ->orWhere('content', 'like', "%{$query}%")
-            ->orWhere('telegram_author_name', 'like', "%{$query}%")
-            ->latest()
-            ->paginate($perPage)
-            ->withQueryString();
-    }
-
-    final public function getActive(int $perPage = self::PER_PAGE)
-    {
-        return Advertisement::query()
-            ->with(['author', 'files'])
-            ->where('status', 'active')
-            ->latest()
-            ->paginate($perPage)
-            ->withQueryString();
     }
 }
 

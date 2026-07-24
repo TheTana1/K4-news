@@ -34,7 +34,6 @@ class UserRepository
 
         try {
             $validatedData = $request->validated();
-
             if ($request->hasFile('avatar_path')) {
                 $path = $request->file('avatar_path')->store('avatars', 'public');
                 $validatedData['avatar_path'] = 'storage/' . $path;
@@ -46,8 +45,6 @@ class UserRepository
 
             // Создаем пользователя
             $user = User::query()->create($validatedData);
-
-            // Сохраняем телефоны, если есть
             if ($request->has('phones')) {
                 foreach ($request->phones as $phoneData) {
                     if (!empty($phoneData['number'])) {

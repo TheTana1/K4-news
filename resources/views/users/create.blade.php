@@ -23,7 +23,7 @@
                         <div class="row mb-4 align-items-center">
                             <div class="col-auto">
                                 <div class="position-relative d-inline-block">
-                                    <div id="avatarPreview" class="rounded-circle bg-gradient-to-r from-blue-500 to-purple-600 d-flex align-items-center justify-content-center text-white" style="width:80px;height:80px;font-size:2rem;background-size:cover;background-position:center;">
+                                    <div id="avatarPreview" class="rounded-circle d-flex align-items-center justify-content-center text-white" style="width:80px;height:80px;font-size:2rem;background-size:cover;background-position:center; background-color: #0D6EFD">
                                         U
                                     </div>
                                     <label for="avatar" class="position-absolute bottom-0 end-0 bg-white rounded-circle p-1 shadow-sm cursor-pointer" style="transform:translate(10%,10%);">

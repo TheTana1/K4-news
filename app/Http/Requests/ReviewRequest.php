@@ -7,49 +7,30 @@ use Illuminate\Validation\Rule;
 
 class ReviewRequest extends FormRequest
 {
-    /**
-     * Определяет, авторизован ли пользователь для выполнения запроса
-     */
     public function authorize(): bool
     {
-        return true; // Разрешаем всем, можно добавить проверку auth()->check() если нужно
+        $user = auth()->user();
+        return $user->isAdmin() || $user->isModerator();
     }
 
-    /**
-     * Правила валидации в зависимости от метода запроса
-     */
     public function rules(): array
     {
-        return match ($this->method()) {
-            'POST' => $this->storeRules(),
-            'PUT', 'PATCH' => $this->updateRules(),
-            default => [],
+        switch ($this->method()) {
+            case 'POST':
+                return [
+                    'content' => 'required|string|min:3|max:5000',
+                    'rating' => 'nullable|integer|min:1|max:5',
+                ];
+
+            case 'PUT':
+                return [
+                    'content' => 'sometimes|string|min:3|max:5000',
+                    'rating' => 'nullable|integer|min:1|max:5',
+                ];
         };
+        return [];
     }
 
-
-    protected function storeRules(): array
-    {
-        return [
-            'content' => 'required|string|min:3|max:5000',
-            'rating' => 'nullable|integer|min:1|max:5',
-            'author_name' => [
-                'nullable',
-                'string',
-                'max:255',
-                'required',
-            ],
-        ];
-    }
-
-    protected function updateRules(): array
-    {
-        return [
-            'content' => 'sometimes|string|min:3|max:5000',
-            'rating' => 'nullable|integer|min:1|max:5',
-            'author_name' => 'nullable|string|max:255',
-        ];
-    }
 
     public function messages(): array
     {
@@ -57,22 +38,20 @@ class ReviewRequest extends FormRequest
             'content.required' => 'Текст отзыва обязателен для заполнения',
             'content.min' => 'Отзыв должен содержать минимум :min символа',
             'content.max' => 'Отзыв не может быть длиннее :max символов',
+            'content.string' => 'Отзыв должен быть заполнен текстом',
 
             'rating.integer' => 'Оценка должна быть числом',
             'rating.min' => 'Оценка должна быть не меньше :min',
             'rating.max' => 'Оценка должна быть не больше :max',
 
-            'author_name.required' => 'Имя обязательно для заполнения',
-            'author_name.max' => 'Имя не может быть длиннее :max символов',
         ];
     }
 
     protected function prepareForValidation(): void
     {
-        // Приводим рейтинг к целому числу
         if ($this->has('rating') && $this->rating !== null) {
             $this->merge([
-                'rating' => (int) $this->rating
+                'rating' => (int)$this->rating
             ]);
         }
 

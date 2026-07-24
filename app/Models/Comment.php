@@ -38,23 +38,6 @@ class Comment extends Model
         return $this->commentable->content;
     }
 
-//    public function getSourceTypeAttribute(): string
-//    {
-//        if (!$this->commentable) {
-//            return 'Удалено';
-//        }
-//
-//        return class_basename($this->commentable);
-//    }
-//
-//    public function getSourceIdAttribute(): int
-//    {
-//        if(!$this->commentable){
-//            return 'Удалено';
-//        }
-//        return $this->commentable->id;
-//    }
-
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
