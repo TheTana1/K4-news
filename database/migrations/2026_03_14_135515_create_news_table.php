@@ -14,12 +14,9 @@ return new class extends Migration
         Schema::create('news', function (Blueprint $table) {
             $table->id();
             $table->text('content');
-            $table->timestamp('published_at')->nullable();
-            $table->string('image_path')->nullable();
-            $table->string('telegram_message_id')->nullable()->unique();
-            $table->string('telegram_chat_id')->nullable();
-            $table->string('telegram_author_id')->nullable();
             $table->string('telegram_author_name')->nullable();
+            $table->string('status')->default('active');
+            $table->timestamp('published_at')->nullable();
             $table->timestamps();
         });
     }

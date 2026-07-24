@@ -31,7 +31,7 @@ class UserFactory extends Factory
             'remember_token' => Str::random(10),
             'role_id' =>3,
             'birthday' =>$this->faker->date(),
-            'gender' =>$this->faker->randomNumber(1),
+            'gender' =>1,
             'is_active_in_group' => 0
         ];
     }

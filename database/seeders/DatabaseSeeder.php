@@ -26,6 +26,7 @@ class DatabaseSeeder extends Seeder
             'password' => 'password',
             'role_id' =>1,
             'gender' =>1,
+
         ]);
 
 

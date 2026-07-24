@@ -23,22 +23,31 @@
                         <div class="row mb-4 align-items-center">
                             <div class="col-auto">
                                 <div class="position-relative d-inline-block">
-                                    <div id="avatarPreview" class="rounded-circle d-flex align-items-center justify-content-center text-white" style="width:80px;height:80px;font-size:2rem;background-size:cover;background-position:center; background-color: #0D6EFD">
-                                        U
+                                    <div id="avatarPreview" class="rounded-circle d-flex align-items-center justify-content-center text-white"
+                                         style="width:80px;height:80px;font-size:2rem;background-size:cover;background-position:center; background-color: #0D6EFD">
+                                        <i class="bi bi-person-add"></i>
                                     </div>
-                                    <label for="avatar" class="position-absolute bottom-0 end-0 bg-white rounded-circle p-1 shadow-sm cursor-pointer" style="transform:translate(10%,10%);">
-                                        <!-- SVG иконка камеры вместо bi-camera -->
+                                    <label for="avatar"
+                                           class="position-absolute bottom-0 end-0 bg-white rounded-circle p-1 shadow-sm d-flex align-items-center justify-content-center"
+                                           style="cursor:pointer; transform:translate(10%,10%); width:36px; height:36px;">
                                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-600">
                                             <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
                                             <circle cx="12" cy="13" r="4" />
                                         </svg>
                                     </label>
-                                    <input type="file" id="avatar" name="avatar_path" class="d-none" accept="image/*">
+                                    <input type="file" id="avatar" name="avatar" class="d-none" accept="image/*">
                                 </div>
                             </div>
                             <div class="col">
                                 <small class="text-muted">Нажмите на иконку камеры, чтобы загрузить фото</small>
+                                @error('avatar')
+                                <div class="text-danger small mt-1">
+                                    <i class="bi bi-exclamation-triangle-fill me-1"></i>
+                                    {{ $message }}
+                                </div>
+                                @enderror
                             </div>
+
                         </div>
 
                         <!-- Основные поля -->
@@ -93,11 +102,10 @@
                                 </select>
                             </div>
                         </div>
-
-                        <!-- Телефоны (Alpine) -->
                         <div class="mt-3" x-data="{ phones: [{ number: '', primary: false }] }">
-                            <label class="form-label">Телефоны</label>
+                            <label class="form-label">Телефоны <span class="text-danger">*</span></label>
                             <template x-for="(phone, index) in phones" :key="index">
+
                                 <div class="input-group mb-2">
                                     <input type="text" x-model="phone.number" :name="`phones[${index}][number]`"
                                            class="form-control" placeholder="+7 (999) 123-45-67">
@@ -151,7 +159,8 @@
             // Предпросмотр аватара
             document.getElementById('avatar').addEventListener('change', function(e) {
                 const file = e.target.files[0];
-                if (file) {
+                const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'];
+                if (file && validTypes.includes(file.type)) {
                     const reader = new FileReader();
                     reader.onload = function(e) {
                         const preview = document.getElementById('avatarPreview');

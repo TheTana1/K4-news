@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('name');
             $table->string('email')->unique();
             $table->string('password');
-            $table->foreignId('role_id')->nullable()->constrained()->nullOnDelete();
+            //$table->foreignId('role_id')->nullable()->constrained()->nullOnDelete();
             $table->date('birthday')->nullable();
             $table->boolean('gender')->nullable()->comment('0 - мужской, 1 - женский');
             $table->boolean('is_active_in_group')->nullable();
