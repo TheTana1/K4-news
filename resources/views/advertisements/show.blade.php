@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', Str::limit($advertisement->title, 30))
+@section('title', Str::limit($advertisement->content, 30))
 
 @section('content')
     <nav aria-label="breadcrumb">

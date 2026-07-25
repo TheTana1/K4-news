@@ -2,7 +2,10 @@
 
 namespace App\Repositories;
 
+use App\Http\Requests\CommentRequest;
+
 use App\Models\Comment;
+
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -10,33 +13,25 @@ use Illuminate\Support\Facades\Log;
 class CommentRepository
 {
 
-    public function create(array $data, $parent): Comment
+    public function store(CommentRequest $request)
     {
-        DB::beginTransaction();
 
-        try {
-            $comment = new Comment();
-            $comment->comment = $data['comment'];
-            $comment->user_id = Auth::id();
-            $comment->commentable()->associate($parent);
-            $comment->save();
+        $validated = $request->validated();
 
-            DB::commit();
-
-            Log::info('Comment created successfully', [
-                'comment_id' => $comment->id,
-                'user_id' => $comment->user_id
-            ]);
-
-            return $comment;
-
-        } catch (\Exception $exception) {
-            DB::rollBack();
-            Log::critical('Failed to create comment: ' . $exception->getMessage(), [
-                'trace' => $exception->getTraceAsString()
-            ]);
-            throw $exception;
-        }
+        $model = match ($request->commentable_type) {
+            'advertisement' => \App\Models\Advertisement::findOrfail($request->commentable_id),
+            'news' => \App\Models\News::findOrfail($request->commentable_id),
+            'review' => \App\Models\Review::findOrFail($request->commentable_id),
+            default => null
+        };
+        $comment = Comment::query()->create([
+            'user_id' => Auth::id(),
+            'comment' => $validated['comment'],
+            'commentable_id' => $validated['commentable_id'],
+            'commentable_type' => $validated['commentable_type'],
+        ]);
+        $model->comments()->save($comment);
+        return $comment;
     }
 
     public function update(Comment $comment, array $data): bool

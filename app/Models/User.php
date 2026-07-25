@@ -23,6 +23,9 @@ class User extends Authenticatable
         'is_active_in_group',
         'telegram_id',
         'telegram_username',
+        'is_primary',
+        'phone_number',
+        'phone_number',
     ];
 
     protected $hidden = [

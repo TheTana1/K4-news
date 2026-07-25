@@ -11,6 +11,7 @@ class DashboardController extends Controller
 {
     public function index()
     {
+
         $stats = [
             'ads_count' => Advertisement::count(),
             'news_count' => News::count(),

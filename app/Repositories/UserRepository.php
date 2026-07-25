@@ -2,26 +2,33 @@
 
 namespace App\Repositories;
 
+use App\Filters\UserFilter;
 use App\Http\Requests\UserRequest;
 use App\Models\User;
 use App\Models\Phone;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
 class UserRepository
 {
     private const USER_PER_PAGE = 10;
     private const COMMENTS_PER_PAGE = 10;
-    final public function paginate(int $countPaginate=self::USER_PER_PAGE)
+    public function __construct(readonly UserFilter $userFilter)
     {
-        return User::query()->with('role')->paginate($countPaginate)->withQueryString();
     }
-    final public function paginateUserComments(User $user,int $countPaginate = self::COMMENTS_PER_PAGE)
+
+    final public function paginate(Request $request, int $countPaginate=self::USER_PER_PAGE)
     {
+        $query = User::query()->with('role');
+        return $this->userFilter->apply($request,$query)->paginate($countPaginate)->withQueryString();
+    }
+    final public function getUser(User $user,int $countPaginate = self::COMMENTS_PER_PAGE)
+    {
+        $user->load(['role', 'phones']);
         return $user->comments()
             ->with(['commentable'])
             ->latest()
@@ -58,13 +65,13 @@ class UserRepository
 
             DB::commit();
 
-            Log::info('User created successfully', ['user_id' => $user->id, 'email' => $user->email]);
+            Log::info('Пользователь успешно создан: ', ['user_id' => $user->id, 'email' => $user->email]);
 
             return $user->load('phones', 'role');
 
         } catch (\Exception $exception) {
             DB::rollBack();
-            Log::critical('Failed to create user: ' . $exception->getMessage(), [
+            Log::critical('Ошибка при создании пользователя: ' . $exception->getMessage(), [
                 'trace' => $exception->getTraceAsString()
             ]);
             throw new BadRequestHttpException('Ошибка при создании пользователя: ' . $exception->getMessage());
@@ -75,41 +82,40 @@ class UserRepository
     {
         DB::beginTransaction();
         try {
-            $validatedData = $request->validated();
-
+            $validatedData = $request->validated();;
             if ($request->hasFile('avatar')) {
                 if ($user->avatar_path) {
                     File::delete(public_path($user->avatar_path));
                 }
-                $path = '/storage/'.$request->file('avatar')->store('avatars', 'public');
+                $path = '/storage/' . $request->file('avatar')->store('avatars', 'public');
                 $user->avatar_path = $path;
                 unset($validatedData['avatar']);
             }
-
-
             if (!empty($validatedData['password'])) {
-
                 $validatedData['password'] = Hash::make($validatedData['password']);
-
             }
-
-            // Обновляем пользователя
             $user->update($validatedData);
-
-            // Обновляем телефоны, если есть
             if ($request->has('phones') && is_array($request->phones)) {
-                $this->syncPhones($user, $request->phones);
+                $user->phones()->delete();
+                $phones = $request->phones;
+                foreach ($phones as $phoneData) {
+                    if (empty($phoneData['number'])) {
+                        continue;
+                    }
+                    $user->phones()->updateOrCreate([
+                        'phone_number' => $phoneData['number'],
+                        'is_primary' => $phoneData['is_primary'] ?? false,
+                    ]);
+                }
             }
-
             DB::commit();
+            Log::info('Пользователь успешно обновлён: ', ['user_id' => $user->id]);
 
-            Log::info('User updated successfully', ['user_id' => $user->id]);
-
-            return $user->load('phones', 'role');
+            return $user->load(['role', 'phones']);
 
         } catch (\Exception $exception) {
             DB::rollBack();
-            Log::critical('Failed to update user: ' . $exception->getMessage(), [
+            Log::critical('Ошибка при обновлении пользователя: ' . $exception->getMessage(), [
                 'user_id' => $user->id,
                 'trace' => $exception->getTraceAsString()
             ]);
@@ -117,15 +123,11 @@ class UserRepository
         }
     }
 
-    /**
-     * Удаление пользователя
-     */
     final public function destroy(User $user): bool
     {
         DB::beginTransaction();
 
         try {
-            // Удаляем аватар, если есть
             if ($user->avatar_path && file_exists(public_path($user->avatar_path))) {
                 unlink(public_path($user->avatar_path));
             }
@@ -135,13 +137,13 @@ class UserRepository
 
             DB::commit();
 
-            Log::info('User deleted successfully', ['user_id' => $user->id]);
+            Log::info('Пользователь успешно удалён: ', ['user_id' => $user->id]);
 
             return $result;
 
         } catch (\Exception $exception) {
             DB::rollBack();
-            Log::critical('Failed to delete user: ' . $exception->getMessage(), [
+            Log::critical('Ошибка при удалении пользователя: ' . $exception->getMessage(), [
                 'user_id' => $user->id,
                 'trace' => $exception->getTraceAsString()
             ]);
@@ -149,70 +151,4 @@ class UserRepository
         }
     }
 
-    /**
-     * Синхронизация телефонов пользователя
-     */
-    protected function syncPhones(User $user, array $phones): void
-    {
-        $existingIds = [];
-
-        foreach ($phones as $phoneData) {
-            if (empty($phoneData['number'])) {
-                continue;
-            }
-
-            if (!empty($phoneData['id'])) {
-                // Обновляем существующий телефон
-                $phone = Phone::find($phoneData['id']);
-                if ($phone && $phone->user_id == $user->id) {
-                    $phone->update([
-                        'phone_number' => $phoneData['number'],
-                        'is_primary' => $phoneData['is_primary'] ?? false,
-                    ]);
-                    $existingIds[] = $phone->id;
-                }
-            } else {
-                // Создаём новый телефон
-                $phone = $user->phones()->create([
-                    'phone_number' => $phoneData['number'],
-                    'is_primary' => $phoneData['is_primary'] ?? false,
-                ]);
-                $existingIds[] = $phone->id;
-            }
-        }
-
-        // Удаляем телефоны, которых нет в массиве
-        $user->phones()->whereNotIn('id', $existingIds)->delete();
-    }
-
-    /**
-     * Получить пользователя с отношениями
-     */
-    final public function findWithRelations(int $id): ?User
-    {
-        return User::with(['phones', 'role'])->find($id);
-    }
-
-    /**
-     * Получить всех пользователей с пагинацией
-     */
-    final public function getAllPaginated(int $perPage = 15)
-    {
-        return User::with('role')
-            ->orderBy('created_at', 'desc')
-            ->paginate($perPage);
-    }
-
-    /**
-     * Поиск пользователей
-     */
-    final public function search(string $query, int $perPage = 15)
-    {
-        return User::with('role')
-            ->where('name', 'like', "%{$query}%")
-            ->orWhere('email', 'like', "%{$query}%")
-            ->orWhere('telegram_username', 'like', "%{$query}%")
-            ->orderBy('created_at', 'desc')
-            ->paginate($perPage);
-    }
 }

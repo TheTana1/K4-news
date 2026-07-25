@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
 
 class NewsRequest extends FormRequest
@@ -46,6 +47,19 @@ class NewsRequest extends FormRequest
         ];
     }
 
-
+    public function after()
+    {
+        return [
+            function ($validator) {
+                if ($validator->errors()->any()) {
+                    Log::warning('Валидация не прошла', [
+                        'errors' => $validator->errors()->toArray()
+                    ]);
+                } else {
+                    Log::info('Валидация прошла успешно');
+                }
+            }
+        ];
+    }
 
 }

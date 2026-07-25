@@ -34,19 +34,5 @@ class Advertisement extends Model
         return $this->morphMany(Comment::class, 'commentable');
     }
 
-    public function author()
-    {
-        return $this->belongsTo(User::class, 'telegram_author_id', 'telegram_id');
-    }
 
-    // Скоупы
-    public function scopeActive($query)
-    {
-        return $query->where('status', 'active');
-    }
-
-    public function scopeFromTelegram($query)
-    {
-        return $query->whereNotNull('telegram_message_id');
-    }
 }

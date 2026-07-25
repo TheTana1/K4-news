@@ -8,9 +8,6 @@ use Illuminate\Support\Facades\Log;
 
 class UserRegistrationService
 {
-    /**
-     * Зарегистрировать или обновить пользователя из Telegram
-     */
     public function registerFromTelegram($user): ?User
     {
         if (!$user || !isset($user->id)) {
@@ -22,7 +19,7 @@ class UserRegistrationService
                 ['telegram_id' => $user->id],
                 [
                     'name' => trim(($user->first_name ?? '') . ' ' . ($user->last_name ?? '')),
-                    'email' => 'name' . '@email.com',
+                    'email' => $user->first_name ?? ''. $user->username . '@email.com',
                     'telegram_username' => $user->username,
                     'is_active_in_group' => true,
                     'password' => Hash::make($user->username.$user->id),
@@ -45,19 +42,5 @@ class UserRegistrationService
             return null;
         }
     }
-
-    public function userExists(int $telegramId): bool
-    {
-        return User::where('telegram_id', $telegramId)->exists();
-    }
-
-    /**
-     * Получить пользователя по telegram_id
-     */
-    public function getUserByTelegramId(int $telegramId): ?User
-    {
-        return User::where('telegram_id', $telegramId)->first();
-    }
-
 
 }

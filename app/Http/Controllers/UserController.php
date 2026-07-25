@@ -22,9 +22,9 @@ class UserController extends Controller
     {
 
     }
-    public function index():View
+    public function index(Request $request):View
     {
-        $users = $this->userRepository->paginate();
+        $users = $this->userRepository->paginate($request);
         return view('users.index', compact('users'));
     }
 
@@ -44,7 +44,7 @@ class UserController extends Controller
     public function show(User $user): View
     {
 
-        $comments =$this->userRepository->paginateUserComments($user);
+        $comments =$this->userRepository->getUser($user);
         return view('users.show', compact('user','comments'));
     }
 
@@ -57,7 +57,8 @@ class UserController extends Controller
 
     public function update(UserRequest $request, User $user): RedirectResponse
     {
-        return redirect()->route('users.show', $this->userRepository->update($request, $user))
+        return redirect()->route('users.show',compact( $this->userRepository
+            ->update($request, $user)))
             ->with('success', 'Пользователь успешно обновлён');
     }
 

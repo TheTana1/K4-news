@@ -12,11 +12,10 @@ use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 class AdvertisementRepository
 {
     private const PER_PAGE = 10;
-
+    private  const COMMENTS_PER_PAGE = 10;
     final public function paginate(int $perPage = self::PER_PAGE)
     {
         return Advertisement::query()
-            ->with(['author'])
             ->latest()
             ->paginate($perPage)
             ->withQueryString();

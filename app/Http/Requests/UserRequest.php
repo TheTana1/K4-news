@@ -118,24 +118,11 @@ public function after()
 {
     return [
         function ($validator) {
-            // Проверяем, есть ли ошибки валидации
             if ($validator->errors()->any()) {
-                // Валидация НЕ прошла
                 Log::warning('Валидация не прошла', [
                     'errors' => $validator->errors()->toArray()
                 ]);
-
-                // Можно добавить свои ошибки
-                if ($this->input('telegram_username') && !$this->input('telegram_id')) {
-                    $validator->errors()->add('telegram_id', 'Если указан Telegram username, то Telegram ID обязателен');
-                }
-
-                // Можем проверить что-то еще
-                if ($this->input('gender') === '1' && $this->input('name') === 'Алексей') {
-                    $validator->errors()->add('name', 'Имя Алексей не может быть женского пола');
-                }
             } else {
-                // Валидация прошла успешно
                 Log::info('Валидация прошла успешно');
             }
         }

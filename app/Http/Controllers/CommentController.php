@@ -6,6 +6,7 @@ use App\Http\Requests\CommentRequest;
 use App\Models\Comment;
 use App\Repositories\CommentRepository;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Log;
 
 class CommentController extends Controller
 {
@@ -18,29 +19,24 @@ class CommentController extends Controller
         $model = $comment->commentable_type;
         $responseClass= strtolower(class_basename($model));
         $object =  $model::find($comment->commentable_id);
+        if($responseClass === 'news')
+            return view($responseClass.'.show', [$responseClass => $object]);
         return view($responseClass.'s.show', [$responseClass => $object]);
     }
     public function store(CommentRequest $request)
     {
         try {
-            $parent = $request->getCommentable();
-            if (!$parent) {
-                return back()->with('error', 'Запись не найдена.');
-            }
 
-            $this->commentRepository->create(
-                $request->validated(),
-                $parent
-            );
+            $newComment = $this->commentRepository->store($request);
 
-            return back()->with('success', 'Комментарий добавлен.');
+            return redirect()->route("{$newComment->commentable_type}.show", $newComment->commentable_id)
+                ->with('success', 'Комментарий добавлен.');
 
         } catch (\Exception $e) {
+            Log::error('Comment creation error: ' . $e->getMessage());
             return back()->with('error', 'Ошибка при создании комментария.');
         }
     }
-
-
 
     public function update(CommentRequest $request, Comment $comment)
     {

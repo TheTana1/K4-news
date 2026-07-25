@@ -32,30 +32,75 @@
                         @csrf @method('PUT')
 
                         <!-- Аватар -->
+                        {{--                        <div class="row mb-4 align-items-center">--}}
+                        {{--                            <div class="col-auto">--}}
+                        {{--                                <div class="position-relative d-inline-block">--}}
+                        {{--                                    <div id="avatarContainer"--}}
+                        {{--                                         class="rounded-circle d-flex align-items-center justify-content-center text-white">--}}
+                        {{--                                        @if($user->avatar_path)--}}
+                        {{--                                            <img id="avatarPreview" src="{{ asset($user->avatar_path) }}"--}}
+                        {{--                                                 alt="{{ $user->name }}"--}}
+                        {{--                                                 class="rounded-circle border border-3 border-white shadow" width="120"--}}
+                        {{--                                                 height="120" style="object-fit: cover;">--}}
+                        {{--                                        @else--}}
+                        {{--                                            @php--}}
+                        {{--                                                $colors = ['primary', 'secondary', 'success', 'danger', 'warning', 'info', 'dark'];--}}
+                        {{--                                                $color = $colors[abs(crc32($user->name)) % count($colors)];--}}
+                        {{--                                            @endphp--}}
+                        {{--                                            <div id="avatarPreview"--}}
+                        {{--                                                 class="rounded-circle d-flex align-items-center justify-content-center text-white bg-{{$color}}"--}}
+                        {{--                                                 style="width:80px;height:80px;font-size:2rem;background-size:cover;background-position:center; background-color: #0D6EFD">--}}
+                        {{--                                                {{ mb_strtoupper(mb_substr($user->name, 0, 1)) }}--}}
+                        {{--                                            </div>--}}
+                        {{--                                        @endif--}}
+                        {{--                                    </div>--}}
+                        {{--                                    <label for="avatar"--}}
+                        {{--                                           class="position-absolute bottom-0 end-0 bg-white rounded-circle p-1 shadow-sm d-flex align-items-center justify-content-center"--}}
+                        {{--                                           style="cursor:pointer; transform:translate(10%,10%); width:36px; height:36px;">--}}
+                        {{--                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"--}}
+                        {{--                                             stroke="currentColor" stroke-width="2" stroke-linecap="round"--}}
+                        {{--                                             stroke-linejoin="round" class="text-gray-600">--}}
+                        {{--                                            <path--}}
+                        {{--                                                d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>--}}
+                        {{--                                            <circle cx="12" cy="13" r="4"/>--}}
+                        {{--                                        </svg>--}}
+                        {{--                                    </label>--}}
+                        {{--                                    <input type="file" id="avatar" name="avatar" class="d-none" accept="image/*">--}}
+                        {{--                                </div>--}}
+                        {{--                                @error('avatar')--}}
+                        {{--                                <div class="text-danger small mt-1">{{ $message }}</div>--}}
+                        {{--                                @enderror--}}
+                        {{--                            </div>--}}
+                        {{--                            <div class="col">--}}
+                        {{--                                <small class="text-muted">Нажмите на иконку камеры, чтобы изменить фото</small>--}}
+                        {{--                                <div>--}}
+                        {{--                                    <small class="text-muted">Формат: jpeg, png, jpg, gif. Максимум: 2MB</small>--}}
+                        {{--                                </div>--}}
+                        {{--                            </div>--}}
+                        {{--                        </div>--}}
                         <div class="row mb-4 align-items-center">
                             <div class="col-auto">
                                 <div class="position-relative d-inline-block">
-                                    <div id="avatarContainer" class="position-relative d-inline-block mb-3">
-                                        @if($user->avatar_path)
-                                            <img id="avatarPreview" src="{{ asset($user->avatar_path) }}"
-                                                 alt="{{ $user->name }}"
-                                                 class="rounded-circle border border-3 border-white shadow" width="120"
-                                                 height="120" style="object-fit: cover;">
-                                        @else
-                                            @php
-                                                $colors = ['primary', 'secondary', 'success', 'danger', 'warning', 'info', 'dark'];
-                                                $color = $colors[abs(crc32($user->name)) % count($colors)];
-                                            @endphp
-                                            <div id="avatarPreview"
-                                                 class="rounded-circle d-flex align-items-center justify-content-center text-white mx-auto bg-{{ $color }}"
-                                                 style="width:120px;height:120px;font-size:3rem;">
-                                                {{ mb_strtoupper(mb_substr($user->name, 0, 1)) }}
-                                            </div>
-                                        @endif
-                                    </div>
+                                    @if($user->avatar_path)
+                                        <div id="avatarPreview"
+                                             class="rounded-circle d-flex align-items-center justify-content-center text-white"
+                                             style="width:80px;height:80px;font-size:2rem;background-size:cover;background-position:center; background-color: #0D6EFD">
+                                            <img style="width: 80px;height: 80px;" src="{{$user->avatar_path}}" alt="" srcset="">
+                                        </div>
+                                    @else
+                                        @php
+                                            $colors = ['primary', 'secondary', 'success', 'danger', 'warning', 'info', 'dark'];
+                                            $color = $colors[abs(crc32($user->name)) % count($colors)];
+                                        @endphp
+                                        <div id="avatarPreview"
+                                             class="rounded-circle d-flex align-items-center justify-content-center text-white bg-{{$color}}"
+                                             style="width:80px;height:80px;font-size:2rem;background-size:cover;background-position:center; background-color: #0D6EFD">
+                                            {{ mb_strtoupper(mb_substr($user->name, 0, 1)) }}
+                                        </div>
+                                    @endif
                                     <label for="avatar"
-                                           class="position-absolute bottom-0 end-0 bg-white rounded-circle p-1 shadow-sm cursor-pointer"
-                                           style="transform:translate(10%,10%);cursor:pointer;">
+                                           class="position-absolute bottom-0 end-0 bg-white rounded-circle p-1 shadow-sm d-flex align-items-center justify-content-center"
+                                           style="cursor:pointer; transform:translate(10%,10%); width:36px; height:36px;">
                                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
                                              stroke="currentColor" stroke-width="2" stroke-linecap="round"
                                              stroke-linejoin="round" class="text-gray-600">
@@ -66,18 +111,18 @@
                                     </label>
                                     <input type="file" id="avatar" name="avatar" class="d-none" accept="image/*">
                                 </div>
-                                @error('avatar')
-                                <div class="text-danger small mt-1">{{ $message }}</div>
-                                @enderror
                             </div>
                             <div class="col">
-                                <small class="text-muted">Нажмите на иконку камеры, чтобы изменить фото</small>
-                                <div>
-                                    <small class="text-muted">Формат: jpeg, png, jpg, gif. Максимум: 2MB</small>
+                                <small class="text-muted">Нажмите на иконку камеры, чтобы загрузить фото</small>
+                                @error('avatar')
+                                <div class="text-danger small mt-1">
+                                    <i class="bi bi-exclamation-triangle-fill me-1"></i>
+                                    {{ $message }}
                                 </div>
+                                @enderror
                             </div>
-                        </div>
 
+                        </div>
                         <!-- Основные поля -->
                         <div class="row g-3">
                             <div class="col-md-6">
@@ -170,9 +215,10 @@
 
                         <!-- Телефоны (Alpine) -->
                         <div class="mt-3" x-data="{
-                            phones: {{ json_encode($user->phones->map(fn($phone) => ['id' => $phone->id, 'number' => $phone->phone_number, 'primary' => $phone->is_primary])) }},
+                            phones: {{ json_encode($user->phones->map(fn($phone) => ['number' => $phone->phone_number, 'primary' => $phone->is_primary])) }},
                             errors: {{ json_encode(session('errors') ? session('errors')->getBag('default')->toArray() : []) }}
                         }">
+
                             <label class="form-label">Телефоны</label>
                             <template x-for="(phone, index) in phones" :key="index">
                                 <div>
@@ -277,73 +323,38 @@
     @push('scripts')
         <script src="//unpkg.com/alpinejs" defer></script>
         <script>
-            document.addEventListener('DOMContentLoaded', function () {
-                // Предпросмотр аватара
-                const avatarInput = document.getElementById('avatar');
-                const avatarPreview = document.getElementById('avatarPreview');
 
-                if (avatarInput && avatarPreview) {
-                    avatarInput.addEventListener('change', function (e) {
-                        const file = e.target.files[0];
-                        if (file) {
-                            const reader = new FileReader();
-                            reader.onload = function (e) {
-                                if (avatarPreview.tagName === 'IMG') {
-                                    avatarPreview.src = e.target.result;
-                                } else {
-                                    const newImg = document.createElement('img');
-                                    newImg.id = 'avatarPreview';
-                                    newImg.src = e.target.result;
-                                    newImg.alt = 'Новый аватар';
-                                    newImg.className = 'rounded-circle border border-3 border-white shadow';
-                                    newImg.width = 120;
-                                    newImg.height = 120;
-                                    newImg.style.objectFit = 'cover';
-                                    avatarPreview.parentNode.replaceChild(newImg, avatarPreview);
-                                }
-                            }
-                            reader.readAsDataURL(file);
-                        }
-                    });
+            document.getElementById('avatar').addEventListener('change', function (e) {
+                const file = e.target.files[0];
+                const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'];
+                if (file && validTypes.includes(file.type)) {
+                    const reader = new FileReader();
+                    reader.onload = function (e) {
+                        const preview = document.getElementById('avatarPreview');
+                        preview.style.backgroundImage = `url('${e.target.result}')`;
+                        preview.style.backgroundSize = 'cover';
+                        preview.style.backgroundPosition = 'center';
+                        preview.textContent = '';
+                    }
+                    reader.readAsDataURL(file);
                 }
-
-                // Маска для телефона
-                function phoneMask(selector) {
-                    document.querySelectorAll(selector).forEach(input => {
-                        input.addEventListener('input', function (e) {
-                            let x = e.target.value.replace(/\D/g, '').match(/(\d{0,1})(\d{0,3})(\d{0,3})(\d{0,2})(\d{0,2})/);
-                            e.target.value = !x[2] ? x[1] : '+7 (' + x[2] + ') ' + x[3] + (x[4] ? '-' + x[4] : '') + (x[5] ? '-' + x[5] : '');
-                        });
-                    });
-                }
-
-                phoneMask('.phone-mask');
-
-                // MutationObserver для динамических полей
-                const observer = new MutationObserver(function (mutations) {
-                    mutations.forEach(function (mutation) {
-                        if (mutation.type === 'childList') {
-                            mutation.addedNodes.forEach(function (node) {
-                                if (node.nodeType === 1 && node.querySelector) {
-                                    node.querySelectorAll('.phone-mask').forEach(function (input) {
-                                        input.removeEventListener('input', input._maskHandler);
-                                        input._maskHandler = function (e) {
-                                            let x = e.target.value.replace(/\D/g, '').match(/(\d{0,1})(\d{0,3})(\d{0,3})(\d{0,2})(\d{0,2})/);
-                                            e.target.value = !x[2] ? x[1] : '+7 (' + x[2] + ') ' + x[3] + (x[4] ? '-' + x[4] : '') + (x[5] ? '-' + x[5] : '');
-                                        };
-                                        input.addEventListener('input', input._maskHandler);
-                                    });
-                                }
-                            });
-                        }
-                    });
-                });
-
-                observer.observe(document.body, {
-                    childList: true,
-                    subtree: true
-                });
             });
+
+            // Маска для телефона
+            function phoneMask(selector) {
+                document.querySelectorAll(selector).forEach(input => {
+                    input.addEventListener('input', function(e) {
+                        let x = e.target.value.replace(/\D/g, '').match(/(\d{0,1})(\d{0,3})(\d{0,3})(\d{0,2})(\d{0,2})/);
+                        e.target.value = !x[2] ? x[1] : '+7 (' + x[2] + ') ' + x[3] + (x[4] ? '-' + x[4] : '') + (x[5] ? '-' + x[5] : '');
+                    });
+                });
+            }
+
+            // Применяем маску к динамически добавляемым полям
+            document.addEventListener('DOMContentLoaded', function() {
+                phoneMask('input[name*="[number]"]');
+            });
+
         </script>
     @endpush
 @endsection

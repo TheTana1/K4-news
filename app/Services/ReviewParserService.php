@@ -53,7 +53,6 @@ class ReviewParserService
 
             // Проверяем дубликаты
             $existingReview = Review::where('content', $cleanText)
-                ->where('telegram_chat_id', $chatId)
                 ->first();
 
             if ($existingReview) {
