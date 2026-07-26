@@ -26,14 +26,9 @@
                                 <span class="text-muted">
                                     <i class="bi bi-person me-1"></i> Автор
                                 </span>
-                                <span>{{ $news->author?->name ?? $news->telegram_author_name ?? 'Неизвестно' }}</span>
+                                <span>{{ $news->telegram_author_name ?? 'Руководство' }}</span>
                             </li>
-                            <li class="list-group-item d-flex justify-content-between align-items-center">
-                                <span class="text-muted">
-                                    <i class="bi bi-clock-history me-1"></i> Создано
-                                </span>
-                                <span>{{ $news->created_at->format('d.m.Y H:i') }}</span>
-                            </li>
+
                             @if($news->updated_at && $news->updated_at != $news->created_at)
                                 <li class="list-group-item d-flex justify-content-between align-items-center">
                                     <span class="text-muted">
@@ -52,26 +47,20 @@
                             @endif
                             <li class="list-group-item d-flex justify-content-between align-items-center">
                                 <span class="text-muted">
-                                    <i class="bi bi-eye me-1"></i> Просмотры
+                                    <i class="bi bi-tag me-1"></i> Статус
                                 </span>
-                                <span>{{ $news->views ?? 0 }}</span>
+                                @if($news->status === 'active')
+                                    <span class="badge bg-success">Активно</span>
+                                @else
+                                    <span class="badge bg-secondary">Не активно</span>
+                                @endif
                             </li>
-                            @if($news->telegram_message_id)
-                                <li class="list-group-item d-flex justify-content-between align-items-center">
-                                    <span class="text-muted">
-                                        <i class="bi bi-telegram me-1"></i> ID сообщения
-                                    </span>
-                                    <span>{{ $news->telegram_message_id }}</span>
-                                </li>
-                            @endif
-                            @if($news->author)
-                                <li class="list-group-item d-flex justify-content-between align-items-center">
-                                    <span class="text-muted">
-                                        <i class="bi bi-envelope me-1"></i> Контакт
-                                    </span>
-                                    <a href="mailto:{{ $news->author->email }}">{{ $news->author->email }}</a>
-                                </li>
-                            @endif
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <span class="text-muted">
+                                    <i class="bi bi-clock-history me-1"></i> Создано
+                                </span>
+                                <span>{{ $news->created_at->format('d.m.Y H:i') }}</span>
+                            </li>
                         </ul>
                     </div>
                 </div>
@@ -81,6 +70,7 @@
                     <div class="card h-100">
                         <div class="card-header d-flex justify-content-between align-items-center">
                             <span><i class="bi bi-file-text me-1"></i> Содержание</span>
+                            @if(Auth::user()->isAdmin()||Auth::user()->isModerator())
                             <div>
                                 <a href="{{ route('news.edit', $news) }}" class="btn btn-sm btn-success">
                                     <i class="bi bi-pencil me-1"></i> Редактировать
@@ -92,42 +82,13 @@
                                     </button>
                                 </form>
                             </div>
+                            @endif
                         </div>
                         <div class="card-body">
-                            @if($news->file_path && $news->file_name)
-                                @php
-                                    $fileUrl = Storage::disk($news->disk ?? 'public')->url($news->file_path);
-                                    $isImage = str_starts_with($news->mime_type ?? '', 'image/');
-                                @endphp
-                                @if($isImage)
-                                    <div class="mb-4 text-center">
-                                        <img src="{{ $fileUrl }}"
-                                             alt="{{ $news->file_name }}"
-                                             class="img-fluid rounded"
-                                             style="max-height: 400px; width: auto; object-fit: contain;">
-                                    </div>
-                                @endif
-                            @endif
+
 
                             <p class="card-text" style="white-space: pre-line;">{{ $news->content ?? 'Содержание отсутствует' }}</p>
 
-                            @if($news->file_path && $news->file_name)
-                                @php
-                                    $fileUrl = Storage::disk($news->disk ?? 'public')->url($news->file_path);
-                                    $isImage = str_starts_with($news->mime_type ?? '', 'image/');
-                                    $fileSize = isset($news->file_size) ? number_format($news->file_size / 1024, 1) . ' KB' : 'Н/Д';
-                                @endphp
-                                @if(!$isImage)
-                                    <div class="mt-3">
-                                        <a href="{{ $fileUrl }}" target="_blank" class="btn btn-outline-primary btn-sm">
-                                            <i class="bi bi-download me-1"></i> Скачать файл: {{ $news->file_name }}
-                                            @if(isset($news->file_size))
-                                                <span class="badge bg-secondary ms-1">{{ $fileSize }}</span>
-                                            @endif
-                                        </a>
-                                    </div>
-                                @endif
-                            @endif
                         </div>
                     </div>
                 </div>
@@ -150,8 +111,6 @@
                                 @php
                                     $mimeType = $file->mime_type;
                                     $isImage = str_starts_with($mimeType, 'image/');
-                                    $isPdf = $mimeType === 'application/pdf';
-                                    $isTxt = $mimeType === 'text/plain';
                                     $fileName = $file->file_name;
                                     $fileUrl = Storage::disk($file->disk ?? 'public')->url($file->file_path);
                                     $fileSize = isset($file->file_size) ? number_format($file->file_size / 1024, 1) . ' KB' : 'Н/Д';

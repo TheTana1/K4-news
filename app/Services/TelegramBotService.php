@@ -25,7 +25,6 @@ class TelegramBotService
             Log::debug('No message in update');
             return;
         }
-
         $chatId = $message->chat->id ?? null;
         $text = $message->text ?? '';
 

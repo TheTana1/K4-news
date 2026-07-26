@@ -5,6 +5,32 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 
+/**
+ * @property int $id
+ * @property string $content
+ * @property string|null $telegram_author_name
+ * @property string $status
+ * @property \Illuminate\Support\Carbon|null $published_at
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property-read \App\Models\User|null $author
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Comment> $comments
+ * @property-read int|null $comments_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\File> $files
+ * @property-read int|null $files_count
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|News active()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|News newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|News newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|News query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|News whereContent($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|News whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|News whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|News wherePublishedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|News whereStatus($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|News whereTelegramAuthorName($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|News whereUpdatedAt($value)
+ * @mixin \Eloquent
+ */
 class News extends Model
 {
     protected $fillable = [

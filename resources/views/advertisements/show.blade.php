@@ -26,7 +26,7 @@
                                 <span class="text-muted">
                                     <i class="bi bi-person me-1"></i> Автор
                                 </span>
-                                <span>{{ $advertisement->author?->name ?? $advertisement->telegram_author_name ?? 'Неизвестно' }}</span>
+                                <span>{{ $advertisement->telegram_author_name ?? 'Руководство' }}</span>
                             </li>
                             <li class="list-group-item d-flex justify-content-between align-items-center">
                                 <span class="text-muted">
@@ -52,14 +52,6 @@
                                     <span>{{ $advertisement->updated_at->format('d.m.Y H:i') }}</span>
                                 </li>
                             @endif
-                            @if($advertisement->author)
-                                <li class="list-group-item d-flex justify-content-between align-items-center">
-                                    <span class="text-muted">
-                                        <i class="bi bi-envelope me-1"></i> Контакт
-                                    </span>
-                                    <a href="mailto:{{ $advertisement->author->email }}">{{ $advertisement->author->email }}</a>
-                                </li>
-                            @endif
                         </ul>
                     </div>
                 </div>
@@ -67,22 +59,27 @@
                 <!-- Колонка 2: Содержание -->
                 <div class="col-md-8">
                     <div class="card h-100">
-                        <div class="card-header">
-                             Содержание
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <span><i class="bi bi-file-text me-1"></i> Содержание</span>
+                            @if(Auth::user()->isAdmin()||Auth::user()->isModerator())
+                                <div>
+                                    <a href="{{ route('advertisements.edit', $advertisement) }}" class="btn btn-sm btn-success">
+                                        <i class="bi bi-pencil me-1"></i> Редактировать
+                                    </a>
+                                    <form action="{{ route('advertisements.destroy', $advertisement) }}" method="POST" class="d-inline">
+                                        @csrf @method('DELETE')
+                                        <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Удалить новость?')">
+                                            <i class="bi bi-trash me-1"></i> Удалить
+                                        </button>
+                                    </form>
+                                </div>
+                            @endif
                         </div>
                         <div class="card-body">
-                            <p class="card-text" style="white-space: pre-line;">{{ $advertisement->content }}</p>
-                        </div>
-                        <div class="card-footer bg-transparent d-flex justify-content-end gap-2">
-                            <a href="{{ route('advertisements.edit', $advertisement) }}" class="btn btn-sm btn-success">
-                                <i class="bi bi-pencil me-1"></i> Редактировать
-                            </a>
-                            <form action="{{ route('advertisements.destroy', $advertisement) }}" method="POST" class="d-inline">
-                                @csrf @method('DELETE')
-                                <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Удалить?')">
-                                    <i class="bi bi-trash me-1"></i> Удалить
-                                </button>
-                            </form>
+
+
+                            <p class="card-text" style="white-space: pre-line;">{{ $advertisement->content ?? 'Содержание отсутствует' }}</p>
+
                         </div>
                     </div>
                 </div>

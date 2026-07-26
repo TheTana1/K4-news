@@ -218,8 +218,8 @@
                             phones: {{ json_encode($user->phones->map(fn($phone) => ['number' => $phone->phone_number, 'primary' => $phone->is_primary])) }},
                             errors: {{ json_encode(session('errors') ? session('errors')->getBag('default')->toArray() : []) }}
                         }">
-
-                            <label class="form-label">Телефоны</label>
+                            <div class="mt-3" x-data="{ phones: [{ number: '', primary: false }] }">
+                            <label class="form-label">Телефоны <span class="text-danger">*</span></label>
                             <template x-for="(phone, index) in phones" :key="index">
                                 <div>
                                     <div class="input-group mb-2">
