@@ -30,6 +30,12 @@
                             </li>
                             <li class="list-group-item d-flex justify-content-between align-items-center">
                                 <span class="text-muted">
+                                    <i class="bi bi-person me-1"></i> Кому
+                                </span>
+                                <span>{{ $advertisement->role->label ?? 'Сотрудникам' }}</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <span class="text-muted">
                                     <i class="bi bi-tag me-1"></i> Статус
                                 </span>
                                 @if($advertisement->status === 'active')

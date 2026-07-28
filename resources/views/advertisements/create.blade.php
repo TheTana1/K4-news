@@ -28,9 +28,25 @@
                         <div class="mb-3">
                             <label for="status" class="form-label">Статус</label>
                             <select name="status" id="status" class="form-select">
-                                <option value="active" {{ old('status') == 'active' ? 'selected' : '' }}>Активно</option>
-                                <option value="inactive" {{ old('status') == 'inactive' ? 'selected' : '' }}>Не активно</option>
+                                <option value="active">Активно</option>
+                                <option value="inactive">Не активно</option>
                             </select>
+                            @error('status')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="role_id" class="form-label">Кому отправить?</label>
+                            <select name="role_id" id="role_id" class="form-select">
+                                <option value="2">Всем</option>
+                                <option value="3">Сотрудникам кухни</option>
+                                <option value="4">Сотрудникам зала</option>
+
+                            </select>
+                            @error('role_id')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                         </div>
 
                         <div class="d-flex justify-content-end gap-2">

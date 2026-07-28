@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 /**
@@ -43,13 +44,24 @@ class News extends Model
         'mime_type',
         'disk',
         'status',
+        'role_id',
     ];
 
     protected $casts = [
         'published_at' => 'datetime',
         'views' => 'integer',
     ];
-
+    public function scopeForCurrentUser($query)
+    {
+        if (auth()->check()) {
+            return $query->whereIn('role_id',[ auth()->user()->role_id ?? 2, 1,2]);
+        }
+        return $query->where('role_id', 2); // Для гостей
+    }
+    public function role():BelongsTo
+    {
+        return $this->belongsTo(Role::class);
+    }
     public function comments(): MorphMany
     {
         return $this->morphMany(Comment::class, 'commentable');

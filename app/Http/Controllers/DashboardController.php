@@ -11,18 +11,16 @@ class DashboardController extends Controller
 {
     public function index()
     {
-
         $stats = [
-            'ads_count' => Advertisement::count(),
-            'news_count' => News::count(),
+            'ads_count' => Advertisement::forCurrentUser()->count(),
+            'news_count' => News::forCurrentUser()->count(),
             'reviews_count' => Review::count(),
-            'users_count' => User::count(),
-            'active_in_group' => User::where('is_active_in_group', true)->count(),
+            'users_count' => User::forCurrentUser()->count(),
         ];
 
-        $recentAds = Advertisement::latest()->take(5)->get();
-        $recentNews = News::latest()->take(5)->get();
-        $recentReviews = Review::with('user')->latest()->take(5)->get();
+        $recentAds = Advertisement::forCurrentUser()->latest()->take(5)->get();
+        $recentNews = News::forCurrentUser()->latest()->take(5)->get();
+        $recentReviews = Review::latest()->take(5)->get();
 
         return view('dashboard', compact('stats', 'recentAds', 'recentNews', 'recentReviews'));
     }

@@ -28,7 +28,12 @@
                                 </span>
                                 <span>{{ $news->telegram_author_name ?? 'Руководство' }}</span>
                             </li>
-
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <span class="text-muted">
+                                    <i class="bi bi-person me-1"></i> Кому
+                                </span>
+                                <span>{{ $news->role->label ?? 'Сотрудникам' }}</span>
+                            </li>
                             @if($news->updated_at && $news->updated_at != $news->created_at)
                                 <li class="list-group-item d-flex justify-content-between align-items-center">
                                     <span class="text-muted">

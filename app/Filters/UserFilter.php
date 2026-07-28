@@ -19,38 +19,13 @@ class UserFilter
         if ($request->has('username') && $request->input('username') != null) {
             $query->where('username', 'like', '%' . $request->input('username') . '%');
         }
-        switch ($request->input('sort')) {
-            case 'oldest':
-                $query->orderBy('created_at');
-                break;
-            case 'newest':
-                $query->orderBy('created_at', 'desc');
-                break;
-            case 'name_desc':
-                $query->orderBy('name', 'desc');
-                break;
-            case 'name_asc':
-                $query->orderBy('name');
-                break;
-            case 'email_desc':
-                $query->orderBy('email', 'desc');
-                break;
-            case 'email_asc':
-                $query->orderBy('email');
-                break;
-            case 'role_desc':
-                $query->orderBy('role', 'desc');
-                break;
-            case 'role_asc':
-                $query->orderBy('role');
-                break;
-            case 'gender_desc':
-                $query->orderBy('gender', 'desc');
-                break;
-            case 'gender_asc':
-                $query->orderBy('gender');
-                break;
+        if ($request->has('role_id') && $request->input('role_id') != null) {
+            $query->where('role_id',  $request->input('role_id'));
         }
+        if ($request->has('is_active_in_group') && $request->input('is_active_in_group') != null) {
+            $query->where('is_active_in_group', $request->input('is_active_in_group'));
+        }
+
         return $query;
     }
 }

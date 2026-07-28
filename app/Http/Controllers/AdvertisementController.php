@@ -61,7 +61,7 @@ class AdvertisementController extends Controller
         $result = $this->advertisementRepository->destroy($advertisement);
 
         return $result
-            ? redirect()->route('advertisements.index')->with('success', 'Объявление успешно удалено')
-            : redirect()->route('advertisements.index')->with('error', 'Ошибка при удалении объявления');
+            ? redirect()->route('advertisements.index',with('role'))->with('success', 'Объявление успешно удалено')
+            : redirect()->route('advertisements.index',with('role'))->with('error', 'Ошибка при удалении объявления');
     }
 }

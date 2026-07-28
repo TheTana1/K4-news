@@ -18,7 +18,7 @@ class NewsRepository
     final public function paginate(int $countPaginate = self::NEWS_PER_PAGE)
     {
         return News::query()
-            ->with(['author', 'files'])
+            ->with(['role'])
             ->latest()
             ->paginate($countPaginate)
             ->withQueryString();

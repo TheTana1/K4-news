@@ -23,8 +23,14 @@ class RoleSeeder extends Seeder
                 'updated_at' => now(),
             ],
             [
-                'slug' => 'user',
-                'label' => 'Пользователь',
+                'slug' => 'Kitchen_Worker',
+                'label' => 'Сотрудник Кухни',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'slug' => 'Service Staff',
+                'label' => 'Сотрудник Зала',
                 'created_at' => now(),
                 'updated_at' => now(),
             ],

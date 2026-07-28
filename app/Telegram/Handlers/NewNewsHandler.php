@@ -33,7 +33,12 @@ class NewNewsHandler
             Log::error('Failed to register user', ['telegram_id' => $telegramUser->id]);
             TeleBot::sendMessage([
                 'chat_id' => $chatId,
-                'text' => '❌ Ошибка регистрации. Попробуйте позже.'
+                'text' => '❌ Ошибка регистрации. Попробуйте позже.',
+                'reply_markup' => [
+                    'keyboard' => [
+                        [['text' => '🏠 На главную']],
+                    ],
+                    'remove_keyboard' => true],
             ]);
             return;
         }
@@ -90,7 +95,12 @@ class NewNewsHandler
             return TeleBot::sendMessage([
                 'chat_id' => $chatId,
                 'text' => '❌ Создание новости отменено.',
-                'reply_markup' => ['remove_keyboard' => true],
+                'reply_markup' => [
+                    'keyboard' => [
+                        [['text' => '🏠 На главную']],
+                    ],
+                    'remove_keyboard' => true],
+
             ]);
         }
 
@@ -154,7 +164,7 @@ class NewNewsHandler
                                 [['text' => '⏭ Пропустить']],
                                 [['text' => '❌ Отмена']],
                             ],
-                            'resize_keyboard' => true,
+                            'remove_keyboard' => true,
                         ],
                     ]);
                 }
@@ -203,7 +213,11 @@ class NewNewsHandler
                 return TeleBot::sendMessage([
                     'chat_id' => $chatId,
                     'text' => '❌ Создание новости отменено.',
-                    'reply_markup' => ['remove_keyboard' => true],
+                    'reply_markup' => [
+                        'keyboard' => [
+                            [['text' => '🏠 На главную']],
+                        ],
+                        'remove_keyboard' => true],
                 ]);
             }
 
@@ -233,7 +247,7 @@ class NewNewsHandler
                     [['text' => '⏭ Пропустить']],
                     [['text' => '❌ Отмена']],
                 ],
-                'resize_keyboard' => true,
+                'remove_keyboard' => true,
             ],
         ]);
     }
@@ -267,7 +281,7 @@ class NewNewsHandler
                     ['text' => '❌ Отмена']
                 ]
             ],
-            'resize_keyboard' => true,
+            'remove_keyboard' => true,
         ];
 
         return TeleBot::sendMessage([
@@ -397,7 +411,11 @@ class NewNewsHandler
             return TeleBot::sendMessage([
                 'chat_id' => $chatId,
                 'text' => '❌ Произошла ошибка при публикации. Попробуйте позже.',
-                'reply_markup' => ['remove_keyboard' => true],
+                'reply_markup' => [
+                    'keyboard' => [
+                        [['text' => '🏠 На главную']],
+                    ],
+                    'remove_keyboard' => true],
             ]);
         }
     }

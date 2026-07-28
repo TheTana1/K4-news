@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 /**
@@ -41,6 +42,7 @@ class Advertisement extends Model
         'mime_type',
         'disk',
         'status',
+        'role_id',
     ];
 
     protected $casts = [
@@ -48,6 +50,25 @@ class Advertisement extends Model
         'views' => 'integer',
         'price' => 'integer',
     ];
+    public function scopeForRole($query, $roleId = null)
+    {
+        if ($roleId) {
+            return $query->where('role_id', $roleId);
+        }
+        return $query;
+    }
+
+    public function scopeForCurrentUser($query)
+    {
+        if (auth()->check()) {
+            return $query->whereIn('role_id',[ auth()->user()->role_id ?? 2, 1,2]);
+        }
+        return $query->where('role_id', 2); // Для гостей
+    }
+    public function role(): BelongsTo
+    {
+        return $this->belongsTo(Role::class);
+    }
     public function files():MorphMany
     {
         return $this->morphMany(File::class, 'fileable');
@@ -57,6 +78,7 @@ class Advertisement extends Model
     {
         return $this->morphMany(Comment::class, 'commentable');
     }
+
 
 
 }

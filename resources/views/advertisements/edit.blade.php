@@ -56,7 +56,18 @@
                             <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
+                        <div class="mb-3">
+                            <label for="role_id" class="form-label">Для кого?</label>
+                            <select name="role_id" id="role_id" class="form-select">
+                                <option value="2">Всем</option>
+                                <option value="3">Сотрудникам кухни</option>
+                                <option value="4">Сотрудникам зала</option>
 
+                            </select>
+                            @error('role_id')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
                         <!-- Добавление новых файлов -->
                         <div class="mb-3">
                             <label for="files" class="form-label">Добавить файлы</label>

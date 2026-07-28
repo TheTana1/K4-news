@@ -19,11 +19,14 @@ class NewsRequest extends FormRequest
             case 'POST':          return [
                 'content' => 'required|string|min:10|max:10000',
                 'status' => 'nullable|in:active,inactive',
+
+                'role_id' => '|integer|exists:roles,id',
             ];
 
             case 'PUT': return [
                 'content' => 'sometimes|string|min:10|max:10000',
                 'status' => 'nullable|in:active,inactive',
+                'role_id' => '|integer|exists:roles,id',
             ];
         };
         return [];

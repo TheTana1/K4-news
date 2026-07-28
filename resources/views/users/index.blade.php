@@ -9,7 +9,91 @@
             <i class="bi bi-plus-lg me-1"></i> Добавить пользователя
         </a>
     </div>
+    <!-- Фильтр -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="GET" action="{{ route('users.index') }}" id="filterForm">
+                <div class="row g-3">
+                    <!-- Имя -->
+                    <div class="col-12 col-md-6 col-lg-2">
+                        <label class="form-label small text-muted">Имя</label>
+                        <input type="text"
+                               name="name"
+                               class="form-control form-control-sm"
+                               placeholder="Поиск по имени"
+                               value="{{ request('name') }}">
+                    </div>
 
+                    <!-- Email -->
+                    <div class="col-12 col-md-6 col-lg-2">
+                        <label class="form-label small text-muted">Email</label>
+                        <input type="text"
+                               name="email"
+                               class="form-control form-control-sm"
+                               placeholder="Поиск по email"
+                               value="{{ request('email') }}">
+                    </div>
+
+                    <!-- Роль -->
+                    <div class="col-12 col-md-6 col-lg-2">
+                        <label class="form-label small text-muted">Роль</label>
+                        <select name="role_id" class="form-select form-select-sm">
+                            <option value="">Все роли</option>
+                            @foreach($roles as $role)
+                                <option value="{{ $role->id }}" {{ request('role_id') == $role->id ? 'selected' : '' }}>
+                                    {{ $role->label }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <!-- Статус -->
+                    <div class="col-12 col-md-6 col-lg-2">
+                        <label class="form-label small text-muted">Статус</label>
+                        <select name="is_active_in_group" class="form-select form-select-sm">
+                            <option value="">Все статусы</option>
+                            <option value="1" {{ request('is_active_in_group') === '1' ? 'selected' : '' }}>
+                                В группе
+                            </option>
+                            <option value="0" {{ request('is_active_in_group') === '0' ? 'selected' : '' }}>
+                                Не в группе
+                            </option>
+                        </select>
+                    </div>
+
+                    <!-- Дата от -->
+                    <div class="col-12 col-md-6 col-lg-2">
+                        <label class="form-label small text-muted">Дата от</label>
+                        <input type="date"
+                               name="date_from"
+                               class="form-control form-control-sm"
+                               value="{{ request('date_from') }}">
+                    </div>
+
+                    <!-- Дата до -->
+                    <div class="col-12 col-md-6 col-lg-2">
+                        <label class="form-label small text-muted">Дата до</label>
+                        <input type="date"
+                               name="date_to"
+                               class="form-control form-control-sm"
+                               value="{{ request('date_to') }}">
+                    </div>
+
+                    <!-- Кнопки -->
+                    <div class="col-12">
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary btn-sm">
+                                <i class="bi bi-search me-1"></i> Применить
+                            </button>
+                            <a href="{{ route('users.index') }}" class="btn btn-secondary btn-sm">
+                                <i class="bi bi-arrow-counterclockwise me-1"></i> Сбросить
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
     <!-- Статистика -->
     <div class="row g-3 mb-4">
         <div class="col-6 col-lg-3">
@@ -89,16 +173,19 @@
                                                 $colors = ['primary', 'secondary', 'success', 'danger', 'warning', 'info', 'dark'];
                                                 $color = $colors[abs(crc32($user->name)) % count($colors)];
                                             @endphp
-                                            <div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold bg-{{ $color }}"
-                                                 style="width:48px;height:48px;font-size:1.2rem;flex-shrink:0;">
+                                            <div
+                                                class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold bg-{{ $color }}"
+                                                style="width:48px;height:48px;font-size:1.2rem;flex-shrink:0;">
                                                 {{ mb_strtoupper(mb_substr($user->name, 0, 1)) }}
                                             </div>
                                         @endif
                                     </div>
                                     <div class="min-width-0">
-                                        <div class="fw-bold text-truncate" style="max-width: 150px;">{{ $user->name }}</div>
+                                        <div class="fw-bold text-truncate"
+                                             style="max-width: 150px;">{{ $user->name }}</div>
                                         @if($user->telegram_username)
-                                            <small class="text-muted d-block text-truncate" style="max-width: 150px;">{{ '@'.$user->telegram_username }}</small>
+                                            <small class="text-muted d-block text-truncate"
+                                                   style="max-width: 150px;">{{ '@'.$user->telegram_username }}</small>
                                         @endif
                                     </div>
                                 </div>
@@ -177,10 +264,10 @@
                         </a>
                     </div>
                 @endforelse
-        @if($users->hasPages())
-            <div class="card-footer">
-                {{ $users->links() }}
+                @if($users->hasPages())
+                    <div class="card-footer">
+                        {{ $users->links() }}
+                    </div>
+                @endif
             </div>
-        @endif
-    </div>
 @endsection

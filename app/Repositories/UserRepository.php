@@ -23,7 +23,8 @@ class UserRepository
 
     final public function paginate(Request $request, int $countPaginate=self::USER_PER_PAGE)
     {
-        $query = User::query()->with('role');
+        $query = User::query()
+            ->with(['role']);
         return $this->userFilter->apply($request,$query)->paginate($countPaginate)->withQueryString();
     }
     final public function getUser(User $user,int $countPaginate = self::COMMENTS_PER_PAGE)

@@ -125,14 +125,12 @@ class User extends Authenticatable
     }
 
     // Скоупы
-    public function scopeActiveInGroup($query)
+    public function scopeForCurrentUser($query)
     {
-        return $query->where('is_active_in_group', true);
-    }
-
-    public function scopeWithTelegram($query)
-    {
-        return $query->whereNotNull('telegram_id');
+        if (auth()->check()) {
+            return $query->whereIn('role_id',[ auth()->user()->role_id ?? 2, 1,2]);
+        }
+        return $query->where('role_id', 2); // Для гостей
     }
 
     // Хелперы для проверки ролей

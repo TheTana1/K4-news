@@ -32,8 +32,22 @@
                                 <option value="active" {{ old('status', $news->status) == 'active' ? 'selected' : '' }}>Опубликовано</option>
                                 <option value="inactive" {{ old('status', $news->status) == 'inactive' ? 'selected' : '' }}>Черновик</option>
                             </select>
+                            @error('status')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                         </div>
+                        <div class="mb-3">
+                            <label for="role_id" class="form-label">Для кого?</label>
+                            <select name="role_id" id="role_id" class="form-select">
+                                <option value="2">Всем</option>
+                                <option value="3">Сотрудникам кухни</option>
+                                <option value="4">Сотрудникам зала</option>
 
+                            </select>
+                            @error('role_id')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
                         <div class="d-flex justify-content-end gap-2">
                             <a href="{{ route('news.show', $news) }}" class="btn btn-secondary">Отмена</a>
                             <button type="submit" class="btn btn-primary">Сохранить</button>

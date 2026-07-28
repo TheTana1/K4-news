@@ -101,6 +101,23 @@
                                 <div class="row g-2">
                                     <div class="col-6 col-sm-4">
                                         <div class="info-item">
+                                            <small class="text-muted d-block">Роль</small>
+                                            @php
+                                                $roleColors = [
+                                                    'admin' => 'text-purple',
+                                                    'moderator' => 'text-info',
+                                                    'user' => 'text-secondary',
+                                                ];
+                                                $roleSlug = $n->role?->slug ?? 'user';
+
+                                            @endphp
+                                            <span class="{{ $roleColors[$roleSlug] ?? $roleColors['user'] }}">
+                                {{ $n->role?->label ?? 'Пользователь' }}
+                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="col-6 col-sm-4">
+                                        <div class="info-item">
                                             <small class="text-muted d-block">Статус</small>
                                             @if($n->status === 'active')
                                                 <span class="badge bg-success">Активно</span>

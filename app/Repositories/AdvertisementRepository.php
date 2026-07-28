@@ -16,6 +16,8 @@ class AdvertisementRepository
     final public function paginate(int $perPage = self::PER_PAGE)
     {
         return Advertisement::query()
+            ->with(['role'])
+            ->forCurrentUser()
             ->latest()
             ->paginate($perPage)
             ->withQueryString();
@@ -41,7 +43,7 @@ class AdvertisementRepository
                 'user_id' => auth()->id()
             ]);
 
-            return $advertisement->load('files');
+            return $advertisement->load('files','role');
 
         } catch (\Exception $exception) {
             DB::rollBack();
@@ -71,7 +73,7 @@ class AdvertisementRepository
                 'user_id' => auth()->id()
             ]);
 
-            return $advertisement->load('files');
+            return $advertisement->load('files','role');
 
         } catch (\Exception $exception) {
             DB::rollBack();

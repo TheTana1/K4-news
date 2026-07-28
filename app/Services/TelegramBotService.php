@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Telegram\Handlers\NewNewsHandler;
+use App\Telegram\Handlers\NewUserHandler;
 use Illuminate\Support\Facades\Hash;
 use WeStacks\TeleBot\Laravel\TeleBot;
 use App\Telegram\Handlers\StartHandler;
@@ -15,7 +16,8 @@ class TelegramBotService
 {
     public function __construct(
         readonly UserRegistrationService $userRegistrationService
-    ) {
+    )
+    {
     }
 
     public function handleUpdate($update)
@@ -28,12 +30,18 @@ class TelegramBotService
         $chatId = $message->chat->id ?? null;
         $text = $message->text ?? '';
 
+        if ($chatId && $this->isInSession($chatId, 'user')) {
+            return (new NewUserHandler($this->userRegistrationService))->handleMessage($message);
+        }
         // Регистрируем пользователя
         $user = $this->userRegistrationService->registerFromTelegram($message->from);
 
         // === Обработка команд ===
-        if ($text === '/start' || $text === '❌ Отмена' || $text === '🏠 На главную') {
-            return (new StartHandler($this->userRegistrationService))->handle($update);
+        if ($text === '/start' || $text === '❌ Отмена' || $text === '🏠 На главную' || '❌ Сначала') {
+            if ($user) {
+                return (new StartHandler($this->userRegistrationService))->handle($update);
+            }
+            return (new NewUserHandler($this->userRegistrationService))->handle($update);
         }
 
         if ($text === '/new_ad' || $text === '📝 Новое объявление') {
@@ -41,7 +49,7 @@ class TelegramBotService
         }
 
         if ($text === '/new_news' || $text === '📝 Новая новость') {
-            return app(NewNewsHandler::class)->handle($update);
+            return (new NewNewsHandler($this->userRegistrationService))->handle($update);
         }
 
         if ($text === '/help' || $text === '❓ Помощь') {

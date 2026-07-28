@@ -32,6 +32,15 @@ class Role extends Model
         return $this->hasMany(User::class);
     }
 
+    public function advertisements(): HasMany
+    {
+        return $this->hasMany(Advertisement::class);
+    }
+    public function news(): HasMany
+    {
+        return $this->hasMany(News::class);
+    }
+
     // Хелперы для проверки ролей
     public function isAdmin(): bool
     {
