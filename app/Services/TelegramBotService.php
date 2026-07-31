@@ -24,8 +24,8 @@ class TelegramBotService
     {
         $message = $update->message ?? null;
         if (!$message) {
-            Log::debug('No message in update');
-            return;
+            Log::debug('Сообщение не имеет значения');
+            return false;
         }
         $chatId = $message->chat->id ?? null;
         $text = $message->text ?? '';
@@ -37,7 +37,7 @@ class TelegramBotService
         $user = $this->userRegistrationService->registerFromTelegram($message->from);
 
         // === Обработка команд ===
-        if ($text === '/start' || $text === '❌ Отмена' || $text === '🏠 На главную' || '❌ Сначала') {
+        if ($text === '/start' || $text === '❌ Отмена' || $text === '🏠 На главную' || $text === '❌ Сначала') {
             if ($user) {
                 return (new StartHandler($this->userRegistrationService))->handle($update);
             }

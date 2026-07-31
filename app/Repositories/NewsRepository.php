@@ -70,16 +70,12 @@ class NewsRepository
 
             DB::commit();
 
-            Log::info('News created successfully', [
-                'news_id' => $news->id,
-                'content' => $news->content
-            ]);
 
             return $news->load('files');
 
         } catch (\Exception $exception) {
             DB::rollBack();
-            Log::critical('Failed to create news: ' . $exception->getMessage(), [
+            Log::critical('Ошибка при создании новости: ' . $exception->getMessage(), [
                 'trace' => $exception->getTraceAsString()
             ]);
             throw new BadRequestHttpException('Ошибка при создании новости: ' . $exception->getMessage());
@@ -102,16 +98,13 @@ class NewsRepository
 
             DB::commit();
 
-            Log::info('Advertisement updated successfully', [
-                'news_id' => $news->id,
-                'user_id' => auth()->id()
-            ]);
+
 
             return $news->load('files');
 
         } catch (\Exception $exception) {
             DB::rollBack();
-            Log::critical('Failed to update advertisement: ' . $exception->getMessage(), [
+            Log::critical('Ошибка при обновлении объявления: ' . $exception->getMessage(), [
                 'news_id' => $news->id,
                 'trace' => $exception->getTraceAsString()
             ]);
@@ -128,36 +121,15 @@ class NewsRepository
 
             DB::commit();
 
-            Log::info('Advertisement deleted successfully', [
-                'news_id' => $news->id
-            ]);
-
             return $result;
 
         } catch (\Exception $exception) {
             DB::rollBack();
-            Log::critical('Failed to delete advertisement: ' . $exception->getMessage(), [
+            Log::critical('Ошибка при удалении объявления: ' . $exception->getMessage(), [
                 'news_id' => $news->id,
                 'trace' => $exception->getTraceAsString()
             ]);
             throw new BadRequestHttpException('Ошибка при удалении объявления: ' . $exception->getMessage());
         }
-    }
-
-    final public function search(string $query, int $countPaginate = self::NEWS_PER_PAGE)
-    {
-        return News::query()
-            ->with(['author', 'files'])
-            ->where('title', 'like', "%{$query}%")
-            ->orWhere('content', 'like', "%{$query}%")
-            ->orWhere('short_description', 'like', "%{$query}%")
-            ->latest()
-            ->paginate($countPaginate)
-            ->withQueryString();
-    }
-
-    final public function findWithRelations(int $id): ?News
-    {
-        return News::with(['author', 'files', 'comments'])->find($id);
     }
 }

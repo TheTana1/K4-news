@@ -122,7 +122,6 @@ class NewNewsHandler
 
         // Шаг 2: Получаем фото
         if ($data['step'] == 2) {
-            // ✅ Обработка кнопки "Готово"
             if ($text === '✅ Готово') {
                 if (empty($data['photos'])) {
                     return TeleBot::sendMessage([

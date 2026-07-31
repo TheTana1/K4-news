@@ -6,17 +6,17 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\NewsController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\UserController;
-use App\Services\Telegram\TelegramBotService;
 use Illuminate\Support\Facades\Route;
 
 Route::get('', [DashboardController::class, 'index'])->name('dashboard');
-
-Route::resource('users', UserController::class);
-Route::resource('advertisements', AdvertisementController::class);
-Route::resource('news', NewsController::class);
-Route::resource('reviews', ReviewController::class);
-Route::resource('comments', CommentController::class);
-
+Route::middleware(['auth'])->group(function () {
+//Route::middleware(['auth'])->group(function () {
+    Route::resource('users', UserController::class);
+    Route::resource('advertisements', AdvertisementController::class);
+    Route::resource('news', NewsController::class);
+    Route::resource('reviews', ReviewController::class);
+    Route::resource('comments', CommentController::class);
+});
 Auth::routes();
 
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');

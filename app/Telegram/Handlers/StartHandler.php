@@ -20,7 +20,7 @@ class StartHandler
 
         $telegramUser = $message->from ?? null;
 
-        $this->userRegistrationService->registerFromTelegram($telegramUser->id);
+        $this->userRegistrationService->registerFromTelegram($telegramUser);
 
         $text = "👋 Привет!\n\n";
         $text .= "Я бот для публикации объявлений и отзывов.\n\n";

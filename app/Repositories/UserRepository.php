@@ -51,7 +51,6 @@ class UserRepository
             }
             $validatedData['likes'] = $validatedData['likes'] ?? 0;
 
-            // Создаем пользователя
             $user = User::query()->create($validatedData);
             if ($request->has('phones')) {
                 foreach ($request->phones as $phoneData) {
@@ -65,8 +64,6 @@ class UserRepository
             }
 
             DB::commit();
-
-            Log::info('Пользователь успешно создан: ', ['user_id' => $user->id, 'email' => $user->email]);
 
             return $user->load('phones', 'role');
 
@@ -110,7 +107,6 @@ class UserRepository
                 }
             }
             DB::commit();
-            Log::info('Пользователь успешно обновлён: ', ['user_id' => $user->id]);
 
             return $user->load(['role', 'phones']);
 
@@ -132,13 +128,9 @@ class UserRepository
             if ($user->avatar_path && file_exists(public_path($user->avatar_path))) {
                 unlink(public_path($user->avatar_path));
             }
-
-            // Удаляем пользователя (телефоны удалятся каскадно)
             $result = $user->delete();
 
             DB::commit();
-
-            Log::info('Пользователь успешно удалён: ', ['user_id' => $user->id]);
 
             return $result;
 

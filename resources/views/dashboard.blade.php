@@ -82,19 +82,24 @@
                 </div>
                 <div class="card-body p-0">
                     <ul class="list-group list-group-flush">
-                        @forelse($recentAds ?? [] as $ad)
-                            <li class="list-group-item">
-                                <a href="{{ route('advertisements.show', $ad) }}" class="text-primary fw-semibold text-decoration-none">
-                                    <div>
-                                        {{ Str::limit($ad->content, 50) }}
-                                    </div>
-                                    <div class="small text-muted">{{ $ad->created_at->diffForHumans() }}</div>
-                                </a>
+                        @auth()
+                            @forelse($recentAds ?? [] as $ad)
+                                <li class="list-group-item">
+                                    <a href="{{ route('advertisements.show', $ad) }}"
+                                       class="text-primary fw-semibold text-decoration-none">
+                                        <div>
+                                            {{ Str::limit($ad->content, 50) }}
+                                        </div>
+                                        <div class="small text-muted">{{ $ad->created_at->diffForHumans() }}</div>
+                                    </a>
 
-                            </li>
-                        @empty
-                            <li class="list-group-item text-muted">Нет объявлений</li>
-                        @endforelse
+                                </li>
+                            @empty
+                                <li class="list-group-item text-muted">Нет объявлений</li>
+                            @endforelse
+                        @else
+                            <li class="list-group-item text-muted">Авторизируйтесь для просмотра</li>
+                        @endauth
                     </ul>
                 </div>
             </div>
@@ -108,19 +113,24 @@
                 </div>
                 <div class="card-body p-0">
                     <ul class="list-group list-group-flush">
-                        @forelse($recentNews ?? [] as $news)
-                            <li class="list-group-item">
-                                <a href="{{ route('news.show', $news) }}" class="text-success fw-semibold text-decoration-none">
-                                    <div>
-                                        {{ Str::limit($news->content, 50) }}
-                                        <div class="small text-muted">{{ $news->created_at->diffForHumans() }}</div>
-                                    </div>
-                                </a>
+                        @auth()
+                            @forelse($recentNews ?? [] as $news)
+                                <li class="list-group-item">
+                                    <a href="{{ route('news.show', $news) }}"
+                                       class="text-success fw-semibold text-decoration-none">
+                                        <div>
+                                            {{ Str::limit($news->content, 50) }}
+                                            <div class="small text-muted">{{ $news->created_at->diffForHumans() }}</div>
+                                        </div>
+                                    </a>
 
-                            </li>
-                        @empty
-                            <li class="list-group-item text-muted">Нет новостей</li>
-                        @endforelse
+                                </li>
+                            @empty
+                                <li class="list-group-item text-muted">Нет новостей</li>
+                            @endforelse
+                        @else
+                            <li class="list-group-item text-muted">Авторизируйтесь для просмотра</li>
+                        @endauth
                     </ul>
                 </div>
             </div>
@@ -134,20 +144,25 @@
                 </div>
                 <div class="card-body p-0">
                     <ul class="list-group list-group-flush">
-                        @forelse($recentReviews ?? [] as $review)
-                            <li class="list-group-item">
+                        @auth()
+                            @forelse($recentReviews ?? [] as $review)
+                                <li class="list-group-item">
 
-                                <a href="{{ route('reviews.show', $review) }}" class="text-black fw-semibold text-decoration-none">
-                                    <div>
-                                        {{ Str::limit($review->content, 50) }}
-                                        <div class="small text-muted">{{ $news->created_at->diffForHumans() }}</div>
-                                    </div>
-                                </a>
+                                    <a href="{{ route('reviews.show', $review) }}"
+                                       class="text-black fw-semibold text-decoration-none">
+                                        <div>
+                                            {{ Str::limit($review->content, 50) }}
+                                            <div class="small text-muted">{{ $news->created_at->diffForHumans() }}</div>
+                                        </div>
+                                    </a>
 
-                            </li>
-                        @empty
-                            <li class="list-group-item text-muted">Нет отзывов</li>
-                        @endforelse
+                                </li>
+                            @empty
+                                <li class="list-group-item text-muted">Нет отзывов</li>
+                            @endforelse
+                        @else
+                            <li class="list-group-item text-muted">Авторизируйтесь для просмотра</li>
+                        @endauth
                     </ul>
                 </div>
             </div>

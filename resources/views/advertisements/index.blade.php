@@ -110,9 +110,8 @@
                                                 ];
                                                 $roleSlug = $ad->role?->slug ?? 'user';
                                             @endphp
-                                            <span class="{{ $roleColors[$roleSlug] ?? $roleColors['user'] }}">
-                                {{ $ad->role?->label ?? 'Пользователь' }}
-                            </span>
+                                            <span
+                                                class="{{ $roleColors[$roleSlug] ?? $roleColors['user'] }}">{{ $ad->role?->label ?? 'Пользователь' }}</span>
                                         </div>
                                     </div>
                                     <div class="col-6 col-sm-4">
@@ -142,10 +141,13 @@
                                        class="btn btn-sm btn-outline-primary flex-fill">
                                         <i class="bi bi-eye me-1"></i> Просмотр
                                     </a>
+                                    @can('update',$ad)
                                     <a href="{{ route('advertisements.edit', $ad) }}"
                                        class="btn btn-sm btn-outline-success">
                                         <i class="bi bi-pencil"></i>
                                     </a>
+                                    @endcan
+                                    @can('delete',$ad)
                                     <form action="{{ route('advertisements.destroy', $ad) }}"
                                           method="POST"
                                           class="d-inline">
@@ -157,6 +159,7 @@
                                             <i class="bi bi-trash"></i>
                                         </button>
                                     </form>
+                                    @endcan
                                 </div>
                             </div>
                         </div>

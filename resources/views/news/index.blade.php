@@ -109,11 +109,9 @@
                                                     'user' => 'text-secondary',
                                                 ];
                                                 $roleSlug = $n->role?->slug ?? 'user';
-
                                             @endphp
-                                            <span class="{{ $roleColors[$roleSlug] ?? $roleColors['user'] }}">
-                                {{ $n->role?->label ?? 'Пользователь' }}
-                            </span>
+                                            <span
+                                                class="{{ $roleColors[$roleSlug] ?? $roleColors['user'] }}">{{ $n->role?->label ?? 'Пользователь' }}</span>
                                         </div>
                                     </div>
                                     <div class="col-6 col-sm-4">
@@ -137,29 +135,35 @@
                             </div>
 
                             <!-- Действия -->
+                            @auth()
                             <div class="col-12 col-lg-3">
                                 <div class="d-flex flex-wrap gap-1">
                                     <a href="{{ route('news.show', $n) }}"
                                        class="btn btn-sm btn-outline-primary flex-fill">
                                         <i class="bi bi-eye me-1"></i> Просмотр
                                     </a>
-                                    <a href="{{ route('news.edit', $n) }}"
-                                       class="btn btn-sm btn-outline-success">
-                                        <i class="bi bi-pencil"></i>
-                                    </a>
-                                    <form action="{{ route('news.destroy', $n) }}"
-                                          method="POST"
-                                          class="d-inline">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit"
-                                                class="btn btn-sm btn-outline-danger"
-                                                onclick="return confirm('Вы уверены, что хотите удалить объявление #{{ $n->id }}?')">
-                                            <i class="bi bi-trash"></i>
-                                        </button>
-                                    </form>
+                                    @can('update', $n)
+                                        <a href="{{ route('news.edit', $n) }}"
+                                           class="btn btn-sm btn-outline-success">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                    @endcan
+                                    @can('delete', $n)
+                                        <form action="{{ route('news.destroy', $n) }}"
+                                              method="POST"
+                                              class="d-inline">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit"
+                                                    class="btn btn-sm btn-outline-danger"
+                                                    onclick="return confirm('Вы уверены, что хотите удалить объявление #{{ $n->id }}?')">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </form>
+                                    @endcan
                                 </div>
                             </div>
+                            @endauth
                         </div>
                     </div>
                 @empty

@@ -13,7 +13,7 @@ class NewUserHandler
     public function handle($update)
     {
         $chatId = $update->message->chat->id ?? null;
-        if (!$chatId) return;
+        if (!$chatId) return false;
 
         $sessionKey = "user_{$chatId}";
 
@@ -36,15 +36,12 @@ class NewUserHandler
     public function handleMessage($message)
     {
         $chatId = $message->chat->id ?? null;
-        if (!$chatId) return;
+        if (!$chatId) return false;
 
         $text = $message->text;
         $sessionKey = "user_{$chatId}";
         $data = session($sessionKey, ['step' => 1]);
 
-        // ==========================================
-        // 1. ОБРАБОТКА КНОПОК (всегда в первую очередь)
-        // ==========================================
 
         if ($text === '✅ Отправить') {
             $data = array_merge($data, [
@@ -60,7 +57,12 @@ class NewUserHandler
             return \TeleBot::sendMessage([
                 'chat_id' => $chatId,
                 'text' => "✅ Регистрация завершена!",
-                'reply_markup' => ['remove_keyboard' => true],
+                'reply_markup' => [
+                    'keyboard' => [
+                        [['text' => '🏠 На главную']],
+                    ],
+                    'remove_keyboard' => true
+                ],
             ]);
         }
 
@@ -137,6 +139,7 @@ class NewUserHandler
             // ПОСЛЕ СОХРАНЕНИЯ ВЫХОДИМ И ЖДЕМ СЛЕДУЮЩЕЕ СООБЩЕНИЕ
             return $this->askForEmail($chatId);
         }
+        return false;
     }
 
     private function processEmail($chatId, $text, $data)

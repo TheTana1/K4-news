@@ -7,7 +7,8 @@
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Главная</a></li>
             <li class="breadcrumb-item"><a href="{{ route('advertisements.index') }}">Объявления</a></li>
-            <li class="breadcrumb-item active" aria-current="page">{{ Str::limit($advertisement->content ?? 'Новость', 10) }}</li>
+            <li class="breadcrumb-item active"
+                aria-current="page">{{ Str::limit($advertisement->content ?? 'Новость', 10) }}</li>
         </ol>
     </nav>
 
@@ -67,24 +68,30 @@
                     <div class="card h-100">
                         <div class="card-header d-flex justify-content-between align-items-center">
                             <span><i class="bi bi-file-text me-1"></i> Содержание</span>
-                            @if(Auth::user()->isAdmin()||Auth::user()->isModerator())
-                                <div>
-                                    <a href="{{ route('advertisements.edit', $advertisement) }}" class="btn btn-sm btn-success">
+                            <div>
+                                @can('update', $advertisement)
+                                    <a href="{{ route('advertisements.edit', $advertisement) }}"
+                                       class="btn btn-sm btn-success">
                                         <i class="bi bi-pencil me-1"></i> Редактировать
                                     </a>
-                                    <form action="{{ route('advertisements.destroy', $advertisement) }}" method="POST" class="d-inline">
+                                @endcan
+                                @can('delete', $advertisement)
+                                    <form action="{{ route('advertisements.destroy', $advertisement) }}" method="POST"
+                                          class="d-inline">
                                         @csrf @method('DELETE')
-                                        <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Удалить новость?')">
+                                        <button type="submit" class="btn btn-sm btn-danger"
+                                                onclick="return confirm('Удалить новость?')">
                                             <i class="bi bi-trash me-1"></i> Удалить
                                         </button>
                                     </form>
-                                </div>
-                            @endif
+                                @endcan
+                            </div>
                         </div>
                         <div class="card-body">
 
 
-                            <p class="card-text" style="white-space: pre-line;">{{ $advertisement->content ?? 'Содержание отсутствует' }}</p>
+                            <p class="card-text"
+                               style="white-space: pre-line;">{{ $advertisement->content ?? 'Содержание отсутствует' }}</p>
 
                         </div>
                     </div>
@@ -144,9 +151,10 @@
                                             <small class="text-muted d-block">{{ $fileSize }}</small>
 
                                             @can('delete', $file)
-                                                <form action="{{ route('advertisements.files.destroy', [$advertisement, $file]) }}"
-                                                      method="POST"
-                                                      class="d-inline mt-2">
+                                                <form
+                                                    action="{{ route('advertisements.files.destroy', [$advertisement, $file]) }}"
+                                                    method="POST"
+                                                    class="d-inline mt-2">
                                                     @csrf @method('DELETE')
                                                     <button type="submit"
                                                             class="btn btn-sm btn-outline-danger"
@@ -181,7 +189,8 @@
                             <input type="hidden" name="commentable_id" value="{{ $advertisement->id }}">
                             <input type="hidden" name="commentable_type" value="advertisement">
                             <div class="mb-2">
-                                <textarea name="comment" rows="3" class="form-control" placeholder="Ваш комментарий..."></textarea>
+                                <textarea name="comment" rows="3" class="form-control"
+                                          placeholder="Ваш комментарий..."></textarea>
                             </div>
                             <button type="submit" class="btn btn-primary btn-sm">
                                 <i class="bi bi-send me-1"></i> Отправить
@@ -196,7 +205,8 @@
                                     <div class="d-flex w-100 justify-content-between align-items-center">
                                         <div>
                                             <strong>{{ $comment->user?->name ?? 'Гость' }}</strong>
-                                            <small class="text-muted ms-2">{{ $comment->created_at->diffForHumans() }}</small>
+                                            <small
+                                                class="text-muted ms-2">{{ $comment->created_at->diffForHumans() }}</small>
                                         </div>
                                         <div>
                                             @can('update', $comment)
@@ -208,9 +218,11 @@
                                                 </button>
                                             @endcan
                                             @can('delete', $comment)
-                                                <form action="{{ route('comments.destroy', $comment) }}" method="POST" class="d-inline">
+                                                <form action="{{ route('comments.destroy', $comment) }}" method="POST"
+                                                      class="d-inline">
                                                     @csrf @method('DELETE')
-                                                    <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Удалить комментарий?')">
+                                                    <button type="submit" class="btn btn-sm btn-outline-danger"
+                                                            onclick="return confirm('Удалить комментарий?')">
                                                         <i class="bi bi-trash"></i>
                                                     </button>
                                                 </form>
@@ -221,25 +233,33 @@
                                 </div>
 
                                 <!-- Модальное окно для редактирования комментария -->
-                                <div class="modal fade" id="editCommentModal{{ $comment->id }}" tabindex="-1" aria-labelledby="editCommentModalLabel{{ $comment->id }}" aria-hidden="true">
+                                <div class="modal fade" id="editCommentModal{{ $comment->id }}" tabindex="-1"
+                                     aria-labelledby="editCommentModalLabel{{ $comment->id }}" aria-hidden="true">
                                     <div class="modal-dialog">
                                         <div class="modal-content">
                                             <div class="modal-header">
-                                                <h5 class="modal-title" id="editCommentModalLabel{{ $comment->id }}">Редактировать комментарий</h5>
-                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                <h5 class="modal-title" id="editCommentModalLabel{{ $comment->id }}">
+                                                    Редактировать комментарий</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                                        aria-label="Close"></button>
                                             </div>
                                             <form action="{{ route('comments.update', $comment) }}" method="POST">
                                                 @csrf @method('PUT')
                                                 <div class="modal-body">
                                                     <div class="mb-3">
-                                                        <label for="comment-{{ $comment->id }}" class="form-label">Текст комментария</label>
-                                                        <textarea name="comment" id="comment-{{ $comment->id }}" rows="4"
+                                                        <label for="comment-{{ $comment->id }}" class="form-label">Текст
+                                                            комментария</label>
+                                                        <textarea name="comment" id="comment-{{ $comment->id }}"
+                                                                  rows="4"
                                                                   class="form-control @error('comment') is-invalid @enderror">{{ old('comment', $comment->comment) }}</textarea>
-                                                        @error('comment') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                                                        @error('comment')
+                                                        <div class="invalid-feedback">{{ $message }}</div> @enderror
                                                     </div>
                                                 </div>
                                                 <div class="modal-footer">
-                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                                                    <button type="button" class="btn btn-secondary"
+                                                            data-bs-dismiss="modal">Отмена
+                                                    </button>
                                                     <button type="submit" class="btn btn-primary">Сохранить</button>
                                                 </div>
                                             </form>

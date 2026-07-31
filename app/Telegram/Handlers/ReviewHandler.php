@@ -54,7 +54,6 @@ class ReviewHandler
                 'chat_id' => $chatId,
                 'text' => "✅ Отзыв сохранён!\n\n" .
                     "⭐ Рейтинг: {$stars} ({$review->rating}/5)\n" .
-                    "🆔 ID: {$review->id}\n" .
                     "📅 Дата: " . now()->format('d.m.Y H:i'),
             ]);
 

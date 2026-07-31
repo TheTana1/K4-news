@@ -12,7 +12,8 @@ use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 class AdvertisementRepository
 {
     private const PER_PAGE = 10;
-    private  const COMMENTS_PER_PAGE = 10;
+    private const COMMENTS_PER_PAGE = 10;
+
     final public function paginate(int $perPage = self::PER_PAGE)
     {
         return Advertisement::query()
@@ -37,13 +38,7 @@ class AdvertisementRepository
             }
 
             DB::commit();
-
-            Log::info('Объявление успешно создано: ', [
-                'advertisement_id' => $advertisement->id,
-                'user_id' => auth()->id()
-            ]);
-
-            return $advertisement->load('files','role');
+            return $advertisement->load('files', 'role');
 
         } catch (\Exception $exception) {
             DB::rollBack();
@@ -53,6 +48,7 @@ class AdvertisementRepository
             throw new BadRequestHttpException('Ошибка при создании объявления: ' . $exception->getMessage());
         }
     }
+
     final public function update(AdvertisementRequest $request, Advertisement $advertisement): Advertisement
     {
         DB::beginTransaction();
@@ -68,12 +64,7 @@ class AdvertisementRepository
             $advertisement->update($validatedData);
             DB::commit();
 
-            Log::info('Объявление успешно обновлено:', [
-                'advertisement_id' => $advertisement->id,
-                'user_id' => auth()->id()
-            ]);
-
-            return $advertisement->load('files','role');
+            return $advertisement->load('files', 'role');
 
         } catch (\Exception $exception) {
             DB::rollBack();
@@ -84,6 +75,7 @@ class AdvertisementRepository
             throw new BadRequestHttpException('Ошибка при обновлении объявления: ' . $exception->getMessage());
         }
     }
+
     final public function destroy(Advertisement $advertisement): bool
     {
         DB::beginTransaction();
@@ -93,10 +85,6 @@ class AdvertisementRepository
             $result = $advertisement->delete();
 
             DB::commit();
-
-            Log::info('Объявление успешно удалено:', [
-                'advertisement_id' => $advertisement->id
-            ]);
 
             return $result;
 
@@ -109,19 +97,20 @@ class AdvertisementRepository
             throw new BadRequestHttpException('Ошибка при удалении объявления: ' . $exception->getMessage());
         }
     }
+
     protected function uploadFiles(array $files, Advertisement $advertisement): void
     {
         foreach ($files as $file) {
 
-                $path = $file->store('advertisements/' . $advertisement->id, 'public');
+            $path = $file->store('advertisements/' . $advertisement->id, 'public');
 
-                $advertisement->files()->create([
-                    'file_path' => $path,
-                    'file_name' => $file->getClientOriginalName(),
-                    'file_size' => $file->getSize(),
-                    'mime_type' => $file->getMimeType(),
-                    'disk' => 'public'
-                ]);
+            $advertisement->files()->create([
+                'file_path' => $path,
+                'file_name' => $file->getClientOriginalName(),
+                'file_size' => $file->getSize(),
+                'mime_type' => $file->getMimeType(),
+                'disk' => 'public'
+            ]);
 
         }
     }
@@ -134,6 +123,7 @@ class AdvertisementRepository
             $file->delete();
         }
     }
+
     protected function deleteAllFiles(Advertisement $advertisement): void
     {
         foreach ($advertisement->files as $file) {
