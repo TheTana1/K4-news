@@ -13,6 +13,7 @@
         "botman/botman": "^2.8",
         "botman/driver-telegram": "^2.0",
         "laravel/framework": "^12.64",
+        "laravel/sanctum": "^4.0",
         "laravel/tinker": "^2.10.1",
         "laravel/ui": "^4.6",
         "westacks/telebot-laravel": "^4.6"

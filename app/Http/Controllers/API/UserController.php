@@ -17,8 +17,8 @@ class UserController extends Controller
 {
 
     public function __construct(
-        private UserRepository      $userRepository,
-        private UserFilter $userFilter,
+        readonly UserRepository      $userRepository,
+        readonly UserFilter $userFilter,
     )
     {
     }
@@ -31,7 +31,8 @@ class UserController extends Controller
     public function show(User $user): UserResource
     {
 
-        return new UserResource($this->userRepository->getUser($user));
+        return new UserResource($user->load(['role:label',
+            'comments:comment']));
     }
 
     public function store(UserRequest $request): UserResource
@@ -50,4 +51,6 @@ class UserController extends Controller
             'status' => $this->userRepository->destroy($user) ? 'success' : 'failure',
         ]);
     }
+
+
 }
