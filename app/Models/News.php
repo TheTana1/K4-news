@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Support\Facades\Auth;
 
 /**
  * @property int $id
@@ -53,10 +54,14 @@ class News extends Model
     ];
     public function scopeForCurrentUser($query)
     {
-        if (auth()->check()) {
-            return $query->whereIn('role_id',[ auth()->user()->role_id ?? 2, 1,2]);
+        if (Auth::check()) {
+            $roleId = Auth::user()->role_id;
+            if($roleId===1||$roleId===2){
+                return $query;
+            }
+            return $query->whereIn('role_id',[ $roleId ?? 2, 1,2]);
         }
-        return $query->where('role_id', 2); // Для гостей
+        return $query->where('role_id', 2);
     }
     public function role():BelongsTo
     {

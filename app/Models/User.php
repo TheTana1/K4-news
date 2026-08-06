@@ -7,6 +7,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\Auth;
 
 /**
  * @property int $id
@@ -127,10 +128,14 @@ class User extends Authenticatable
     // Скоупы
     public function scopeForCurrentUser($query)
     {
-        if (auth()->check()) {
-            return $query->whereIn('role_id',[ auth()->user()->role_id ?? 2, 1,2]);
+        if (Auth::check()) {
+            $roleId = Auth::user()->role_id;
+            if($roleId===1||$roleId===2){
+                return $query;
+            }
+            return $query->whereIn('role_id',[ $roleId ?? 2, 1,2]);
         }
-        return $query->where('role_id', 2); // Для гостей
+        return $query->where('role_id', 2);
     }
 
     // Хелперы для проверки ролей

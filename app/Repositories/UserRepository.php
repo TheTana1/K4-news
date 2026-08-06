@@ -29,7 +29,7 @@ class UserRepository
     }
     final public function getUser(User $user,int $countPaginate = self::COMMENTS_PER_PAGE)
     {
-        $user->load(['role', 'phones']);
+//        $user->load(['role', 'phones']);
         return $user->comments()
             ->with(['commentable'])
             ->latest()

@@ -19,15 +19,15 @@ class ReviewController extends Controller
         return view('reviews.index', compact('reviews'));
     }
 
-    public function create():View
-    {
-        return view('reviews.create');
-    }
+//    public function create():View
+//    {
+//        return view('reviews.create');
+//    }
 
-    public function edit(Review $review):View
-    {
-        return view('reviews.edit', compact('review'));
-    }
+//    public function edit(Review $review):View
+//    {
+//        return view('reviews.edit', compact('review'));
+//    }
 
     public function show(Review $review):View
     {

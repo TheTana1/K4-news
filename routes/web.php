@@ -17,6 +17,6 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('reviews', ReviewController::class);
     Route::resource('comments', CommentController::class);
 });
-Auth::routes();
+Auth::routes(['register' => false]);
 
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');

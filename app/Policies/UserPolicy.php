@@ -2,11 +2,10 @@
 
 namespace App\Policies;
 
-use App\Models\News;
 use App\Models\User;
 use Illuminate\Auth\Access\Response;
 
-class NewsPolicy
+class UserPolicy
 {
     /**
      * Determine whether the user can view any models.
@@ -19,7 +18,7 @@ class NewsPolicy
     /**
      * Determine whether the user can view the model.
      */
-    public function view(User $user, News $news): bool
+    public function view(User $user, User $model): bool
     {
         return true;
     }
@@ -35,32 +34,35 @@ class NewsPolicy
     /**
      * Determine whether the user can update the model.
      */
-    public function update(User $user, News $news): bool
+    public function update(User $user, User $model): bool
     {
-        return $user->isAdmin() || $user->isModerator();
+        return $user->id === $model->id || $user->isAdmin() || $user->isModerator();
     }
 
     /**
      * Determine whether the user can delete the model.
      */
-    public function delete(User $user, News $news): bool
+    public function delete(User $user, User $model): bool
     {
-        return $user->isAdmin() || $user->isModerator();
+        return $user->id === $model->id || $user->isAdmin() || $user->isModerator();
+
     }
 
     /**
      * Determine whether the user can restore the model.
      */
-    public function restore(User $user, News $news): bool
+    public function restore(User $user, User $model): bool
     {
         return $user->isAdmin();
+
     }
 
     /**
      * Determine whether the user can permanently delete the model.
      */
-    public function forceDelete(User $user, News $news): bool
+    public function forceDelete(User $user, User $model): bool
     {
         return $user->isAdmin();
+
     }
 }

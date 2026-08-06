@@ -20,7 +20,7 @@ class UserController extends Controller
 
     public function __construct(readonly UserRepository $userRepository)
     {
-
+        $this->authorizeResource(User::class, 'user');
     }
     public function index(Request $request):View
     {

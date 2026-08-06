@@ -17,8 +17,8 @@ class AdvertisementRepository
     final public function paginate(int $perPage = self::PER_PAGE)
     {
         return Advertisement::query()
-            ->with(['role'])
             ->forCurrentUser()
+            ->with(['role'])
             ->latest()
             ->paginate($perPage)
             ->withQueryString();

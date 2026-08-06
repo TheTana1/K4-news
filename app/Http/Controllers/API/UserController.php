@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\API;
 
-use App\Filters\UserFilter;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\UserRequest;
 use App\Http\Resources\UserResource;
@@ -17,8 +16,7 @@ class UserController extends Controller
 {
 
     public function __construct(
-        readonly UserRepository      $userRepository,
-        readonly UserFilter $userFilter,
+        readonly UserRepository $userRepository,
     )
     {
     }
@@ -31,8 +29,11 @@ class UserController extends Controller
     public function show(User $user): UserResource
     {
 
-        return new UserResource($user->load(['role:label',
-            'comments:comment']));
+        return new UserResource($user->load([
+            'phones',
+            'role',
+            'comments'
+        ]));
     }
 
     public function store(UserRequest $request): UserResource

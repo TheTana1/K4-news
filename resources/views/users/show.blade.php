@@ -28,8 +28,9 @@
                                         $colors = ['primary', 'secondary', 'success', 'danger', 'warning', 'info', 'dark'];
                                         $color = $colors[abs(crc32($user->name)) % count($colors)];
                                     @endphp
-                                    <div class="rounded-circle d-flex align-items-center justify-content-center text-white mx-auto bg-{{ $color }}"
-                                         style="width:120px;height:120px;font-size:3rem;">
+                                    <div
+                                        class="rounded-circle d-flex align-items-center justify-content-center text-white mx-auto bg-{{ $color }}"
+                                        style="width:120px;height:120px;font-size:3rem;">
                                         {{ mb_strtoupper(mb_substr($user->name, 0, 1)) }}
                                     </div>
                                 @endif
@@ -61,18 +62,25 @@
                                 @endif
                             </div>
 
-                            <div class="d-grid gap-2 mt-3">
-                                <a href="{{ route('users.edit', $user) }}" class="btn btn-success">
-                                    <i class="bi bi-pencil me-1"></i> Редактировать
-                                </a>
-                                <form action="{{ route('users.destroy', $user) }}" method="POST">
-                                    @csrf @method('DELETE')
-                                    <button type="submit" class="btn btn-danger w-100"
-                                            onclick="return confirm('Удалить пользователя?')">
-                                        <i class="bi bi-trash me-1"></i> Удалить
-                                    </button>
-                                </form>
-                            </div>
+
+
+                                <div class="d-grid gap-2 mt-3">
+                                    @can('update', $user)
+                                    <a href="{{ route('users.edit', $user) }}" class="btn btn-success">
+                                        <i class="bi bi-pencil me-1"></i> Редактировать
+                                    </a>
+                                    @endcan
+                                    @can('delete', $user)
+                                    <form action="{{ route('users.destroy', $user) }}" method="POST">
+                                        @csrf @method('DELETE')
+                                        <button type="submit" class="btn btn-danger w-100"
+                                                onclick="return confirm('Удалить пользователя?')">
+                                            <i class="bi bi-trash me-1"></i> Удалить
+                                        </button>
+                                    </form>
+                                        @endcan
+                                </div>
+
                         </div>
                     </div>
                 </div>

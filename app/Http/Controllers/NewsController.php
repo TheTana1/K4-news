@@ -12,7 +12,7 @@ class NewsController extends Controller
 {
     public function __construct(readonly NewsRepository $newsRepository)
     {
-
+        $this->authorizeResource(News::class, 'news');
     }
 
     public function index(): View

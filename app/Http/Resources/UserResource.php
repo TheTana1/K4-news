@@ -21,9 +21,10 @@ class UserResource extends JsonResource
             'gender' => $this->gender ===1?'female':'male',
             'telegram_username' => $this->telegram_username,
             'telegram_id' => $this->telegram_id,
-            'role_id' => $this->role_id,
             'avatar_path' => $this->avatar_path,
 
+            'role' => $this->role,
+            'comments' => $this->comments
 
 
         ];

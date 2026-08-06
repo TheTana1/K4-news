@@ -5,9 +5,6 @@
 @section('content')
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h1 class="h3">Отзывы</h1>
-        <a href="{{ route('reviews.create') }}" class="btn btn-primary">
-            + Оставить отзыв
-        </a>
     </div>
 
     <div class="row">
@@ -41,7 +38,6 @@
                             </a>
                             @auth
                                 <div class="d-inline-flex gap-1">
-                                    <a href="{{ route('reviews.edit', $review) }}" class="btn btn-sm btn-outline-success">Ред.</a>
                                     <form action="{{ route('reviews.destroy', $review) }}" method="POST" class="d-inline">
                                         @csrf @method('DELETE')
                                         <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Удалить отзыв?')">Уд.</button>

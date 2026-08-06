@@ -31,53 +31,7 @@
                     <form action="{{ route('users.update', $user) }}" method="POST" enctype="multipart/form-data">
                         @csrf @method('PUT')
 
-                        <!-- Аватар -->
-                        {{--                        <div class="row mb-4 align-items-center">--}}
-                        {{--                            <div class="col-auto">--}}
-                        {{--                                <div class="position-relative d-inline-block">--}}
-                        {{--                                    <div id="avatarContainer"--}}
-                        {{--                                         class="rounded-circle d-flex align-items-center justify-content-center text-white">--}}
-                        {{--                                        @if($user->avatar_path)--}}
-                        {{--                                            <img id="avatarPreview" src="{{ asset($user->avatar_path) }}"--}}
-                        {{--                                                 alt="{{ $user->name }}"--}}
-                        {{--                                                 class="rounded-circle border border-3 border-white shadow" width="120"--}}
-                        {{--                                                 height="120" style="object-fit: cover;">--}}
-                        {{--                                        @else--}}
-                        {{--                                            @php--}}
-                        {{--                                                $colors = ['primary', 'secondary', 'success', 'danger', 'warning', 'info', 'dark'];--}}
-                        {{--                                                $color = $colors[abs(crc32($user->name)) % count($colors)];--}}
-                        {{--                                            @endphp--}}
-                        {{--                                            <div id="avatarPreview"--}}
-                        {{--                                                 class="rounded-circle d-flex align-items-center justify-content-center text-white bg-{{$color}}"--}}
-                        {{--                                                 style="width:80px;height:80px;font-size:2rem;background-size:cover;background-position:center; background-color: #0D6EFD">--}}
-                        {{--                                                {{ mb_strtoupper(mb_substr($user->name, 0, 1)) }}--}}
-                        {{--                                            </div>--}}
-                        {{--                                        @endif--}}
-                        {{--                                    </div>--}}
-                        {{--                                    <label for="avatar"--}}
-                        {{--                                           class="position-absolute bottom-0 end-0 bg-white rounded-circle p-1 shadow-sm d-flex align-items-center justify-content-center"--}}
-                        {{--                                           style="cursor:pointer; transform:translate(10%,10%); width:36px; height:36px;">--}}
-                        {{--                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"--}}
-                        {{--                                             stroke="currentColor" stroke-width="2" stroke-linecap="round"--}}
-                        {{--                                             stroke-linejoin="round" class="text-gray-600">--}}
-                        {{--                                            <path--}}
-                        {{--                                                d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>--}}
-                        {{--                                            <circle cx="12" cy="13" r="4"/>--}}
-                        {{--                                        </svg>--}}
-                        {{--                                    </label>--}}
-                        {{--                                    <input type="file" id="avatar" name="avatar" class="d-none" accept="image/*">--}}
-                        {{--                                </div>--}}
-                        {{--                                @error('avatar')--}}
-                        {{--                                <div class="text-danger small mt-1">{{ $message }}</div>--}}
-                        {{--                                @enderror--}}
-                        {{--                            </div>--}}
-                        {{--                            <div class="col">--}}
-                        {{--                                <small class="text-muted">Нажмите на иконку камеры, чтобы изменить фото</small>--}}
-                        {{--                                <div>--}}
-                        {{--                                    <small class="text-muted">Формат: jpeg, png, jpg, gif. Максимум: 2MB</small>--}}
-                        {{--                                </div>--}}
-                        {{--                            </div>--}}
-                        {{--                        </div>--}}
+
                         <div class="row mb-4 align-items-center">
                             <div class="col-auto">
                                 <div class="position-relative d-inline-block">

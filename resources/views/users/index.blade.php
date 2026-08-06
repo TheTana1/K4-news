@@ -230,29 +230,36 @@
                             </div>
 
                             <!-- Действия -->
-                            <div class="col-12 col-lg-3">
-                                <div class="d-flex flex-wrap gap-1">
-                                    <a href="{{ route('users.show', $user) }}"
-                                       class="btn btn-sm btn-outline-primary flex-fill">
-                                        <i class="bi bi-eye me-1"></i> Просмотр
-                                    </a>
-                                    <a href="{{ route('users.edit', $user) }}"
-                                       class="btn btn-sm btn-outline-success">
-                                        <i class="bi bi-pencil"></i>
-                                    </a>
-                                    <form action="{{ route('users.destroy', $user) }}"
-                                          method="POST"
-                                          class="d-inline">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit"
-                                                class="btn btn-sm btn-outline-danger"
-                                                onclick="return confirm('Вы уверены, что хотите удалить пользователя {{ $user->name }}?')">
-                                            <i class="bi bi-trash"></i>
-                                        </button>
-                                    </form>
+                            @auth()
+
+                                <div class="col-12 col-lg-3">
+                                    <div class="d-flex flex-wrap gap-1">
+                                        <a href="{{ route('users.show', $user) }}"
+                                           class="btn btn-sm btn-outline-primary flex-fill">
+                                            <i class="bi bi-eye me-1"></i> Просмотр
+                                        </a>
+                                        @can('update', $user)
+                                            <a href="{{ route('users.edit', $user) }}"
+                                               class="btn btn-sm btn-outline-success">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
+                                        @endcan
+                                        @can('delete', $user)
+                                            <form action="{{ route('users.destroy', $user) }}"
+                                                  method="POST"
+                                                  class="d-inline">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit"
+                                                        class="btn btn-sm btn-outline-danger"
+                                                        onclick="return confirm('Вы уверены, что хотите удалить пользователя {{ $user->name }}?')">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </form>
+                                        @endcan
+                                    </div>
                                 </div>
-                            </div>
+                            @endauth
                         </div>
                     </div>
                 @empty
