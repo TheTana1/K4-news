@@ -44,6 +44,10 @@ class UserRegistrationService
                 'password' => Hash::make($user['password']),
                 'role_id' => $user['role'],
             ]);
+            $userDb->phones()->create([
+                'phone_number' => $user['phone'],
+                'is_primary' => true,
+            ]);
             DB::commit();
             Log::info('New Telegram user registered', [
                 'telegram_id' => $user->id,

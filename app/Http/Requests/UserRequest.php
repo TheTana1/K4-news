@@ -123,7 +123,7 @@ public function after()
                     'errors' => $validator->errors()->toArray()
                 ]);
             } else {
-                Log::info('Валидация прошла успешно');
+                Log::info('Валидация пользователя прошла успешно');
             }
         }
     ];

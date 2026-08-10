@@ -58,6 +58,9 @@ class NewNewsHandler
                 return $this->askForPhotos($chatId);
             }
             if ($data['step'] == 3) {
+                return $this->askForAudience($chatId, $data);
+            }
+            if ($data['step'] == 4) {
                 return $this->confirmNews($chatId, $data);
             }
         }
@@ -100,7 +103,6 @@ class NewNewsHandler
                         [['text' => '🏠 На главную']],
                     ],
                     'remove_keyboard' => true],
-
             ]);
         }
 
@@ -123,26 +125,19 @@ class NewNewsHandler
         // Шаг 2: Получаем фото
         if ($data['step'] == 2) {
             if ($text === '✅ Готово') {
-                if (empty($data['photos'])) {
-                    return TeleBot::sendMessage([
-                        'chat_id' => $chatId,
-                        'text' => '❌ Добавьте хотя бы одно фото или нажмите "Пропустить".',
-                    ]);
-                }
-
                 $data['step'] = 3;
                 session([$sessionKey => $data]);
-                return $this->confirmNews($chatId, $data);
+                return $this->askForAudience($chatId, $data);
             }
 
             if ($text === '⏭ Пропустить') {
                 $data['photos'] = [];
                 $data['step'] = 3;
                 session([$sessionKey => $data]);
-                return $this->confirmNews($chatId, $data);
+                return $this->askForAudience($chatId, $data);
             }
 
-            // ✅ Проверяем наличие фото (ТОЛЬКО ФОТО!)
+            // Проверяем наличие фото
             if (isset($message->photo) && !empty($message->photo)) {
                 $photoInfo = $this->processPhoto($message->photo);
 
@@ -169,7 +164,7 @@ class NewNewsHandler
                 }
             }
 
-            // ❌ Если прислали документ вместо фото
+            // Если прислали документ вместо фото
             if (isset($message->document)) {
                 return TeleBot::sendMessage([
                     'chat_id' => $chatId,
@@ -183,8 +178,35 @@ class NewNewsHandler
             ]);
         }
 
-        // Шаг 3: Подтверждение
+        // Шаг 3: Выбор аудитории
         if ($data['step'] == 3) {
+            // Маппинг текста кнопок на role_id
+            $audienceMap = [
+                '👥 Всем' => 2,
+                '🍳 Сотрудникам кухни' => 3,
+                '🛎 Сотрудникам зала' => 4
+            ];
+
+            if (isset($audienceMap[$text])) {
+                $data['role_id'] = $audienceMap[$text];
+                $data['step'] = 4;
+                session([$sessionKey => $data]);
+                return $this->confirmNews($chatId, $data);
+            }
+
+            // Если нажали "Назад"
+            if ($text === '⬅️ Назад') {
+                $data['step'] = 2;
+                session([$sessionKey => $data]);
+                return $this->askForPhotos($chatId);
+            }
+
+            // Если просто текст - показываем выбор снова
+            return $this->askForAudience($chatId, $data);
+        }
+
+        // Шаг 4: Подтверждение
+        if ($data['step'] == 4) {
             if ($text === '✅ Опубликовать') {
                 return $this->publishNews($chatId, $data);
             }
@@ -203,6 +225,12 @@ class NewNewsHandler
                         'resize_keyboard' => true,
                     ],
                 ]);
+            }
+
+            if ($text === '👥 Изменить получателей') {
+                $data['step'] = 3;
+                session([$sessionKey => $data]);
+                return $this->askForAudience($chatId, $data);
             }
 
             if ($text === '❌ Отмена') {
@@ -252,12 +280,40 @@ class NewNewsHandler
     }
 
     /**
+     * Запрос на выбор аудитории
+     */
+    private function askForAudience($chatId, $data)
+    {
+        return TeleBot::sendMessage([
+            'chat_id' => $chatId,
+            'text' => "👥 Кому отправить новость?\n\n" .
+                "Выберите аудиторию:",
+            'reply_markup' => [
+                'keyboard' => [
+                    [['text' => '👥 Всем'], ['text' => '🍳 Сотрудникам кухни']],
+                    [['text' => '🛎 Сотрудникам зала']],
+                    [['text' => '⬅️ Назад'], ['text' => '❌ Отмена']],
+                ],
+                'resize_keyboard' => true,
+            ],
+        ]);
+    }
+
+    /**
      * Подтверждение новости
      */
     private function confirmNews($chatId, $data)
     {
+        // Получаем название роли для отображения
+        $roleLabels = [
+            2 => '👥 Всем',
+            3 => '🍳 Сотрудникам кухни',
+            4 => '🛎 Сотрудникам зала'
+        ];
+
         $text = "✅ Проверьте новость:\n\n";
         $text .= "📝 Текст:\n{$data['text']}\n\n";
+        $text .= "👥 Получатели: " . ($roleLabels[$data['role_id'] ?? 2] ?? '👥 Всем') . "\n\n";
 
         if (!empty($data['photos']) && is_array($data['photos'])) {
             $text .= "📸 Фото (всего: " . count($data['photos']) . "):\n";
@@ -270,23 +326,17 @@ class NewNewsHandler
 
         $text .= "\nПодтвердите публикацию или отредактируйте.";
 
-        $replyMarkup = [
-            'keyboard' => [
-                [
-                    ['text' => '✅ Опубликовать'],
-                    ['text' => '✏️ Изменить текст']
-                ],
-                [
-                    ['text' => '❌ Отмена']
-                ]
-            ],
-            'remove_keyboard' => true,
-        ];
-
         return TeleBot::sendMessage([
             'chat_id' => $chatId,
             'text' => $text,
-            'reply_markup' => $replyMarkup,
+            'reply_markup' => [
+                'keyboard' => [
+                    [['text' => '✅ Опубликовать'], ['text' => '👥 Изменить получателей']],
+                    [['text' => '✏️ Изменить текст']],
+                    [['text' => '❌ Отмена']],
+                ],
+                'remove_keyboard' => true,
+            ],
         ]);
     }
 
@@ -362,6 +412,7 @@ class NewNewsHandler
                 'telegram_author_name' => $telegramUser['name'] ?? null,
                 'status' => 'active',
                 'published_at' => now(),
+                'role_id' => $data['role_id'] ?? 2, // По умолчанию 2 (Всем)
             ]);
 
             // Сохраняем фото
@@ -388,10 +439,18 @@ class NewNewsHandler
             session()->forget("news_{$chatId}");
             session()->forget("news_user_{$chatId}");
 
+            // Получаем название роли для отображения
+            $roleLabels = [
+                2 => 'всем',
+                3 => 'сотрудникам кухни',
+                4 => 'сотрудникам зала'
+            ];
+
             return TeleBot::sendMessage([
                 'chat_id' => $chatId,
                 'text' => "✅ Новость успешно опубликована!\n\n" .
                     "🆔 ID: {$news->id}\n" .
+                    "👥 Отправлено: " . ($roleLabels[$data['role_id'] ?? 2] ?? 'всем') . "\n" .
                     "📅 Дата: " . now()->format('d.m.Y H:i'),
                 'reply_markup' => [
                     'keyboard' => [

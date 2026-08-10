@@ -53,7 +53,7 @@ class CommentRequest extends FormRequest
                     ]);
                 } else {
                     // Валидация прошла успешно
-                    Log::info('Валидация прошла успешно');
+                    Log::info('Валидация комментария прошла успешно');
                 }
             }
         ];

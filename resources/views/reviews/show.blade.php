@@ -16,7 +16,6 @@
             <h5 class="mb-0">Отзыв</h5>
             @auth
                 <div>
-                    <a href="{{ route('reviews.edit', $review) }}" class="btn btn-sm btn-success">Редактировать</a>
                     <form action="{{ route('reviews.destroy', $review) }}" method="POST" class="d-inline">
                         @csrf @method('DELETE')
                         <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Удалить отзыв?')">Удалить</button>

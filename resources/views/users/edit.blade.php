@@ -39,7 +39,8 @@
                                         <div id="avatarPreview"
                                              class="rounded-circle d-flex align-items-center justify-content-center text-white"
                                              style="width:80px;height:80px;font-size:2rem;background-size:cover;background-position:center; background-color: #0D6EFD">
-                                            <img style="width: 80px;height: 80px;" src="{{$user->avatar_path}}" alt="" srcset="">
+                                            <img style="width: 80px;height: 80px;" src="{{$user->avatar_path}}" alt=""
+                                                 srcset="">
                                         </div>
                                     @else
                                         @php
@@ -122,7 +123,8 @@
                                     <span class="input-group-text">@</span>
                                     <input type="text" name="telegram_username" id="telegram_username"
                                            value="{{ old('telegram_username', $user->telegram_username) }}"
-                                           class="form-control @error('telegram_username') is-invalid @enderror">
+                                           class="form-control @error('telegram_username') is-invalid @enderror"
+                                           disabled>
                                     @error('telegram_username')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
@@ -133,7 +135,7 @@
                                 <label for="telegram_id" class="form-label">Telegram ID</label>
                                 <input type="text" name="telegram_id" id="telegram_id"
                                        value="{{ old('telegram_id', $user->telegram_id) }}"
-                                       class="form-control @error('telegram_id') is-invalid @enderror">
+                                       class="form-control @error('telegram_id') is-invalid @enderror" disabled>
                                 @error('telegram_id')
                                 <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
@@ -173,100 +175,101 @@
                             errors: {{ json_encode(session('errors') ? session('errors')->getBag('default')->toArray() : []) }}
                         }">
                             <div class="mt-3" x-data="{ phones: [{ number: '', primary: false }] }">
-                            <label class="form-label">Телефоны <span class="text-danger">*</span></label>
-                            <template x-for="(phone, index) in phones" :key="index">
-                                <div>
-                                    <div class="input-group mb-2">
-                                        <input type="hidden" :name="`phones[${index}][id]`" x-model="phone.id">
-                                        <input type="text" x-model="phone.number" :name="`phones[${index}][number]`"
-                                               class="form-control phone-mask" placeholder="+7 (999) 123-45-67">
-                                        <div class="input-group-text">
-                                            <input type="radio" name="primary_phone" :checked="phone.primary"
-                                                   @change="phones.forEach((p, i) => p.primary = i === index)"
-                                                   class="form-check-input mt-0">
-                                            <label class="form-check-label ms-1">Основной</label>
+                                <label class="form-label">Телефоны <span class="text-danger">*</span></label>
+                                <template x-for="(phone, index) in phones" :key="index">
+                                    <div>
+                                        <div class="input-group mb-2">
+                                            <input type="hidden" :name="`phones[${index}][id]`" x-model="phone.id">
+                                            <input type="text" x-model="phone.number" :name="`phones[${index}][number]`"
+                                                   class="form-control phone-mask" placeholder="+7 (999) 123-45-67">
+                                            <div class="input-group-text">
+                                                <input type="radio" name="primary_phone" :checked="phone.primary"
+                                                       @change="phones.forEach((p, i) => p.primary = i === index)"
+                                                       class="form-check-input mt-0">
+                                                <label class="form-check-label ms-1">Основной</label>
+                                            </div>
+                                            <button type="button" @click="phones.splice(index, 1)"
+                                                    class="btn btn-outline-danger">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
                                         </div>
-                                        <button type="button" @click="phones.splice(index, 1)"
-                                                class="btn btn-outline-danger">
-                                            <i class="bi bi-trash"></i>
-                                        </button>
+                                        <!-- Ошибки для телефона -->
+                                        <div x-show="errors[`phones.${index}.number`]" class="text-danger small mt-1"
+                                             x-text="errors[`phones.${index}.number`]"></div>
                                     </div>
-                                    <!-- Ошибки для телефона -->
-                                    <div x-show="errors[`phones.${index}.number`]" class="text-danger small mt-1"
-                                         x-text="errors[`phones.${index}.number`]"></div>
-                                </div>
-                            </template>
-                            <button type="button" @click="phones.push({ id: null, number: '', primary: false })"
-                                    class="btn btn-sm btn-outline-primary">
-                                + Добавить телефон
-                            </button>
-                            @error('phones.*.number')
-                            <div class="text-danger small mt-1">{{ $message }}</div>
-                            @enderror
-                        </div>
+                                </template>
+                                <button type="button" @click="phones.push({ id: null, number: '', primary: false })"
+                                        class="btn btn-sm btn-outline-primary">
+                                    + Добавить телефон
+                                </button>
+                                @error('phones.*.number')
+                                <div class="text-danger small mt-1">{{ $message }}</div>
+                                @enderror
+                            </div>
 
-                        <!-- Роль и статус -->
+                            <!-- Роль и статус -->
 
-                        <div class="row g-3 mt-2">
-                            @if(auth()->user()->isAdmin())
+                            <div class="row g-3 mt-2">
+                                @if(auth()->user()->isAdmin())
+                                    <div class="col-md-6">
+                                        <label class="form-label">Роль</label>
+                                        <div class="fw-bold">
+                                            <select name="role_id" id="role_id"
+                                                    class="form-select @error('role_id') is-invalid @enderror">
+                                                @foreach($roles as $role)
+                                                    <option
+                                                        value="{{ $role->id }}" {{ old('role_id', $user->role_id) == $role->id ? 'selected' : '' }}>
+                                                        {{ $role->label }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                            @error('role_id')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                            @enderror
+                                        </div>
+                                    </div>
+                                @endif
                                 <div class="col-md-6">
-                                    <label class="form-label">Роль</label>
+                                    <label class="form-label">Статус в Telegram группе</label>
                                     <div class="fw-bold">
-                                        <select name="role_id" id="role_id"
-                                                class="form-select @error('role_id') is-invalid @enderror">
-                                            @foreach($roles as $role)
-                                                <option
-                                                    value="{{ $role->id }}" {{ old('role_id', $user->role_id) == $role->id ? 'selected' : '' }}>
-                                                    {{ $role->label }}
-                                                </option>
-                                            @endforeach
-                                        </select>
-                                        @error('role_id')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                        @enderror
+                                        @if($user->is_active_in_group)
+                                            <span class="text-success">
+                                                 <i class="bi bi-check-circle fs-3"></i> Активен
+                                            </span>
+                                        @else
+                                            <span class="text-secondary">
+                                                <i class="bi bi-x-circle fs-3"></i> Не активен
+                                            </span>
+                                        @endif
                                     </div>
                                 </div>
-                            @endif
-                            <div class="col-md-6">
-                                <label class="form-label">Статус в Telegram группе</label>
-                                <div class="fw-bold">
-                                    @if($user->is_active_in_group)
-                                        <span class="text-success">
-                    <i class="bi bi-check-circle fs-3"></i> Активен
-                </span>
-                                    @else
-                                        <span class="text-secondary">
-                    <i class="bi bi-x-circle fs-3"></i> Не активен
-                </span>
-                                    @endif
-                                </div>
                             </div>
-                        </div>
 
-                        <!-- Даты (только для просмотра) -->
-                        <hr>
-                        <div class="row g-3">
-                            <div class="col-md-4">
-                                <label class="form-label text-muted">Создан</label>
-                                <p class="fw-bold">{{ $user->created_at->format('d.m.Y H:i') }}</p>
+                            <!-- Даты (только для просмотра) -->
+                            <hr>
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <label class="form-label text-muted">Создан</label>
+                                    <p class="fw-bold">{{ $user->created_at->format('d.m.Y H:i') }}</p>
+                                </div>
+                                @if($user->joined_at)
+                                    <div class="col-md-4">
+                                        <label class="form-label text-muted">Вступил в группу</label>
+                                        <p class="fw-bold">{{ $user->joined_at->format('d.m.Y H:i') }}</p>
+                                    </div>
+                                @endif
+                                @if($user->left_at)
+                                    <div class="col-md-4">
+                                        <label class="form-label text-muted">Покинул группу</label>
+                                        <p class="fw-bold">{{ $user->left_at->format('d.m.Y H:i') }}</p>
+                                    </div>
+                                @endif
                             </div>
-                            @if($user->joined_at)
-                                <div class="col-md-4">
-                                    <label class="form-label text-muted">Вступил в группу</label>
-                                    <p class="fw-bold">{{ $user->joined_at->format('d.m.Y H:i') }}</p>
-                                </div>
-                            @endif
-                            @if($user->left_at)
-                                <div class="col-md-4">
-                                    <label class="form-label text-muted">Покинул группу</label>
-                                    <p class="fw-bold">{{ $user->left_at->format('d.m.Y H:i') }}</p>
-                                </div>
-                            @endif
-                        </div>
 
-                        <div class="d-flex justify-content-end gap-2 mt-4">
-                            <a href="{{ route('users.show', $user) }}" class="btn btn-secondary">Отмена</a>
-                            <button type="submit" class="btn btn-primary">Сохранить изменения</button>
+                            <div class="d-flex justify-content-end gap-2 mt-4">
+                                <a href="{{ route('users.show', $user) }}" class="btn btn-secondary">Отмена</a>
+                                <button type="submit" class="btn btn-primary">Сохранить изменения</button>
+                            </div>
                         </div>
                     </form>
                 </div>
@@ -297,7 +300,7 @@
             // Маска для телефона
             function phoneMask(selector) {
                 document.querySelectorAll(selector).forEach(input => {
-                    input.addEventListener('input', function(e) {
+                    input.addEventListener('input', function (e) {
                         let x = e.target.value.replace(/\D/g, '').match(/(\d{0,1})(\d{0,3})(\d{0,3})(\d{0,2})(\d{0,2})/);
                         e.target.value = !x[2] ? x[1] : '+7 (' + x[2] + ') ' + x[3] + (x[4] ? '-' + x[4] : '') + (x[5] ? '-' + x[5] : '');
                     });
@@ -305,7 +308,7 @@
             }
 
             // Применяем маску к динамически добавляемым полям
-            document.addEventListener('DOMContentLoaded', function() {
+            document.addEventListener('DOMContentLoaded', function () {
                 phoneMask('input[name*="[number]"]');
             });
 

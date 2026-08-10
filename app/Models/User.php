@@ -120,9 +120,10 @@ class User extends Authenticatable
         return $this->hasMany(News::class, 'telegram_author_id', 'telegram_id');
     }
 
-    public function reviews(): HasMany
+    //Мутаторы
+    public function setEmailAttribute(string $email): void
     {
-        return $this->hasMany(Review::class, 'user_id');
+        $this->attributes['email'] = strtolower($email);
     }
 
     // Скоупы

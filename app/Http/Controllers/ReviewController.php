@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Review;
 use App\Repositories\ReviewRepository;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -32,5 +33,13 @@ class ReviewController extends Controller
     public function show(Review $review):View
     {
         return view('reviews.show', compact('review'));
+    }
+
+    public function destroy(Review $review):RedirectResponse
+    {
+        $result = $review->delete();
+        return $result ?
+            redirect()->route('reviews.index')->with('success','Успешное удаление отзыва'):
+            redirect()->route('reviews.index')->with('error','Ошибка удаления отзыва');
     }
 }

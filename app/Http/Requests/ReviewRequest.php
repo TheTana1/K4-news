@@ -67,7 +67,7 @@ class ReviewRequest extends FormRequest
                         'errors' => $validator->errors()->toArray()
                     ]);
                 } else {
-                    Log::info('Валидация прошла успешно');
+                    Log::info('Валидация отзыва прошла успешно');
                 }
             }
         ];

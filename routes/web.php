@@ -14,7 +14,7 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('users', UserController::class);
     Route::resource('advertisements', AdvertisementController::class);
     Route::resource('news', NewsController::class);
-    Route::resource('reviews', ReviewController::class);
+    Route::resource('reviews', ReviewController::class)->only(['index', 'show','destroy']);
     Route::resource('comments', CommentController::class);
 });
 Auth::routes(['register' => false]);

@@ -12,26 +12,34 @@ class CommentController extends Controller
 {
     public function __construct(
         readonly CommentRepository $commentRepository
-    ) {}
+    )
+    {
+    }
 
     public function show(Comment $comment)
     {
         $model = $comment->commentable_type;
-        $responseClass= strtolower(class_basename($model));
-        $object =  $model::find($comment->commentable_id);
-        if($responseClass === 'news')
-            return view($responseClass.'.show', [$responseClass => $object]);
-        return view($responseClass.'s.show', [$responseClass => $object]);
+        $responseClass = strtolower(class_basename($model));
+        $object = $model::find($comment->commentable_id);
+        if ($responseClass === 'news')
+            return view($responseClass . '.show', [$responseClass => $object]);
+        return view($responseClass . 's.show', [$responseClass => $object]);
     }
+
     public function store(CommentRequest $request)
     {
         try {
 
             $newComment = $this->commentRepository->store($request);
-
-            return redirect()->route("{$newComment->commentable_type}.show", $newComment->commentable_id)
+            $commentableClass = strtolower(class_basename($newComment->commentable_type));
+            if ($commentableClass === 'news') {
+                return redirect()->route($commentableClass . ".show",
+                    $newComment->commentable_id)
+                    ->with('success', 'Комментарий добавлен.');
+            }
+            return redirect()->route($commentableClass . "s.show",
+                $newComment->commentable_id)
                 ->with('success', 'Комментарий добавлен.');
-
         } catch (\Exception $e) {
             Log::error('Comment creation error: ' . $e->getMessage());
             return back()->with('error', 'Ошибка при создании комментария.');

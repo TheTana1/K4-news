@@ -49,6 +49,7 @@ class NewUserHandler
                 'first_name' => $message->from->first_name ?? null,
                 'last_name' => $message->from->last_name ?? null,
                 'username' => $message->from->username ?? null,
+
             ]);
 
             $this->userRegistrationService->createUser($data);
@@ -407,7 +408,7 @@ class NewUserHandler
 
     private function checkPassword(string $text): bool
     {
-        $pattern = '/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,20}$/';
+        $pattern = '/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d!@#$%^&*()\-_=+{};:,<.>]{8,20}$/';
         return preg_match($pattern, $text) === 1;
     }
 

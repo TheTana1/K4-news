@@ -19,7 +19,7 @@ class AdvertisementRequest extends FormRequest
 
         switch ($this->method()) {
             case 'POST':  return [
-                'content' => 'required|string|min:10|max:10000',
+                'content' => 'required|string|min:4|max:10000',
                 'status' => 'nullable|in:active,inactive',
                 'telegram_author_name' => 'nullable|string|max:255',
                 'files' => 'nullable|array',
@@ -28,7 +28,7 @@ class AdvertisementRequest extends FormRequest
             ];
 
             case 'PUT':  return [
-                'content' => 'sometimes|string|min:10|max:10000',
+                'content' => 'sometimes|string|min:4|max:10000',
                 'status' => 'nullable|in:active,inactive',
                 'telegram_author_name' => 'nullable|string|max:255',
                 'files' => 'nullable|array',
@@ -65,7 +65,7 @@ class AdvertisementRequest extends FormRequest
                         'errors' => $validator->errors()->toArray()
                     ]);
                 } else {
-                    Log::info('Валидация прошла успешно');
+                    Log::info('Валидация объявления прошла успешно');
                 }
             }
         ];

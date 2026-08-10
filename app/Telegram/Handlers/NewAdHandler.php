@@ -5,6 +5,7 @@ namespace App\Telegram\Handlers;
 use App\Services\UserRegistrationService;
 use WeStacks\TeleBot\Laravel\TeleBot;
 use App\Models\Advertisement;
+use App\Models\Role;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
 
@@ -37,12 +38,11 @@ class NewAdHandler
             return;
         }
 
-        // ✅ ИСПРАВЛЕНО: используем $userDb->id вместо $user->id
         session(["ad_user_{$chatId}" => [
             'name' => $userDb->name,
             'telegram_id' => $telegramUser->id,
             'telegram_username' => $telegramUser->username ?? null,
-            'user_id' => $userDb->id, // ID в вашей БД
+            'user_id' => $userDb->id,
         ]]);
 
         // Проверяем, есть ли незавершённое объявление
@@ -53,6 +53,9 @@ class NewAdHandler
                 return $this->askForFile($chatId);
             }
             if ($data['step'] == 3) {
+                return $this->askForAudience($chatId, $data);
+            }
+            if ($data['step'] == 4) {
                 return $this->confirmAd($chatId, $data);
             }
         }
@@ -110,22 +113,22 @@ class NewAdHandler
             return $this->askForFile($chatId);
         }
 
+        // Шаг 2: Загрузка файлов
         if ($data['step'] == 2) {
-            // ✅ Добавляем обработку "Готово"
             if ($text === '✅ Готово') {
                 $data['step'] = 3;
                 session([$sessionKey => $data]);
-                return $this->confirmAd($chatId, $data);
+                return $this->askForAudience($chatId, $data);
             }
 
             if ($text === '⏭ Пропустить') {
                 $data['files'] = [];
                 $data['step'] = 3;
                 session([$sessionKey => $data]);
-                return $this->confirmAd($chatId, $data);
+                return $this->askForAudience($chatId, $data);
             }
 
-            // Обрабатываем файлы...
+            // Обрабатываем файлы
             $filesInfo = $this->processAllFiles($message);
 
             if (!empty($filesInfo)) {
@@ -159,9 +162,35 @@ class NewAdHandler
             ]);
         }
 
-
-        // Шаг 3: Подтверждение
+        // Шаг 3: Выбор аудитории
         if ($data['step'] == 3) {
+            // Маппинг текста кнопок на role_id
+            $audienceMap = [
+                '👥 Всем' => 2,
+                '🍳 Сотрудникам кухни' => 3,
+                '🛎 Сотрудникам зала' => 4
+            ];
+
+            if (isset($audienceMap[$text])) {
+                $data['role_id'] = $audienceMap[$text];
+                $data['step'] = 4;
+                session([$sessionKey => $data]);
+                return $this->confirmAd($chatId, $data);
+            }
+
+            // Если нажали "Назад"
+            if ($text === '⬅️ Назад') {
+                $data['step'] = 2;
+                session([$sessionKey => $data]);
+                return $this->askForFile($chatId);
+            }
+
+            // Если просто текст - показываем выбор снова
+            return $this->askForAudience($chatId, $data);
+        }
+
+        // Шаг 4: Подтверждение
+        if ($data['step'] == 4) {
             if ($text === '✅ Опубликовать') {
                 return $this->publishAd($chatId, $data);
             }
@@ -180,6 +209,12 @@ class NewAdHandler
                         'resize_keyboard' => true,
                     ],
                 ]);
+            }
+
+            if ($text === '👥 Изменить получателей') {
+                $data['step'] = 3;
+                session([$sessionKey => $data]);
+                return $this->askForAudience($chatId, $data);
             }
 
             if ($text === '❌ Отмена') {
@@ -219,10 +254,35 @@ class NewAdHandler
         ]);
     }
 
+    private function askForAudience($chatId, $data)
+    {
+        return TeleBot::sendMessage([
+            'chat_id' => $chatId,
+            'text' => "👥 Кому отправить объявление?\n\n" .
+                "Выберите аудиторию:",
+            'reply_markup' => [
+                'keyboard' => [
+                    [['text' => '👥 Всем'], ['text' => '🍳 Сотрудникам кухни']],
+                    [['text' => '🛎 Сотрудникам зала']],
+                    [['text' => '⬅️ Назад'], ['text' => '❌ Отмена']],
+                ],
+                'resize_keyboard' => true,
+            ],
+        ]);
+    }
+
     private function confirmAd($chatId, $data)
     {
+        // Получаем название роли для отображения
+        $roleLabels = [
+            2 => '👥 Всем',
+            3 => '🍳 Сотрудникам кухни',
+            4 => '🛎 Сотрудникам зала'
+        ];
+
         $text = "✅ Проверьте объявление:\n\n";
         $text .= "📝 Текст:\n{$data['text']}\n\n";
+        $text .= "👥 Получатели: " . ($roleLabels[$data['role_id'] ?? 2] ?? '👥 Всем') . "\n\n";
 
         if (!empty($data['files']) && is_array($data['files'])) {
             $text .= "📎 Файлы (всего: " . count($data['files']) . "):\n";
@@ -240,13 +300,15 @@ class NewAdHandler
             'text' => $text,
             'reply_markup' => [
                 'keyboard' => [
-                    [['text' => '✅ Опубликовать'], ['text' => '✏️ Изменить текст']],
+                    [['text' => '✅ Опубликовать'], ['text' => '👥 Изменить получателей']],
+                    [['text' => '✏️ Изменить текст']],
                     [['text' => '❌ Отмена']],
                 ],
                 'resize_keyboard' => true,
             ],
         ]);
     }
+
     /**
      * Обработка всех файлов в сообщении
      */
@@ -254,12 +316,11 @@ class NewAdHandler
     {
         $files = [];
 
-        // 1. Обрабатываем фото (массив фото разных размеров)
+        // 1. Обрабатываем фото
         if (isset($message->photo) && !empty($message->photo)) {
-            // ✅ Используем array_key_last() или берем по индексу
             $photoArray = $message->photo;
             $lastKey = array_key_last($photoArray);
-            $photo = $photoArray[$lastKey];  // Берем самое большое фото
+            $photo = $photoArray[$lastKey];
 
             $fileInfo = $this->processPhoto($photo);
             if ($fileInfo) {
@@ -267,7 +328,7 @@ class NewAdHandler
             }
         }
 
-        // 2. Обрабатываем документы (может быть несколько)
+        // 2. Обрабатываем документы
         if (isset($message->document)) {
             $fileInfo = $this->processDocument($message->document);
             if ($fileInfo) {
@@ -275,9 +336,9 @@ class NewAdHandler
             }
         }
 
-
         return $files;
     }
+
     private function processPhoto($photo)
     {
         try {
@@ -311,7 +372,6 @@ class NewAdHandler
         try {
             $file = TeleBot::getFile(['file_id' => $fileId]);
 
-            // ✅ ИСПРАВЛЕНО: не передаем токен в url()
             $fileContent = file_get_contents($file->url(config('telebot.bots.default.token')));
 
             if ($fileContent === false) {
@@ -319,7 +379,6 @@ class NewAdHandler
                 return null;
             }
 
-            // ✅ ИСПРАВЛЕНО: безопасное получение последнего ID
             $lastAd = Advertisement::query()->latest('id')->first();
             $nextId = $lastAd ? $lastAd->id + 1 : 1;
 
@@ -345,23 +404,22 @@ class NewAdHandler
         try {
             $telegramUser = session("ad_user_{$chatId}") ?? null;
 
+            // Создаем объявление с role_id
             $ad = Advertisement::create([
                 'content' => $data['text'],
                 'telegram_author_name' => $telegramUser['telegram_username'] ?? null,
                 'status' => 'active',
                 'published_at' => now(),
+                'role_id' => $data['role_id'] ?? 2, // По умолчанию 2 (Всем)
             ]);
 
-            // ✅ ИСПРАВЛЕНО: правильный цикл для сохранения файлов
             if (!empty($data['files']) && is_array($data['files'])) {
                 foreach ($data['files'] as $fileData) {
-                    // Проверяем, что данные файла корректны
                     if (empty($fileData['file_path']) || empty($fileData['file_name'])) {
                         Log::warning('Incomplete file data', ['fileData' => $fileData]);
                         continue;
                     }
 
-                    // Перемещаем файл в папку с ID объявления
                     $oldPath = $fileData['file_path'];
                     $newPath = 'advertisements/' . $ad->id . '/' . $fileData['file_name'];
 
@@ -370,7 +428,6 @@ class NewAdHandler
                         $fileData['file_path'] = $newPath;
                     }
 
-                    // ✅ ИСПРАВЛЕНО: создаем запись для каждого файла
                     $ad->files()->create($fileData);
                 }
             }
@@ -379,16 +436,22 @@ class NewAdHandler
             session()->forget("ad_{$chatId}");
             session()->forget("ad_user_{$chatId}");
 
+            // Получаем название роли для отображения
+            $roleLabels = [
+                2 => 'всем',
+                3 => 'сотрудникам кухни',
+                4 => 'сотрудникам зала'
+            ];
+
             return TeleBot::sendMessage([
                 'chat_id' => $chatId,
                 'text' => "✅ Объявление успешно опубликовано!\n\n" .
                     "🆔 ID: {$ad->id}\n" .
+                    "👥 Отправлено: " . ($roleLabels[$data['role_id'] ?? 2] ?? 'всем') . "\n" .
                     "📅 Дата: " . now()->format('d.m.Y H:i'),
                 'reply_markup' => [
-                    'keyboard' => [
-                        [['text' => '🏠 На главную']],
-                    ],
-                    'remove_keyboard' => true],
+                    'remove_keyboard' => true
+                ],
             ]);
 
         } catch (\Exception $e) {

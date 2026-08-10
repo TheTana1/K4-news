@@ -17,14 +17,14 @@ class NewsRequest extends FormRequest
     {
         switch ($this->method()) {
             case 'POST':          return [
-                'content' => 'required|string|min:10|max:10000',
+                'content' => 'required|string|min:4|max:10000',
                 'status' => 'nullable|in:active,inactive',
 
                 'role_id' => '|integer|exists:roles,id',
             ];
 
             case 'PUT': return [
-                'content' => 'sometimes|string|min:10|max:10000',
+                'content' => 'sometimes|string|min:4|max:10000',
                 'status' => 'nullable|in:active,inactive',
                 'role_id' => '|integer|exists:roles,id',
             ];
@@ -59,7 +59,7 @@ class NewsRequest extends FormRequest
                         'errors' => $validator->errors()->toArray()
                     ]);
                 } else {
-                    Log::info('Валидация прошла успешно');
+                    Log::info('Валидация новости прошла успешно');
                 }
             }
         ];
