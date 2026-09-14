@@ -7,6 +7,7 @@ use App\Http\Requests\CommentRequest;
 use App\Models\Comment;
 
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -20,8 +21,8 @@ class CommentRepository
         DB::beginTransaction();
         try {
             $validated = $request->validated();
-
-            $model = match ($request->commentable_type) {
+            $type = $request->commentable_type;
+            $model = match ($type) {
                 'advertisement' => \App\Models\Advertisement::findOrfail($request->commentable_id),
                 'news' => \App\Models\News::findOrfail($request->commentable_id),
                 'review' => \App\Models\Review::findOrFail($request->commentable_id),
@@ -36,6 +37,9 @@ class CommentRepository
 
             $model->comments()->save($comment);
             DB::commit();
+
+            if($type === 'news') Cache::tags([$type])->flush();
+            else Cache::tags([$type.'s'])->flush();
 
             return $comment;
         } catch (\Exception $exception) {
@@ -59,6 +63,9 @@ class CommentRepository
             $result = $comment->update($data);
 
             DB::commit();
+            $commentableClass = strtolower(class_basename($comment->commentable_type));
+            if($commentableClass === 'news') Cache::tags([$commentableClass])->flush();
+            else Cache::tags([$commentableClass.'s'])->flush();
 
             return $result;
 
@@ -83,6 +90,10 @@ class CommentRepository
             $result = $comment->delete();
 
             DB::commit();
+
+            $commentableClass = strtolower(class_basename($comment->commentable_type));
+            if($commentableClass === 'news') Cache::tags([$commentableClass])->flush();
+            else Cache::tags([$commentableClass.'s'])->flush();
 
             return $result;
 

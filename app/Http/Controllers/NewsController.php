@@ -28,7 +28,11 @@ class NewsController extends Controller
 
     public function show(News $news): View
     {
-        return view('news.show', compact('news'));
+        $data = $this->newsRepository->show($news);
+        return view('news.show', [
+            'news'=>$data['news'],
+            'comments'=>$data['comments'],
+        ]);
     }
 
     public function edit(News $news): View

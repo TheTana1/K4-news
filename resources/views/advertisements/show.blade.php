@@ -180,7 +180,7 @@
                     <div>
                         <i class="bi bi-chat me-1"></i> Комментарии
                     </div>
-                    <span class="badge bg-primary rounded-pill">{{ $advertisement->comments->count() }}</span>
+                    <span class="badge bg-primary rounded-pill">{{ $comments->count() }}</span>
                 </div>
                 <div class="card-body">
                     @auth
@@ -198,9 +198,9 @@
                         </form>
                     @endauth
 
-                    @if($advertisement->comments->count() > 0)
+                    @if($comments->count() > 0)
                         <div class="list-group">
-                            @foreach($advertisement->comments as $comment)
+                            @foreach($comments as $comment)
                                 <div class="list-group-item list-group-item-action flex-column align-items-start">
                                     <div class="d-flex w-100 justify-content-between align-items-center">
                                         <div>
@@ -268,6 +268,35 @@
                                 </div>
                             @endforeach
                         </div>
+                            @if ($comments->hasPages())
+                                <div class="m-1 d-flex justify-content-center align-items-center gap-2">
+                                    {{-- Назад --}}
+                                    @if ($comments->onFirstPage())
+                                        <button class="btn btn-sm btn-outline-secondary" disabled>
+                                            <i class="bi bi-chevron-left"></i>
+                                        </button>
+                                    @else
+                                        <a href="{{ $comments->previousPageUrl() }}" class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-chevron-left"></i>
+                                        </a>
+                                    @endif
+
+                                    <span class="small text-muted">
+            {{ $comments->currentPage() }} / {{ $comments->lastPage() }}
+        </span>
+
+                                    {{-- Вперёд --}}
+                                    @if ($comments->hasMorePages())
+                                        <a href="{{ $comments->nextPageUrl() }}" class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-chevron-right"></i>
+                                        </a>
+                                    @else
+                                        <button class="btn btn-sm btn-outline-secondary" disabled>
+                                            <i class="bi bi-chevron-right"></i>
+                                        </button>
+                                    @endif
+                                </div>
+                            @endif
                     @else
                         <div class="text-center py-4">
                             <i class="bi bi-chat-dots display-4 text-muted"></i>
@@ -278,4 +307,5 @@
             </div>
         </div>
     </div>
+
 @endsection

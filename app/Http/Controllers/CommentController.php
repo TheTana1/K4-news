@@ -21,9 +21,10 @@ class CommentController extends Controller
         $model = $comment->commentable_type;
         $responseClass = strtolower(class_basename($model));
         $object = $model::find($comment->commentable_id);
+
         if ($responseClass === 'news')
-            return view($responseClass . '.show', [$responseClass => $object]);
-        return view($responseClass . 's.show', [$responseClass => $object]);
+            return redirect()->route($responseClass . '.show', [$responseClass => $object]);
+        return redirect()->route($responseClass . 's.show', [$responseClass => $object]);
     }
 
     public function store(CommentRequest $request)
@@ -32,6 +33,7 @@ class CommentController extends Controller
 
             $newComment = $this->commentRepository->store($request);
             $commentableClass = strtolower(class_basename($newComment->commentable_type));
+
             if ($commentableClass === 'news') {
                 return redirect()->route($commentableClass . ".show",
                     $newComment->commentable_id)

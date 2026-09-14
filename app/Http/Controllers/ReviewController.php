@@ -16,7 +16,7 @@ class ReviewController extends Controller
     }
     public function index():View
     {
-        $reviews = Review::query()->paginate(10)->withQueryString();
+        $reviews = $this->reviewRepository->paginate();
         return view('reviews.index', compact('reviews'));
     }
 
@@ -32,12 +32,16 @@ class ReviewController extends Controller
 
     public function show(Review $review):View
     {
-        return view('reviews.show', compact('review'));
+        $data = $this->reviewRepository->show($review);
+        return view('reviews.show',[
+            'review'=>$data['review'],
+            'comments'=>$data['comments'],
+        ]);
     }
 
     public function destroy(Review $review):RedirectResponse
     {
-        $result = $review->delete();
+        $result = $this->reviewRepository->delete($review);
         return $result ?
             redirect()->route('reviews.index')->with('success','Успешное удаление отзыва'):
             redirect()->route('reviews.index')->with('error','Ошибка удаления отзыва');

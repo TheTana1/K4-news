@@ -65,7 +65,7 @@
                     </form>
                 @endauth
 
-                @forelse($review->comments as $comment)
+                @forelse($comments as $comment)
                     <div class="border rounded p-3 mb-2">
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
@@ -115,10 +115,40 @@
                             </div>
                         </div>
                     </div>
+
                 @empty
                     <p class="text-muted">Комментариев пока нет</p>
                 @endforelse
             </div>
         </div>
+        @if ($comments->hasPages())
+            <div class="m-1 d-flex justify-content-center align-items-center gap-2">
+                {{-- Назад --}}
+                @if ($comments->onFirstPage())
+                    <button class="btn btn-sm btn-outline-secondary" disabled>
+                        <i class="bi bi-chevron-left"></i>
+                    </button>
+                @else
+                    <a href="{{ $comments->previousPageUrl() }}" class="btn btn-sm btn-outline-primary">
+                        <i class="bi bi-chevron-left"></i>
+                    </a>
+                @endif
+
+                <span class="small text-muted">
+            {{ $comments->currentPage() }} / {{ $comments->lastPage() }}
+        </span>
+
+                {{-- Вперёд --}}
+                @if ($comments->hasMorePages())
+                    <a href="{{ $comments->nextPageUrl() }}" class="btn btn-sm btn-outline-primary">
+                        <i class="bi bi-chevron-right"></i>
+                    </a>
+                @else
+                    <button class="btn btn-sm btn-outline-secondary" disabled>
+                        <i class="bi bi-chevron-right"></i>
+                    </button>
+                @endif
+            </div>
+        @endif
     </div>
 @endsection

@@ -4,6 +4,7 @@ namespace App\Repositories;
 
 use App\Http\Requests\AdvertisementRequest;
 use App\Models\Advertisement;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -13,15 +14,43 @@ class AdvertisementRepository
 {
     private const PER_PAGE = 10;
     private const COMMENTS_PER_PAGE = 10;
+    private const CACHE_TTL = 600;
 
     final public function paginate(int $perPage = self::PER_PAGE)
     {
-        return Advertisement::query()
-            ->forCurrentUser()
-            ->with(['role'])
-            ->latest()
-            ->paginate($perPage)
-            ->withQueryString();
+        $key = 'advertisement-index:' . md5(
+                $perPage
+            );
+
+        return Cache::tags(['advertisements'])->remember($key, self::CACHE_TTL, fn ()=>
+             Advertisement::query()
+                ->forCurrentUser()
+                ->with(['role'])
+                ->latest()
+                ->paginate($perPage)
+                ->withQueryString()
+        );
+
+    }
+
+    final  public function show(Advertisement $advertisement, int $countPaginate = self::COMMENTS_PER_PAGE)
+    {
+        $advertisement = Cache::tags(['advertisements', 'advertisement:' . $advertisement->id])->remember(
+            'advertisement:'. $advertisement->id,
+            self::CACHE_TTL,
+            fn() =>  $advertisement->load([ 'files', 'role'])
+        );
+        $comments = Cache::tags(['advertisements', 'advertisement:' . $advertisement->id])->remember(
+            'advertisement:' . $advertisement->id . ':comments:page:'.request()->query('page'),
+            self::CACHE_TTL,
+            fn () => $advertisement->comments()
+                ->with(['user.role', 'commentable'])
+                ->latest()
+                ->paginate($countPaginate)
+                ->withQueryString()
+        );
+        return ['advertisement'=>$advertisement, 'comments'=>$comments];
+
     }
 
     final public function store(AdvertisementRequest $request): Advertisement
@@ -38,6 +67,7 @@ class AdvertisementRepository
             }
 
             DB::commit();
+            Cache::tags(['advertisements'])->flush();
             return $advertisement->load('files', 'role');
 
         } catch (\Exception $exception) {
@@ -63,7 +93,7 @@ class AdvertisementRepository
             }
             $advertisement->update($validatedData);
             DB::commit();
-
+            Cache::tags(['advertisements'])->flush();
             return $advertisement->load('files', 'role');
 
         } catch (\Exception $exception) {
@@ -85,7 +115,7 @@ class AdvertisementRepository
             $result = $advertisement->delete();
 
             DB::commit();
-
+            Cache::tags(['advertisements'])->flush();
             return $result;
 
         } catch (\Exception $exception) {

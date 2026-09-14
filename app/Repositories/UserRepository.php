@@ -31,16 +31,15 @@ class UserRepository
             ]));
 
         return Cache::tags(['users'])->remember($key, self::CACHE_TTL, function () use ($request, $countPaginate) {
-            $query = User::query()->with(['role']);
-
             return $this->userFilter
-                ->apply($request, $query)
+                ->apply($request, User::query())
+                ->with(['role'])
                 ->paginate($countPaginate)
                 ->withQueryString();
         });
     }
 
-    final public function getUser(User $user, int $countPaginate = self::COMMENTS_PER_PAGE)
+    final public function show(User $user, int $countPaginate = self::COMMENTS_PER_PAGE)
     {
         $user = Cache::tags(['users', 'user:' . $user->id])->remember(
             'user:' . $user->id,
@@ -48,13 +47,13 @@ class UserRepository
             fn () => $user->load(['role', 'phones'])
         );
         $comments = Cache::tags(['users', 'user:' . $user->id])->remember(
-            'user:' . $user->id . ':comments',
+            'user:' . $user->id . ':comments:page:'.request()->query('page'),
             self::CACHE_TTL,
             fn () => $user->comments()
                 ->with(['commentable'])
                 ->latest()
                 ->paginate($countPaginate)
-            ->withQueryString()
+                ->withQueryString()
         );
         return ['user'=>$user, 'comments'=>$comments];
 

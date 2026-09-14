@@ -63,6 +63,10 @@ class News extends Model
         }
         return $query->where('role_id', 2);
     }
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
     public function role():BelongsTo
     {
         return $this->belongsTo(Role::class);

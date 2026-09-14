@@ -5,6 +5,7 @@ namespace App\Repositories;
 use App\Models\News;
 use App\Models\File;
 use App\Http\Requests\NewsRequest;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\File as FileFacade;
@@ -13,16 +14,41 @@ use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
 class NewsRepository
 {
-    private const NEWS_PER_PAGE = 10;
+    private const PER_PAGE = 10;
+    private const COMMENTS_PER_PAGE = 10;
+    private const CACHE_TTL = 600;
 
-    final public function paginate(int $countPaginate = self::NEWS_PER_PAGE)
+    final public function paginate(int $perPage = self::PER_PAGE)
     {
-        return News::query()
+        $key = 'news-index:' . md5(
+                $perPage
+            );
+        return Cache::tags(['news'])->remember($key, self::CACHE_TTL, fn()=>News::query()
             ->forCurrentUser()
             ->with(['role'])
             ->latest()
-            ->paginate($countPaginate)
-            ->withQueryString();
+            ->paginate($perPage)
+            ->withQueryString()
+        );
+    }
+    final public function show(News $news, int $countPaginate = self::COMMENTS_PER_PAGE)
+    {
+        $news = Cache::tags(['news', 'news:' . $news->id])->remember(
+            'news:'. $news->id,
+            self::CACHE_TTL,
+            fn() =>  $news->load(['files', 'role'])
+        );
+        $comments = Cache::tags(['news', 'news:' . $news->id])->remember(
+            'news:' . $news->id . ':comments:page:'.request()->query('page'),
+            self::CACHE_TTL,
+            fn () => $news->comments()
+                ->with(['user.role', 'commentable'])
+                ->latest()
+                ->paginate($countPaginate)
+                ->withQueryString()
+        );
+        return ['news'=>$news, 'comments'=>$comments];
+
     }
     protected function uploadFiles(array $files, News $news): void
     {
@@ -70,7 +96,7 @@ class NewsRepository
             }
 
             DB::commit();
-
+            Cache::tags(['news'])->flush();
 
             return $news->load('files');
 
@@ -98,7 +124,7 @@ class NewsRepository
             }
 
             DB::commit();
-
+            Cache::tags(['news'])->flush();
 
 
             return $news->load('files');
@@ -121,6 +147,7 @@ class NewsRepository
             $result = $news->delete();
 
             DB::commit();
+            Cache::tags(['news'])->flush();
 
             return $result;
 

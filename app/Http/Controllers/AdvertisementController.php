@@ -23,8 +23,11 @@ class AdvertisementController extends Controller
 
     public function show(Advertisement $advertisement): View
     {
-        $advertisement->load([ 'files', 'comments']);
-        return view('advertisements.show', compact('advertisement'));
+        $data = $this->advertisementRepository->show($advertisement);
+        return view('advertisements.show', [
+            'advertisement' => $data['advertisement'],
+            'comments' => $data['comments']
+        ]);
     }
 
     public function create(): View

@@ -46,8 +46,11 @@ class UserController extends Controller
     public function show(User $user): View
     {
 
-        $comments =$this->userRepository->getUser($user);
-        return view('users.show', ['user' => $comments['user'], 'comments' => $comments['comments']]);
+        $data =$this->userRepository->show($user);
+        return view('users.show', [
+                'user' => $data['user'],
+                'comments' => $data['comments']
+        ]);
     }
 
     public function store(UserRequest $request): RedirectResponse
