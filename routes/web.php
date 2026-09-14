@@ -8,6 +8,18 @@ use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
+//Route::get('/test-redis', function () {
+//    $value = Cache::get('redis');
+//
+//    if(!$value){
+//        Cache::put('redis', 'Redis');
+//    }
+//    else{
+//        return $value.' in cache';
+//    }
+//    return $value;
+//});
+
 Route::get('', [DashboardController::class, 'index'])->name('dashboard');
 Route::middleware(['auth'])->group(function () {
 //Route::middleware(['auth'])->group(function () {

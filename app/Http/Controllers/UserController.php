@@ -47,7 +47,7 @@ class UserController extends Controller
     {
 
         $comments =$this->userRepository->getUser($user);
-        return view('users.show', compact('user','comments'));
+        return view('users.show', ['user' => $comments['user'], 'comments' => $comments['comments']]);
     }
 
     public function store(UserRequest $request): RedirectResponse
