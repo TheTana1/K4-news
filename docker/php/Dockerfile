@@ -20,7 +20,10 @@ RUN apt-get update && apt-get install -y \
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 RUN pecl install redis && docker-php-ext-enable redis
-# Устанавливаем рабочую директорию (совпадает с volume в compose)
+
+RUN echo "upload_max_filesize = 20M" >> /usr/local/etc/php/conf.d/uploads.ini \
+    && echo "post_max_size = 25M" >> /usr/local/etc/php/conf.d/uploads.ini \
+    && echo "memory_limit = 256M" >> /usr/local/etc/php/conf.d/uploads.ini
 WORKDIR /var/www/html
 EXPOSE 9000
 CMD ["php-fpm"]

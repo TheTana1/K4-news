@@ -22,11 +22,8 @@ class UserResource extends JsonResource
             'telegram_username' => $this->telegram_username,
             'telegram_id' => $this->telegram_id,
             'avatar_path' => $this->avatar_path,
-
             'role' => $this->role,
             'comments' => $this->comments
-
-
         ];
     }
 }
