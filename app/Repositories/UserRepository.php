@@ -92,7 +92,7 @@ class UserRepository
             DB::commit();
 
             Cache::tags(['users'])->flush();
-
+            Cache::tags(['dashboard'])->flush();
             return $user->load('phones', 'role');
 
         } catch (\Exception $exception) {
@@ -142,7 +142,7 @@ class UserRepository
             DB::commit();
 
             Cache::tags(['users'])->flush();
-
+            Cache::tags(['dashboard'])->flush();
             return $user->load(['role', 'phones']);
 
         } catch (\Exception $exception) {
@@ -171,7 +171,7 @@ class UserRepository
             DB::commit();
 
             Cache::tags(['users'])->flush();
-
+            Cache::tags(['dashboard'])->flush();
             return $result;
 
         } catch (\Exception $exception) {

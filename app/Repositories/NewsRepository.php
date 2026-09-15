@@ -97,7 +97,7 @@ class NewsRepository
 
             DB::commit();
             Cache::tags(['news'])->flush();
-
+            Cache::tags(['dashboard'])->flush();
             return $news->load('files');
 
         } catch (\Exception $exception) {
@@ -125,7 +125,7 @@ class NewsRepository
 
             DB::commit();
             Cache::tags(['news'])->flush();
-
+            Cache::tags(['dashboard'])->flush();
 
             return $news->load('files');
 
@@ -148,7 +148,7 @@ class NewsRepository
 
             DB::commit();
             Cache::tags(['news'])->flush();
-
+            Cache::tags(['dashboard'])->flush();
             return $result;
 
         } catch (\Exception $exception) {

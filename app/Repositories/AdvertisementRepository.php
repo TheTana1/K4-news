@@ -68,6 +68,7 @@ class AdvertisementRepository
 
             DB::commit();
             Cache::tags(['advertisements'])->flush();
+            Cache::tags(['dashboard'])->flush();
             return $advertisement->load('files', 'role');
 
         } catch (\Exception $exception) {
@@ -94,6 +95,7 @@ class AdvertisementRepository
             $advertisement->update($validatedData);
             DB::commit();
             Cache::tags(['advertisements'])->flush();
+            Cache::tags(['dashboard'])->flush();
             return $advertisement->load('files', 'role');
 
         } catch (\Exception $exception) {
@@ -116,6 +118,7 @@ class AdvertisementRepository
 
             DB::commit();
             Cache::tags(['advertisements'])->flush();
+            Cache::tags(['dashboard'])->flush();
             return $result;
 
         } catch (\Exception $exception) {

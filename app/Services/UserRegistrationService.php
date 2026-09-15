@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\User;
 
 use App\Telegram\Handlers\NewUserHandler;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
@@ -35,6 +36,7 @@ class UserRegistrationService
     {
         DB::beginTransaction();
         try {
+
             $userDb = User::create([
                 'telegram_id' => $user['id'],
                 'name' => trim(($user['first_name'] ?? '') . ' ' . ($user['last_name'] ?? '')),
@@ -48,6 +50,8 @@ class UserRegistrationService
                 'phone_number' => $user['phone'],
             ]);
             DB::commit();
+            Cache::tags(['users'])->flush();
+            Cache::tags(['dashboard'])->flush();
             Log::info('New Telegram user registered', [
                 'telegram_id' => $user->id,
                 'user_id' => $userDb->id,
@@ -77,6 +81,8 @@ class UserRegistrationService
                 'is_active_in_group' => true,
                 'updated_at' => now(),
             ]);
+            Cache::tags(['users'])->flush();
+            Cache::tags(['dashboard'])->flush();
 
             Log::info('Telegram user updated', [
                 'telegram_id' => $user->id,

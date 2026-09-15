@@ -77,7 +77,7 @@
         <!-- Последние объявления -->
         <div class="col">
             <div class="card h-100 shadow-sm">
-                <div class="card-header bg-white fw-semibold">
+                <div class="card-header bg-body-tertiary fw-semibold">
                     <i class="bi bi-megaphone me-1"></i> Последние важные объявления
                 </div>
                 <div class="card-body p-0">
@@ -108,7 +108,7 @@
         <!-- Последние новости -->
         <div class="col">
             <div class="card h-100 shadow-sm">
-                <div class="card-header bg-white fw-semibold">
+                <div class="card-header bg-body-tertiary fw-semibold">
                     <i class="bi bi-newspaper me-1"></i> Последние новости
                 </div>
                 <div class="card-body p-0">
@@ -139,7 +139,7 @@
         <!-- Последние отзывы -->
         <div class="col">
             <div class="card h-100 shadow-sm">
-                <div class="card-header bg-white fw-semibold">
+                <div class="card-header bg-body-tertiary fw-semibold">
                     <i class="bi bi-star me-1"></i> Последние отзывы
                 </div>
                 <div class="card-body p-0">
