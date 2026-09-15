@@ -16,7 +16,7 @@ class NewsRepository
 {
     private const PER_PAGE = 10;
     private const COMMENTS_PER_PAGE = 10;
-    private const CACHE_TTL = 600;
+    private const CACHE_TTL = 900;
 
     final public function paginate(int $perPage = self::PER_PAGE)
     {
@@ -96,8 +96,10 @@ class NewsRepository
             }
 
             DB::commit();
-            Cache::tags(['news'])->flush();
+
+            Cache::tags(['news', 'news:' . $news->id])->flush();
             Cache::tags(['dashboard'])->flush();
+
             return $news->load('files');
 
         } catch (\Exception $exception) {
@@ -124,7 +126,8 @@ class NewsRepository
             }
 
             DB::commit();
-            Cache::tags(['news'])->flush();
+
+            Cache::tags(['news', 'news:' . $news->id])->flush();
             Cache::tags(['dashboard'])->flush();
 
             return $news->load('files');
@@ -147,8 +150,10 @@ class NewsRepository
             $result = $news->delete();
 
             DB::commit();
-            Cache::tags(['news'])->flush();
+
+            Cache::tags(['news', 'news:' . $news->id])->flush();
             Cache::tags(['dashboard'])->flush();
+
             return $result;
 
         } catch (\Exception $exception) {

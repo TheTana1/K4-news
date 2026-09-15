@@ -13,7 +13,7 @@ class  ReviewRepository
 {
     private const PER_PAGE = 10;
     private const COMMENTS_PER_PAGE = 10;
-    private const CACHE_TTL = 600;
+    private const CACHE_TTL = 900;
 
     final function paginate(int $perPage = self::PER_PAGE)
     {
@@ -53,7 +53,7 @@ class  ReviewRepository
             $result = $review->delete();
 
             DB::commit();
-            Cache::tags(['review'])->flush();
+            Cache::tags(['review', 'review:' . $review->id])->flush();
 
             return $result;
 

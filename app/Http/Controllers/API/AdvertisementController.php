@@ -21,7 +21,7 @@ class AdvertisementController extends Controller
 
     public function index(Request $request): AnonymousResourceCollection
     {
-        return AdvertisementResource::collection($this->AdvertisementRepository->paginate($request));
+        return AdvertisementResource::collection($this->AdvertisementRepository->paginate());
     }
 
     public function show(Advertisement $Advertisement): AdvertisementResource

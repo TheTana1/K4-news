@@ -14,7 +14,7 @@ class AdvertisementRepository
 {
     private const PER_PAGE = 10;
     private const COMMENTS_PER_PAGE = 10;
-    private const CACHE_TTL = 600;
+    private const CACHE_TTL = 900;
 
     final public function paginate(int $perPage = self::PER_PAGE)
     {
@@ -67,8 +67,10 @@ class AdvertisementRepository
             }
 
             DB::commit();
-            Cache::tags(['advertisements'])->flush();
+
+            Cache::tags(['advertisements', 'advertisement:' . $advertisement->id])->flush();
             Cache::tags(['dashboard'])->flush();
+
             return $advertisement->load('files', 'role');
 
         } catch (\Exception $exception) {
@@ -94,8 +96,10 @@ class AdvertisementRepository
             }
             $advertisement->update($validatedData);
             DB::commit();
-            Cache::tags(['advertisements'])->flush();
+
+            Cache::tags(['advertisements', 'advertisement:' . $advertisement->id])->flush();
             Cache::tags(['dashboard'])->flush();
+
             return $advertisement->load('files', 'role');
 
         } catch (\Exception $exception) {
@@ -117,8 +121,10 @@ class AdvertisementRepository
             $result = $advertisement->delete();
 
             DB::commit();
-            Cache::tags(['advertisements'])->flush();
+
+            Cache::tags(['advertisements', 'advertisement:' . $advertisement->id])->flush();
             Cache::tags(['dashboard'])->flush();
+
             return $result;
 
         } catch (\Exception $exception) {

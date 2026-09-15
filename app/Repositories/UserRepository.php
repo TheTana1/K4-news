@@ -17,7 +17,7 @@ class UserRepository
 {
     private const USER_PER_PAGE = 10;
     private const COMMENTS_PER_PAGE = 10;
-    private const CACHE_TTL = 10;
+    private const CACHE_TTL = 900; //15минут
 
     public function __construct(readonly UserFilter $userFilter)
     {
@@ -27,7 +27,7 @@ class UserRepository
     {
         $key = 'users-index:' . md5(serialize([
                 $request->query(),
-                $countPaginate,
+                $countPaginate
             ]));
 
         return Cache::tags(['users'])->remember($key, self::CACHE_TTL, function () use ($request, $countPaginate) {
@@ -44,18 +44,20 @@ class UserRepository
         $user = Cache::tags(['users', 'user:' . $user->id])->remember(
             'user:' . $user->id,
             self::CACHE_TTL,
-            fn () => $user->load(['role', 'phones'])
+            fn() => $user->load(['role', 'phones'])
         );
+
         $comments = Cache::tags(['users', 'user:' . $user->id])->remember(
-            'user:' . $user->id . ':comments:page:'.request()->query('page'),
+            'user:' . $user->id . ':comments:page:' . request()->query('page'),
             self::CACHE_TTL,
-            fn () => $user->comments()
+            fn() => $user->comments()
                 ->with(['commentable'])
                 ->latest()
                 ->paginate($countPaginate)
                 ->withQueryString()
         );
-        return ['user'=>$user, 'comments'=>$comments];
+
+        return ['user' => $user, 'comments' => $comments];
 
     }
 
@@ -91,8 +93,9 @@ class UserRepository
 
             DB::commit();
 
-            Cache::tags(['users'])->flush();
+            Cache::tags(['users', 'user:' . $user->id])->flush();
             Cache::tags(['dashboard'])->flush();
+
             return $user->load('phones', 'role');
 
         } catch (\Exception $exception) {
@@ -141,8 +144,9 @@ class UserRepository
 
             DB::commit();
 
-            Cache::tags(['users'])->flush();
+            Cache::tags(['users', 'user:' . $user->id])->flush();
             Cache::tags(['dashboard'])->flush();
+
             return $user->load(['role', 'phones']);
 
         } catch (\Exception $exception) {
@@ -163,15 +167,16 @@ class UserRepository
             if ($user->avatar_path && file_exists(public_path($user->avatar_path))) {
                 unlink(public_path($user->avatar_path));
             }
-            $resultPhone =$user->phones()->delete();
+            $resultPhone = $user->phones()->delete();
             $resultUser = $user->delete();
             $result = false;
-            if($resultUser&&$resultUser) $result = true;
+            if ($resultUser && $resultUser) $result = true;
 
             DB::commit();
 
-            Cache::tags(['users'])->flush();
+            Cache::tags(['users', 'user:' . $user->id])->flush();
             Cache::tags(['dashboard'])->flush();
+
             return $result;
 
         } catch (\Exception $exception) {
@@ -189,7 +194,7 @@ class UserRepository
         return Cache::tags(['users', 'user:' . $user->id])->remember(
             'user:' . $user->id,
             self::CACHE_TTL,
-            fn () => $user->load(['role', 'phones'])
+            fn() => $user->load(['role', 'phones'])
         );
     }
 }
