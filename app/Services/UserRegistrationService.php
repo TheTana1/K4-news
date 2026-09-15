@@ -46,7 +46,6 @@ class UserRegistrationService
             ]);
             $userDb->phones()->create([
                 'phone_number' => $user['phone'],
-                'is_primary' => true,
             ]);
             DB::commit();
             Log::info('New Telegram user registered', [

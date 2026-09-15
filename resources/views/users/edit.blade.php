@@ -169,43 +169,57 @@
                             </div>
                         </div>
 
-                        <!-- Телефоны (Alpine) -->
-                        <div class="mt-3" x-data="{
-                            phones: {{ json_encode($user->phones->map(fn($phone) => ['number' => $phone->phone_number, 'primary' => $phone->is_primary])) }},
-                            errors: {{ json_encode(session('errors') ? session('errors')->getBag('default')->toArray() : []) }}
-                        }">
-                            <div class="mt-3" x-data="{ phones: [{ number: '', primary: false }] }">
-                                <label class="form-label">Телефоны <span class="text-danger">*</span></label>
-                                <template x-for="(phone, index) in phones" :key="index">
-                                    <div>
-                                        <div class="input-group mb-2">
-                                            <input type="hidden" :name="`phones[${index}][id]`" x-model="phone.id">
-                                            <input type="text" x-model="phone.number" :name="`phones[${index}][number]`"
-                                                   class="form-control phone-mask" placeholder="+7 (999) 123-45-67">
-                                            <div class="input-group-text">
-                                                <input type="radio" name="primary_phone" :checked="phone.primary"
-                                                       @change="phones.forEach((p, i) => p.primary = i === index)"
-                                                       class="form-check-input mt-0">
-                                                <label class="form-check-label ms-1">Основной</label>
-                                            </div>
-                                            <button type="button" @click="phones.splice(index, 1)"
-                                                    class="btn btn-outline-danger">
+                        <div class="mt-3" id="phones-wrapper">
+                            <label class="form-label">Телефоны <span class="text-danger">*</span></label>
+
+                            <div id="phones-list">
+                                @forelse($user->phones as $index => $phone)
+                                    <div class="phone-item mb-2" data-index="{{ $index }}">
+                                        <div class="input-group">
+                                            <input type="hidden" name="phones[{{ $index }}][id]" value="{{ $phone->id }}">
+                                            <input type="text"
+                                                   name="phones[{{ $index }}][number]"
+                                                   value="{{ $phone->phone_number }}"
+                                                   class="form-control phone-mask"
+                                                   placeholder="+7 (999) 123-45-67">
+
+                                            <button type="button" class="btn btn-outline-danger btn-remove-phone">
                                                 <i class="bi bi-trash"></i>
                                             </button>
                                         </div>
-                                        <!-- Ошибки для телефона -->
-                                        <div x-show="errors[`phones.${index}.number`]" class="text-danger small mt-1"
-                                             x-text="errors[`phones.${index}.number`]"></div>
+                                        @error("phones.$index.number")
+                                        <div class="text-danger small mt-1">{{ $message }}</div>
+                                        @enderror
                                     </div>
-                                </template>
-                                <button type="button" @click="phones.push({ id: null, number: '', primary: false })"
-                                        class="btn btn-sm btn-outline-primary">
-                                    + Добавить телефон
-                                </button>
-                                @error('phones.*.number')
-                                <div class="text-danger small mt-1">{{ $message }}</div>
-                                @enderror
+                                @empty
+                                    <div class="phone-item mb-2" data-index="0">
+                                        <div class="input-group">
+                                            <input type="hidden" name="phones[0][id]" value="">
+                                            <input type="text"
+                                                   name="phones[0][number]"
+                                                   class="form-control phone-mask"
+                                                   placeholder="+7 (999) 123-45-67">
+
+                                            <button type="button" class="btn btn-outline-danger btn-remove-phone" disabled>
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                @endforelse
                             </div>
+
+                            <button type="button" id="add-phone" class="btn btn-sm btn-outline-primary mt-2">
+                                + Добавить телефон
+                            </button>
+
+                            @error('phones')
+                            <div class="text-danger small mt-1">{{ $message }}</div>
+                            @enderror
+                            @error('phones.*.number')
+                            <div class="text-danger small mt-1">{{ $message }}</div>
+                            @enderror
+                        </div>
+
 
                             <!-- Роль и статус -->
 
@@ -270,7 +284,7 @@
                                 <a href="{{ route('users.show', $user) }}" class="btn btn-secondary">Отмена</a>
                                 <button type="submit" class="btn btn-primary">Сохранить изменения</button>
                             </div>
-                        </div>
+
                     </form>
                 </div>
             </div>
@@ -297,19 +311,86 @@
                 }
             });
 
-            // Маска для телефона
-            function phoneMask(selector) {
-                document.querySelectorAll(selector).forEach(input => {
+            document.addEventListener('DOMContentLoaded', function () {
+                const list = document.getElementById('phones-list');
+                const addBtn = document.getElementById('add-phone');
+
+                // Маска телефона
+                function applyPhoneMask(input) {
+                    if (input.dataset.maskApplied) return;
+                    input.dataset.maskApplied = 'true';
+
                     input.addEventListener('input', function (e) {
                         let x = e.target.value.replace(/\D/g, '').match(/(\d{0,1})(\d{0,3})(\d{0,3})(\d{0,2})(\d{0,2})/);
                         e.target.value = !x[2] ? x[1] : '+7 (' + x[2] + ') ' + x[3] + (x[4] ? '-' + x[4] : '') + (x[5] ? '-' + x[5] : '');
                     });
-                });
-            }
+                }
 
-            // Применяем маску к динамически добавляемым полям
-            document.addEventListener('DOMContentLoaded', function () {
-                phoneMask('input[name*="[number]"]');
+                // Применяем маску ко всем существующим полям
+                document.querySelectorAll('.phone-mask').forEach(applyPhoneMask);
+
+                // Добавление нового телефона
+                addBtn.addEventListener('click', function () {
+                    const index = list.querySelectorAll('.phone-item').length;
+
+                    const html = `
+            <div class="phone-item mb-2" data-index="${index}">
+                <div class="input-group">
+                    <input type="hidden" name="phones[${index}][id]" value="">
+                    <input type="text"
+                           name="phones[${index}][number]"
+                           class="form-control phone-mask"
+                           placeholder="+7 (999) 123-45-67">
+                    <button type="button" class="btn btn-outline-danger btn-remove-phone">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </div>
+            </div>
+        `;
+
+                    list.insertAdjacentHTML('beforeend', html);
+
+                    // Навешиваем маску на новое поле
+                    const newInput = list.querySelector(`.phone-item[data-index="${index}"] .phone-mask`);
+                    applyPhoneMask(newInput);
+
+                    updateRemoveButtons();
+                });
+
+                // Удаление телефона
+                list.addEventListener('click', function (e) {
+                    const btn = e.target.closest('.btn-remove-phone');
+                    if (!btn) return;
+
+                    const items = list.querySelectorAll('.phone-item');
+                    if (items.length <= 1) return; // нельзя удалить последний
+
+                    btn.closest('.phone-item').remove();
+                    reindexPhones();
+                    updateRemoveButtons();
+                });
+
+                // Переиндексация после удаления
+                function reindexPhones() {
+                    list.querySelectorAll('.phone-item').forEach((item, index) => {
+                        item.dataset.index = index;
+
+                        item.querySelector('input[type="hidden"]').name = `phones[${index}][id]`;
+                        item.querySelector('.phone-mask').name = `phones[${index}][number]`;
+
+                    });
+                }
+
+                // Блокируем кнопку удаления, если остался один телефон
+                function updateRemoveButtons() {
+                    const items = list.querySelectorAll('.phone-item');
+                    items.forEach(item => {
+                        const btn = item.querySelector('.btn-remove-phone');
+                        btn.disabled = items.length === 1;
+                    });
+                }
+
+                updateRemoveButtons();
             });
 
         </script>

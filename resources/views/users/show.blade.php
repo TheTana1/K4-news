@@ -63,14 +63,13 @@
                             </div>
 
 
-
-                                <div class="d-grid gap-2 mt-3">
-                                    @can('update', $user)
+                            <div class="d-grid gap-2 mt-3">
+                                @can('update', $user)
                                     <a href="{{ route('users.edit', $user) }}" class="btn btn-success">
                                         <i class="bi bi-pencil me-1"></i> Редактировать
                                     </a>
-                                    @endcan
-                                    @can('delete', $user)
+                                @endcan
+                                @can('delete', $user)
                                     <form action="{{ route('users.destroy', $user) }}" method="POST">
                                         @csrf @method('DELETE')
                                         <button type="submit" class="btn btn-danger w-100"
@@ -78,8 +77,8 @@
                                             <i class="bi bi-trash me-1"></i> Удалить
                                         </button>
                                     </form>
-                                        @endcan
-                                </div>
+                                @endcan
+                            </div>
 
                         </div>
                     </div>

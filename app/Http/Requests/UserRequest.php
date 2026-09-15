@@ -13,9 +13,10 @@ class UserRequest extends FormRequest
 {
     public function authorize(): bool
     {
+
         $user = auth()->user();
 //        $this->dd($user);
-        return $user->isAdmin()||$user->isModerator();
+        return $user->isAdmin() || $user->isModerator() || $this->user()->id === $user->id;
     }
 
     public function rules(): array
@@ -24,45 +25,46 @@ class UserRequest extends FormRequest
         $maxDate = Carbon::today()->subYears(15)->format('Y-m-d');
         switch ($this->method()) {
 
-            case 'POST': return[
-                'name' => 'required|string|max:255',
-                'email' => 'required|email|max:255|unique:users,email',
-                'password' => 'required|string|min:2|confirmed',
-                'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-                'birthday' => 'nullable|date|before:'.$maxDate.'|after:'.$minDate,
-                'gender' => 'nullable|in:0,1',
-                'role_id' => 'nullable|exists:roles,id',
-                'telegram_id' => 'nullable|string|max:255|unique:users,telegram_id',
-                'telegram_username' => 'nullable|string|max:255',
-                'is_active_in_group' => 'nullable|boolean',
-                'likes' => 'nullable|integer|min:0',
-                'phones' => 'nullable|array',
-                'phones.*.number' => 'required_with:phones|string|max:20',
-                'phones.*.is_primary' => 'nullable|boolean',];
+            case 'POST':
+                return [
+                    'name' => 'required|string|max:255',
+                    'email' => 'required|email|max:255|unique:users,email',
+                    'password' => 'required|string|min:2|confirmed',
+                    'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+                    'birthday' => 'nullable|date|before:' . $maxDate . '|after:' . $minDate,
+                    'gender' => 'nullable|in:0,1',
+                    'role_id' => 'nullable|exists:roles,id',
+                    'telegram_id' => 'nullable|string|max:255|unique:users,telegram_id',
+                    'telegram_username' => 'nullable|string|max:255',
+                    'is_active_in_group' => 'nullable|boolean',
+                    'phones' => 'nullable|array',
+                    'phones.*.number' => 'required_with:phones|string|max:20',
+                    'phones.*.is_primary' => 'nullable|boolean',];
 
-            case 'PUT': return['name' => 'sometimes|string|max:255',
-                'email' => [
-                    'sometimes',
-                    'email',
-                    'max:255',
-                ],
-                'password' => 'nullable|string|min:8|confirmed',
-                'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-                'birthday' => 'nullable|date|before:today|after:1960-01-01',
-                'gender' => 'nullable|in:0,1',
-                'role_id' => 'nullable|exists:roles,id',
-                'telegram_id' => [
-                    'nullable',
-                    'string',
-                    'max:255',
-                ],
-                'telegram_username' => 'nullable|string|max:255',
-                'is_active_in_group' => 'nullable|boolean',
-                'likes' => 'nullable|integer|min:0',
-                'phones' => 'nullable|array',
-                'phones.*.id' => 'nullable|exists:phones,id',
-                'phones.*.number' => 'required_with:phones|string|max:20',
-                'phones.*.is_primary' => 'nullable|boolean',];
+            case 'PUT':
+                return ['name' => 'sometimes|string|max:255',
+                    'email' => [
+                        'sometimes',
+                        'email',
+                        'max:255',
+                    ],
+                    'password' => 'nullable|string|min:8|confirmed',
+                    'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+                    'birthday' => 'nullable|date|before:today|after:1960-01-01',
+                    'gender' => 'nullable|in:0,1',
+                    'role_id' => 'nullable|exists:roles,id',
+                    'telegram_id' => [
+                        'nullable',
+                        'string',
+                        'max:255',
+                    ],
+                    'telegram_username' => 'nullable|string|max:255',
+                    'is_active_in_group' => 'nullable|boolean',
+                    'likes' => 'nullable|integer|min:0',
+                    'phones' => 'nullable|array',
+                    'phones.*.id' => 'nullable|exists:phones,id',
+                    'phones.*.number' => 'required_with:phones|string|max:20',
+                    'phones.*.is_primary' => 'nullable|boolean',];
         };
         return [];
     }
@@ -114,27 +116,31 @@ class UserRequest extends FormRequest
             'phones.*.is_primary.boolean' => 'Неверное значение для основного телефона',
         ];
     }
-public function after()
-{
-    return [
-        function ($validator) {
-            if ($validator->errors()->any()) {
-                Log::warning('Валидация не прошла', [
-                    'errors' => $validator->errors()->toArray()
-                ]);
-            } else {
-                Log::info('Валидация пользователя прошла успешно');
+
+    public function after()
+    {
+        return [
+            function ($validator) {
+                if ($validator->errors()->any()) {
+                    Log::warning('Валидация не прошла', [
+                        'errors' => $validator->errors()->toArray()
+                    ]);
+                } else {
+                    Log::info('Валидация пользователя прошла успешно');
+                }
             }
-        }
-    ];
-}
+        ];
+    }
 
     protected function prepareForValidation(): void
     {
 
 
         $password = $this->input('password');
-        if ($password === 'password'|| Hash::check($password, $this->user()->password) || empty($password)) {
+        if (empty($password) ||
+            $password === 'password' ||
+            Hash::check($password, $this->user()?->password)) {
+
             $this->request->remove('password');
             $this->request->remove('password_confirmation');
         }

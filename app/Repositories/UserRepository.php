@@ -84,7 +84,6 @@ class UserRepository
                     if (!empty($phoneData['number'])) {
                         $user->phones()->create([
                             'phone_number' => $phoneData['number'],
-                            'is_primary' => $phoneData['is_primary'] ?? false,
                         ]);
                     }
                 }
@@ -136,7 +135,6 @@ class UserRepository
                     }
                     $user->phones()->updateOrCreate([
                         'phone_number' => $phoneData['number'],
-                        'is_primary' => $phoneData['is_primary'] ?? false,
                     ]);
                 }
             }
@@ -165,8 +163,10 @@ class UserRepository
             if ($user->avatar_path && file_exists(public_path($user->avatar_path))) {
                 unlink(public_path($user->avatar_path));
             }
-
-            $result = $user->delete();
+            $resultPhone =$user->phones()->delete();
+            $resultUser = $user->delete();
+            $result = false;
+            if($resultUser&&$resultUser) $result = true;
 
             DB::commit();
 
@@ -182,5 +182,14 @@ class UserRepository
             ]);
             throw new BadRequestHttpException('Ошибка при удалении пользователя: ' . $exception->getMessage());
         }
+    }
+
+    public function edit(User $user)
+    {
+        return Cache::tags(['users', 'user:' . $user->id])->remember(
+            'user:' . $user->id,
+            self::CACHE_TTL,
+            fn () => $user->load(['role', 'phones'])
+        );
     }
 }
