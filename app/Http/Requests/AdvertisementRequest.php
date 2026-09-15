@@ -23,7 +23,7 @@ class AdvertisementRequest extends FormRequest
                 'status' => 'nullable|in:active,inactive',
                 'telegram_author_name' => 'nullable|string|max:255',
                 'files' => 'nullable|array',
-                'files.*' => 'nullable|file|mimes:pdf,txt,jpg,jpeg,png,gif,bmp,webp,svg|max:10240',
+                'files.*' => 'nullable|file|mimes:pdf,txt,xls,xlsx,doc,docx,jpg,jpeg,png,gif,bmp,webp,svg|max:20240',
                 'role_id' => '|integer|exists:roles,id',
             ];
 
@@ -32,7 +32,7 @@ class AdvertisementRequest extends FormRequest
                 'status' => 'nullable|in:active,inactive',
                 'telegram_author_name' => 'nullable|string|max:255',
                 'files' => 'nullable|array',
-                'files.*' => 'nullable|file|mimes:pdf,txt,jpg,jpeg,png,gif,bmp,webp,svg|max:10240',
+                'files.*' => 'nullable|file|mimes:pdf,txt,xls,xlsx,doc,docx,jpg,jpeg,png,gif,bmp,webp,svg|max:20240',
                 'delete_files' => 'nullable|array',
                 'delete_files.*' => 'exists:files,id',
                 'role_id' => '|integer|exists:roles,id',

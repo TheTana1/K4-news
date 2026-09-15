@@ -75,7 +75,7 @@
                                    name="files[]"
                                    id="files"
                                    multiple
-                                   accept=".pdf,.txt,.jpg,.jpeg,.png,.gif,.bmp,.webp,.svg"
+                                   accept=".pdf,.txt,.xls,.xlsx,.doc,.docx,.jpg,.jpeg,.png,.gif,.bmp,.webp,.svg"
                                    class="form-control @error('files.*') is-invalid @enderror">
 
                             @if ($errors->has('files'))
@@ -98,7 +98,7 @@
                                 </div>
                             @endif
 
-                            <small class="text-muted">Можно загрузить: PDF, TXT, изображения (JPG, PNG, GIF, BMP, WEBP, SVG). Максимум 10MB</small>
+                            <small class="text-muted">Можно загрузить: PDF, TXT, XLS, XLSX, DOC, DOCX изображения (JPG, PNG, GIF, BMP, WEBP, SVG)</small>
                             <div id="fileList" class="mt-2"></div>
                         </div>
 
