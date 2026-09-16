@@ -406,7 +406,7 @@ class NewNewsHandler
 
             $news = News::create([
                 'content' => $data['text'],
-                'telegram_author_name' => $telegramUser['name'] ?? null,
+                'telegram_author_name' => $telegramUser['telegram_username'] ?? null,
                 'status' => 'active',
                 'published_at' => now(),
                 'role_id' => $data['role_id'] ?? 2, // По умолчанию 2 (Всем)

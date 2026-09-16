@@ -148,7 +148,7 @@
                             @forelse($recentReviews ?? [] as $review)
                                 <li class="list-group-item">
                                     <a href="{{ route('reviews.show', $review) }}"
-                                       class="text-black fw-semibold text-decoration-none">
+                                       class="fw-semibold text-decoration-none" style="color: #ff661b">
                                             {{ Str::limit($review->content, 50) }}
                                         <div class="small text-muted">{{ $news->created_at->diffForHumans() }}</div>
                                     </a>

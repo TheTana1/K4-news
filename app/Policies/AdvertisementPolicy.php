@@ -27,9 +27,9 @@ class AdvertisementPolicy
     /**
      * Determine whether the user can create models.
      */
-    public function create(User $user): bool
+    public function create(): bool
     {
-        return $user->isAdmin() || $user->isModerator();
+        return true;
     }
 
     /**
@@ -37,7 +37,7 @@ class AdvertisementPolicy
      */
     public function update(User $user, Advertisement $advertisement): bool
     {
-        return $user->isAdmin();
+        return $user->isAdmin()|| $user->isModerator() || $user->telegram_username===$advertisement->telegram_author_name;
     }
 
     /**
@@ -45,7 +45,7 @@ class AdvertisementPolicy
      */
     public function delete(User $user, Advertisement $advertisement): bool
     {
-        return $user->isAdmin();
+        return $user->isAdmin()|| $user->isModerator() || $user->telegram_username===$advertisement->telegram_author_name;
     }
 
     /**
