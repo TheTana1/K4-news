@@ -35,26 +35,20 @@
                         <div class="row mb-4 align-items-center">
                             <div class="col-auto">
                                 <div class="position-relative d-inline-block">
-                                    @if($user->avatar_path)
-                                        <div id="avatarPreview"
-                                             class="rounded-circle d-flex align-items-center justify-content-center text-white"
-                                             style="width:80px;height:80px;font-size:2rem;background-size:cover;background-position:center; background-color: #0D6EFD">
-                                            <img style="width: 80px;height: 80px;" src="{{$user->avatar_path}}" alt=""
-                                                 srcset="">
-                                        </div>
-                                    @else
-                                        @php
-                                            $colors = ['primary', 'secondary', 'success', 'danger', 'warning', 'info', 'dark'];
-                                            $color = $colors[abs(crc32($user->name)) % count($colors)];
-                                        @endphp
-                                        <div id="avatarPreview"
-                                             class="rounded-circle d-flex align-items-center justify-content-center text-white bg-{{$color}}"
-                                             style="width:80px;height:80px;font-size:2rem;background-size:cover;background-position:center; background-color: #0D6EFD">
-                                            {{ mb_strtoupper(mb_substr($user->name, 0, 1)) }}
-                                        </div>
-                                    @endif
+                                    <div id="avatarPreview"
+                                         class="rounded-circle d-flex align-items-center justify-content-center text-white overflow-hidden"
+                                         style="width:80px;height:80px;background-color:#0D6EFD;">
+
+                                        @if ($user->avatar_path)
+                                            <img src="{{ $user->avatar_path }}" alt=""
+                                                 style="width:100%;height:100%;object-fit:cover;">
+                                        @else
+                                            {{-- инициалы или иконка --}}
+                                            {{ mb_substr($user->name, 0, 1) }}
+                                        @endif
+                                    </div>
                                     <label for="avatar"
-                                           class="position-absolute bottom-0 end-0 bg-white rounded-circle p-1 shadow-sm d-flex align-items-center justify-content-center"
+                                           class="position-absolute bottom-0 end-0 bg-body-tertiary fw-semibold rounded-circle p-1 shadow-sm d-flex align-items-center justify-content-center"
                                            style="cursor:pointer; transform:translate(10%,10%); width:36px; height:36px;">
                                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
                                              stroke="currentColor" stroke-width="2" stroke-linecap="round"
@@ -64,14 +58,18 @@
                                             <circle cx="12" cy="13" r="4"/>
                                         </svg>
                                     </label>
-                                    <input type="file" id="avatar" name="avatar" class="d-none" accept="image/*">
+                                    <input type="file"
+                                           id="avatar"
+                                           name="avatar"
+                                           class="d-none"
+                                           accept=".jpg,.jpeg,.png,.gif,.bmp,.webp,.svg">
                                 </div>
                             </div>
+
                             <div class="col">
                                 <small class="text-muted">Нажмите на иконку камеры, чтобы загрузить фото</small>
                                 @error('avatar')
-                                <div class="text-danger small mt-1">
-                                    <i class="bi bi-exclamation-triangle-fill me-1"></i>
+                                <div class="invalid-feedback d-block">
                                     {{ $message }}
                                 </div>
                                 @enderror
@@ -213,10 +211,10 @@
                             </button>
 
                             @error('phones')
-                            <div class="text-danger small mt-1">{{ $message }}</div>
+                            <div class="invalid-feedback d-block">{{ $message }}</div>
                             @enderror
                             @error('phones.*.number')
-                            <div class="text-danger small mt-1">{{ $message }}</div>
+                            <div class="invalid-feedback d-block">{{ $message }}</div>
                             @enderror
                         </div>
 

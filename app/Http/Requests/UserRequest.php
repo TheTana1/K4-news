@@ -39,7 +39,7 @@ class UserRequest extends FormRequest
                     'is_active_in_group' => 'nullable|boolean',
                     'phones' => 'nullable|array',
                     'phones.*.number' => 'required_with:phones|string|max:20',
-                    'phones.*.is_primary' => 'nullable|boolean',];
+                    ];
 
             case 'PUT':
                 return ['name' => 'sometimes|string|max:255',
@@ -64,7 +64,7 @@ class UserRequest extends FormRequest
                     'phones' => 'nullable|array',
                     'phones.*.id' => 'nullable|exists:phones,id',
                     'phones.*.number' => 'required_with:phones|string|max:20',
-                    'phones.*.is_primary' => 'nullable|boolean',];
+                    ];
         };
         return [];
     }
@@ -113,7 +113,6 @@ class UserRequest extends FormRequest
             'phones.*.number.string' => 'Номер телефона должен быть строкой',
             'phones.*.number.max' => 'Номер телефона не должен превышать 20 символов',
             'phones.*.id.exists' => 'Телефон не найден в базе данных',
-            'phones.*.is_primary.boolean' => 'Неверное значение для основного телефона',
         ];
     }
 

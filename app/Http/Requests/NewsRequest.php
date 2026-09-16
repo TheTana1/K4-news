@@ -19,13 +19,20 @@ class NewsRequest extends FormRequest
             case 'POST':          return [
                 'content' => 'required|string|min:4|max:10000',
                 'status' => 'nullable|in:active,inactive',
-
+                'telegram_author_name' => 'nullable|string|max:255',
+                'files' => 'nullable|array',
+                'files.*' => 'nullable|file|mimes:jpg,jpeg,png,gif,bmp,webp,svg|max:10240',
                 'role_id' => '|integer|exists:roles,id',
             ];
 
             case 'PUT': return [
                 'content' => 'sometimes|string|min:4|max:10000',
                 'status' => 'nullable|in:active,inactive',
+                'telegram_author_name' => 'nullable|string|max:255',
+                'files' => 'nullable|array',
+                'files.*' => 'nullable|file|mimes:jpg,jpeg,png,gif,bmp,webp,svg|max:10240',
+                'delete_files' => 'nullable|array',
+                'delete_files.*' => 'exists:files,id',
                 'role_id' => '|integer|exists:roles,id',
             ];
         };
@@ -42,9 +49,9 @@ class NewsRequest extends FormRequest
             'content.max' => 'Содержание не может быть длиннее :max символов',
             'content.string' => 'Новость должна быть заполнена текстом',
 
-            'image.image' => 'Файл должен быть изображением',
-            'image.mimes' => 'Допустимые форматы: jpeg, png, jpg, gif, webp',
-            'image.max' => 'Размер файла не должен превышать 2MB',
+            'files.*.file' => 'Загруженный файл должен быть валидным',
+            'files.*.max' => 'Размер файла не должен превышать :max KB',
+            'files.*.mimes' => 'Разрешены только файлы форматов: :values',
 
             'status.in' => 'Статус должен быть active или inactive',
         ];

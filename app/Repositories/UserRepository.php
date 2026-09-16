@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
 class UserRepository
@@ -67,10 +68,14 @@ class UserRepository
 
         try {
             $validatedData = $request->validated();
-
-            if ($request->hasFile('avatar_path')) {
-                $path = $request->file('avatar_path')->store('avatars', 'public');
-                $validatedData['avatar_path'] = 'storage/' . $path;
+//            if ($user->avatar_path) {
+//                File::delete(public_path($user->avatar_path));
+//            }
+//            $path = '/storage/' . $request->file('avatar')->store('avatars', 'public');
+            if ($request->hasFile('avatar')) {
+                $path = '/storage/' . $request->file('avatar')->store('avatars', 'public');
+                $validatedData['avatar_path'] =  $path;
+                //dd( $path);
             }
 
             if (isset($validatedData['password'])) {
@@ -115,11 +120,14 @@ class UserRepository
             $validatedData = $request->validated();
 
             if ($request->hasFile('avatar')) {
+               // dd(public_path($user->avatar_path));
                 if ($user->avatar_path) {
+                   // dd(Storage::disk('public')->delete($user->avatar_path));
                     File::delete(public_path($user->avatar_path));
                 }
                 $path = '/storage/' . $request->file('avatar')->store('avatars', 'public');
                 $user->avatar_path = $path;
+                //dd(public_path($user->avatar_path));
                 unset($validatedData['avatar']);
             }
 
