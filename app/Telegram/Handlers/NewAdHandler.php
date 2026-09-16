@@ -3,6 +3,8 @@
 namespace App\Telegram\Handlers;
 
 use App\Services\UserRegistrationService;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use WeStacks\TeleBot\Laravel\TeleBot;
 use App\Models\Advertisement;
 use App\Models\Role;
@@ -18,12 +20,12 @@ class NewAdHandler
     public function handle($update)
     {
         $chatId = $update->message->chat->id ?? null;
-        if (!$chatId) return;
+        if (!$chatId) return false;
 
         $telegramUser = $update->message->from ?? null;
         if (!$telegramUser) {
             Log::error('Telegram user not found in update');
-            return;
+            return false;
         }
 
         // Регистрируем пользователя
@@ -35,7 +37,7 @@ class NewAdHandler
                 'chat_id' => $chatId,
                 'text' => '❌ Ошибка регистрации. Попробуйте позже.'
             ]);
-            return;
+            return false;
         }
 
         session(["ad_user_{$chatId}" => [
@@ -79,7 +81,7 @@ class NewAdHandler
     public function handleMessage($message)
     {
         $chatId = $message->chat->id ?? null;
-        if (!$chatId) return;
+        if (!$chatId) return false;
 
         $text = $message->text ?? '';
         $sessionKey = "ad_{$chatId}";
@@ -401,6 +403,7 @@ class NewAdHandler
 
     private function publishAd($chatId, $data)
     {
+        DB::beginTransaction();
         try {
             $telegramUser = session("ad_user_{$chatId}") ?? null;
 
@@ -432,6 +435,11 @@ class NewAdHandler
                 }
             }
 
+            DB::commit();
+
+            Cache::tags(['advertisements-index'])->flush();
+            Cache::tags(['dashboard'])->flush();
+
             // Очищаем сессию
             session()->forget("ad_{$chatId}");
             session()->forget("ad_user_{$chatId}");
@@ -455,6 +463,8 @@ class NewAdHandler
             ]);
 
         } catch (\Exception $e) {
+            DB::rollBack();
+
             Log::error('Ошибка публикации объявления: ' . $e->getMessage(), [
                 'chat_id' => $chatId,
                 'data' => $data,

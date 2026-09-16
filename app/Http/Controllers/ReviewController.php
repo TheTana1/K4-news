@@ -16,7 +16,7 @@ class ReviewController extends Controller
     }
     public function index():View
     {
-        $reviews = $this->reviewRepository->paginate();
+        $reviews = $this->reviewRepository->index();
         return view('reviews.index', compact('reviews'));
     }
 

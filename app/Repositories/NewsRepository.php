@@ -18,12 +18,12 @@ class NewsRepository
     private const COMMENTS_PER_PAGE = 10;
     private const CACHE_TTL = 900;
 
-    final public function paginate(int $perPage = self::PER_PAGE)
+    final public function index(int $perPage = self::PER_PAGE)
     {
         $key = 'news-index:' . md5(
-                $perPage
+                $perPage.request('page')
             );
-        return Cache::tags(['news'])->remember($key, self::CACHE_TTL, fn()=>News::query()
+        return Cache::tags(['news-index'])->remember($key, self::CACHE_TTL, fn()=>News::query()
             ->forCurrentUser()
             ->with(['role'])
             ->latest()
@@ -33,12 +33,12 @@ class NewsRepository
     }
     final public function show(News $news, int $countPaginate = self::COMMENTS_PER_PAGE)
     {
-        $news = Cache::tags(['news', 'news:' . $news->id])->remember(
+        $news = Cache::tags(['news'])->remember(
             'news:'. $news->id,
             self::CACHE_TTL,
             fn() =>  $news->load(['files', 'role'])
         );
-        $comments = Cache::tags(['news', 'news:' . $news->id])->remember(
+        $comments = Cache::tags(['news'])->remember(
             'news:' . $news->id . ':comments:page:'.request()->query('page'),
             self::CACHE_TTL,
             fn () => $news->comments()
@@ -97,7 +97,7 @@ class NewsRepository
 
             DB::commit();
 
-            Cache::tags(['news', 'news:' . $news->id])->flush();
+            Cache::tags(['news'])->flush();
             Cache::tags(['dashboard'])->flush();
 
             return $news->load('files');
@@ -127,7 +127,7 @@ class NewsRepository
 
             DB::commit();
 
-            Cache::tags(['news', 'news:' . $news->id])->flush();
+            Cache::tags(['news'])->flush();
             Cache::tags(['dashboard'])->flush();
 
             return $news->load('files');
@@ -151,7 +151,7 @@ class NewsRepository
 
             DB::commit();
 
-            Cache::tags(['news', 'news:' . $news->id])->flush();
+            Cache::tags(['news'])->flush();
             Cache::tags(['dashboard'])->flush();
 
             return $result;

@@ -35,6 +35,7 @@ class UserRegistrationService
     public function createUser($user): ?User
     {
         DB::beginTransaction();
+
         try {
             $userDb = User::create([
                 'telegram_id' => $user['id'],
@@ -48,9 +49,12 @@ class UserRegistrationService
             $userDb->phones()->create([
                 'phone_number' => $user['phone'],
             ]);
+
             DB::commit();
-            Cache::tags(['users'])->flush();
+
+            Cache::tags(['users-index'])->flush();
             Cache::tags(['dashboard'])->flush();
+
             Log::info('Успешное создание user: ', [
                 'telegram_id' => $user->id,
                 'user_id' => $userDb->id,
@@ -60,6 +64,7 @@ class UserRegistrationService
             return $userDb;
         } catch (\Exception $e) {
             DB::rollBack();
+
             Log::error('Ошибка создания user: ' , [
                 'telegram_id' => $userDb->id ?? null,
                 'error' => $e->getMessage()
@@ -71,15 +76,17 @@ class UserRegistrationService
     private function updateUser($userDb): ?User
     {
         DB::beginTransaction();
+
         try {
-
-
             $userDb->update([
                 'name' => trim(($user->first_name ?? '') . ' ' . ($user->last_name ?? '')),
                 'telegram_username' => $user->username,
                 'is_active_in_group' => true,
                 'updated_at' => now(),
             ]);
+
+            DB::commit();
+
             Cache::tags(['users'])->flush();
             Cache::tags(['dashboard'])->flush();
 
@@ -91,6 +98,7 @@ class UserRegistrationService
             return $userDb;
         } catch (\Exception $e) {
             DB::rollBack();
+
             Log::error('Ошибка обновления user: ', [
                 'telegram_id' => $userDb->id ?? null,
                 'error' => $e->getMessage()

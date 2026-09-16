@@ -4,6 +4,8 @@
 namespace App\Telegram\Handlers;
 
 use App\Services\UserRegistrationService;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use WeStacks\TeleBot\Laravel\TeleBot;
 use App\Models\News;
 use Illuminate\Support\Facades\Storage;
@@ -18,12 +20,12 @@ class NewNewsHandler
     public function handle($update)
     {
         $chatId = $update->message->chat->id ?? null;
-        if (!$chatId) return;
+        if (!$chatId) return false;
 
         $telegramUser = $update->message->from ?? null;
         if (!$telegramUser) {
             Log::error('Telegram user not found in update');
-            return;
+            return false;
         }
 
         // Регистрируем пользователя
@@ -31,7 +33,7 @@ class NewNewsHandler
 
         if (!$userDb) {
             Log::error('Failed to register user', ['telegram_id' => $telegramUser->id]);
-            TeleBot::sendMessage([
+            return TeleBot::sendMessage([
                 'chat_id' => $chatId,
                 'text' => '❌ Ошибка регистрации. Попробуйте позже.',
                 'reply_markup' => [
@@ -40,7 +42,7 @@ class NewNewsHandler
                     ],
                     'remove_keyboard' => true],
             ]);
-            return;
+
         }
 
         session(["news_user_{$chatId}" => [
@@ -84,7 +86,7 @@ class NewNewsHandler
     public function handleMessage($message)
     {
         $chatId = $message->chat->id ?? null;
-        if (!$chatId) return;
+        if (!$chatId) return false;
 
         $text = $message->text ?? '';
         $sessionKey = "news_{$chatId}";
@@ -404,6 +406,7 @@ class NewNewsHandler
      */
     private function publishNews($chatId, $data)
     {
+        DB::beginTransaction();
         try {
             $telegramUser = session("news_user_{$chatId}") ?? null;
 
@@ -434,6 +437,11 @@ class NewNewsHandler
                     $news->files()->create($photoData);
                 }
             }
+
+            DB::commit();
+
+            Cache::tags(['news-index'])->flush();
+            Cache::tags(['dashboard'])->flush();
 
             // Очищаем сессию
             session()->forget("news_{$chatId}");

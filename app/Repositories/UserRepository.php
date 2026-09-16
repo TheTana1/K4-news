@@ -24,14 +24,15 @@ class UserRepository
     {
     }
 
-    final public function paginate(Request $request, int $countPaginate = self::USER_PER_PAGE)
+    final public function index(Request $request, int $countPaginate = self::USER_PER_PAGE)
     {
+
         $key = 'users-index:' . md5(serialize([
                 $request->query(),
                 $countPaginate
             ]));
 
-        return Cache::tags(['users'])->remember($key, self::CACHE_TTL, function () use ($request, $countPaginate) {
+        return Cache::tags(['users-index'])->remember($key, self::CACHE_TTL, function () use ($request, $countPaginate) {
             return $this->userFilter
                 ->apply($request, User::query())
                 ->with(['role'])
@@ -42,13 +43,13 @@ class UserRepository
 
     final public function show(User $user, int $countPaginate = self::COMMENTS_PER_PAGE)
     {
-        $user = Cache::tags(['users', 'user:' . $user->id])->remember(
+        $user = Cache::tags(['users'])->remember(
             'user:' . $user->id,
             self::CACHE_TTL,
             fn() => $user->load(['role', 'phones'])
         );
 
-        $comments = Cache::tags(['users', 'user:' . $user->id])->remember(
+        $comments = Cache::tags(['users'])->remember(
             'user:' . $user->id . ':comments:page:' . request()->query('page'),
             self::CACHE_TTL,
             fn() => $user->comments()
@@ -68,14 +69,10 @@ class UserRepository
 
         try {
             $validatedData = $request->validated();
-//            if ($user->avatar_path) {
-//                File::delete(public_path($user->avatar_path));
-//            }
-//            $path = '/storage/' . $request->file('avatar')->store('avatars', 'public');
+
             if ($request->hasFile('avatar')) {
                 $path = '/storage/' . $request->file('avatar')->store('avatars', 'public');
                 $validatedData['avatar_path'] =  $path;
-                //dd( $path);
             }
 
             if (isset($validatedData['password'])) {
@@ -98,16 +95,18 @@ class UserRepository
 
             DB::commit();
 
-            Cache::tags(['users', 'user:' . $user->id])->flush();
+            Cache::tags(['users'])->flush();
             Cache::tags(['dashboard'])->flush();
 
             return $user->load('phones', 'role');
 
         } catch (\Exception $exception) {
             DB::rollBack();
+
             Log::critical('Ошибка при создании пользователя: ' . $exception->getMessage(), [
                 'trace' => $exception->getTraceAsString()
             ]);
+
             throw new BadRequestHttpException('Ошибка при создании пользователя: ' . $exception->getMessage());
         }
     }
@@ -120,14 +119,13 @@ class UserRepository
             $validatedData = $request->validated();
 
             if ($request->hasFile('avatar')) {
-               // dd(public_path($user->avatar_path));
+
                 if ($user->avatar_path) {
-                   // dd(Storage::disk('public')->delete($user->avatar_path));
                     File::delete(public_path($user->avatar_path));
                 }
+
                 $path = '/storage/' . $request->file('avatar')->store('avatars', 'public');
                 $user->avatar_path = $path;
-                //dd(public_path($user->avatar_path));
                 unset($validatedData['avatar']);
             }
 
@@ -144,6 +142,7 @@ class UserRepository
                     if (empty($phoneData['number'])) {
                         continue;
                     }
+
                     $user->phones()->updateOrCreate([
                         'phone_number' => $phoneData['number'],
                     ]);
@@ -152,17 +151,19 @@ class UserRepository
 
             DB::commit();
 
-            Cache::tags(['users', 'user:' . $user->id])->flush();
+            Cache::tags(['users'])->flush();
             Cache::tags(['dashboard'])->flush();
 
             return $user->load(['role', 'phones']);
 
         } catch (\Exception $exception) {
             DB::rollBack();
+
             Log::critical('Ошибка при обновлении пользователя: ' . $exception->getMessage(), [
                 'user_id' => $user->id,
                 'trace' => $exception->getTraceAsString()
             ]);
+
             throw new BadRequestHttpException('Ошибка при обновлении пользователя: ' . $exception->getMessage());
         }
     }
@@ -175,31 +176,34 @@ class UserRepository
             if ($user->avatar_path && file_exists(public_path($user->avatar_path))) {
                 unlink(public_path($user->avatar_path));
             }
+
             $resultPhone = $user->phones()->delete();
             $resultUser = $user->delete();
             $result = false;
-            if ($resultUser && $resultUser) $result = true;
+            if ($resultUser && $resultPhone) $result = true;
 
             DB::commit();
 
-            Cache::tags(['users', 'user:' . $user->id])->flush();
+            Cache::tags(['users'])->flush();
             Cache::tags(['dashboard'])->flush();
 
             return $result;
 
         } catch (\Exception $exception) {
             DB::rollBack();
+
             Log::critical('Ошибка при удалении пользователя: ' . $exception->getMessage(), [
                 'user_id' => $user->id,
                 'trace' => $exception->getTraceAsString()
             ]);
+
             throw new BadRequestHttpException('Ошибка при удалении пользователя: ' . $exception->getMessage());
         }
     }
 
     public function edit(User $user)
     {
-        return Cache::tags(['users', 'user:' . $user->id])->remember(
+        return Cache::tags(['users'])->remember(
             'user:' . $user->id,
             self::CACHE_TTL,
             fn() => $user->load(['role', 'phones'])

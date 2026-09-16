@@ -15,12 +15,12 @@ class  ReviewRepository
     private const COMMENTS_PER_PAGE = 10;
     private const CACHE_TTL = 900;
 
-    final function paginate(int $perPage = self::PER_PAGE)
+    final function index(int $perPage = self::PER_PAGE)
     {
         $key = 'review-index:' . md5(
-                $perPage
+                $perPage.request('page')
             );
-        return Cache::tags(['reviews'])->remember($key, self::CACHE_TTL, fn()=>Review::query()
+        return Cache::tags(['reviews-index'])->remember($key, self::CACHE_TTL, fn()=>Review::query()
             ->latest()
             ->paginate($perPage)
             ->withQueryString()
@@ -28,12 +28,12 @@ class  ReviewRepository
     }
     final function show(Review $review, int $countPaginate =self::COMMENTS_PER_PAGE)
     {
-        $review = Cache::tags(['reviews', 'review:' . $review->id])->remember(
+        $review = Cache::tags(['reviews'])->remember(
             'review:'. $review->id,
             self::CACHE_TTL,
             fn() =>  $review
         );
-        $comments = Cache::tags(['reviews', 'review:' . $review->id])->remember(
+        $comments = Cache::tags(['reviews'])->remember(
             'review:' . $review->id . ':comments:page:'.request()->query('page'),
             self::CACHE_TTL,
             fn () => $review->comments()
@@ -53,7 +53,7 @@ class  ReviewRepository
             $result = $review->delete();
 
             DB::commit();
-            Cache::tags(['reviews', 'review:' . $review->id])->flush();
+            Cache::tags(['reviews'])->flush();
 
             return $result;
 

@@ -24,7 +24,7 @@ class UserController extends Controller
     }
     public function index(Request $request):View
     {
-        $users = $this->userRepository->paginate($request);
+        $users = $this->userRepository->index($request);
         $roles = $this->getRoles();
 
         return view('users.index', compact('users', 'roles'));

@@ -10,7 +10,6 @@ use Illuminate\Support\Facades\Hash;
 use WeStacks\TeleBot\Laravel\TeleBot;
 use App\Telegram\Handlers\StartHandler;
 use App\Telegram\Handlers\NewAdHandler;
-use App\Telegram\Handlers\ReviewHandler;
 use App\Models\User;
 use Illuminate\Support\Facades\Log;
 
@@ -71,25 +70,13 @@ class TelegramBotService
         }
 
         // === Обработка отзывов (проверяем наличие звёзд в тексте) ===
-        if (!empty($text)) {
+        if (!empty($text) && preg_match('/★/u', $text)) {
             $count =mb_substr_count($text, '★', 'UTF-8');
-            $stars = str_repeat('★', $count);
-            TeleBot::sendMessage([
-                'chat_id' => $chatId,
-                'text' => "✅ Отзыв сохранён!\n\n" .
-                    "⭐ Рейтинг: {$stars} ({$count}/5)\n" .
-                    "📅 Дата: " . now()->format('d.m.Y H:i'),
-            ]);
-            Review::create([
-                'content' => $text,
-                'rating' => $count,
-                'telegram_author_name' => $message->from->first_name,
-                'published_at' => now(),
-            ]);
 
-            Cache::tags(['reviews'])->flush();
-            Cache::tags(['dashboard'])->flush();
-            return true;
+            ReviewParseService::parse($chatId, $count);
+            ReviewParseService::reviewCreate($text, $count, $message->from->first_name);
+
+           return true;
 
         }
 
@@ -111,7 +98,7 @@ class TelegramBotService
      */
     private function sendHelp($chatId)
     {
-        if (!$chatId) return;
+        if (!$chatId) return false;
 
         $text = "📖 Помощь по боту:\n\n";
         $text .= "📝 /new_ad - Создать объявление\n";
@@ -139,7 +126,7 @@ class TelegramBotService
      */
     private function sendDefaultMessage($chatId)
     {
-        if (!$chatId) return;
+        if (!$chatId) return false;
 
         return TeleBot::sendMessage([
             'chat_id' => $chatId,

@@ -46,6 +46,7 @@ class CommentRepository
             return $comment;
         } catch (\Exception $exception) {
             DB::rollBack();
+
             Log::critical('Ошибка при создании комментария: '.$exception->getMessage(),[
                 'comment_id' => $comment->id,
                 'user_id' => $comment->user_id,
@@ -53,6 +54,7 @@ class CommentRepository
                 'commentable_id' => $comment->commentable_id,
                 'commentable_type' => $comment->commentable_type,
             ]);
+
             throw new BadRequestHttpException('Ошибка при создании комментария: ' . $exception->getMessage());
         }
     }
@@ -75,6 +77,7 @@ class CommentRepository
 
         } catch (\Exception $exception) {
             DB::rollBack();
+
             Log::critical('Ошибка при обновлении комментария: ' . $exception->getMessage(), [
                 'comment_id' => $comment->id,
                 'user_id' => $comment->user_id,
@@ -82,6 +85,7 @@ class CommentRepository
                 'commentable_id' => $comment->commentable_id,
                 'commentable_type' => $comment->commentable_type,
             ]);
+
             throw new BadRequestHttpException('Ошибка при обновлении комментария: ' . $exception->getMessage());
         }
     }
@@ -105,6 +109,7 @@ class CommentRepository
 
         } catch (\Exception $exception) {
             DB::rollBack();
+
             Log::critical('Ошибка при удалении комментария: ' . $exception->getMessage(), [
                 'comment_id' => $comment->id,
                 'user_id' => $comment->user_id,
@@ -112,6 +117,7 @@ class CommentRepository
                 'commentable_id' => $comment->commentable_id,
                 'commentable_type' => $comment->commentable_type,
             ]);
+
             throw new BadRequestHttpException('Ошибка при удалении комментария: ' . $exception->getMessage());
 
         }

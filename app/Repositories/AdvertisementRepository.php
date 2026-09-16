@@ -16,13 +16,13 @@ class AdvertisementRepository
     private const COMMENTS_PER_PAGE = 10;
     private const CACHE_TTL = 900;
 
-    final public function paginate(int $perPage = self::PER_PAGE)
+    final public function index(int $perPage = self::PER_PAGE)
     {
         $key = 'advertisement-index:' . md5(
-                $perPage
+                $perPage.request('page')
             );
 
-        return Cache::tags(['advertisements'])->remember($key, self::CACHE_TTL, fn ()=>
+        return Cache::tags(['advertisements-index'])->remember($key, self::CACHE_TTL, fn ()=>
              Advertisement::query()
                 ->forCurrentUser()
                 ->with(['role'])
@@ -35,12 +35,12 @@ class AdvertisementRepository
 
     final  public function show(Advertisement $advertisement, int $countPaginate = self::COMMENTS_PER_PAGE)
     {
-        $advertisement = Cache::tags(['advertisements', 'advertisement:' . $advertisement->id])->remember(
+        $advertisement = Cache::tags(['advertisements'])->remember(
             'advertisement:'. $advertisement->id,
             self::CACHE_TTL,
             fn() =>  $advertisement->load([ 'files', 'role'])
         );
-        $comments = Cache::tags(['advertisements', 'advertisement:' . $advertisement->id])->remember(
+        $comments = Cache::tags(['advertisements'])->remember(
             'advertisement:' . $advertisement->id . ':comments:page:'.request()->query('page'),
             self::CACHE_TTL,
             fn () => $advertisement->comments()
@@ -68,7 +68,7 @@ class AdvertisementRepository
 
             DB::commit();
 
-            Cache::tags(['advertisements', 'advertisement:' . $advertisement->id])->flush();
+            Cache::tags(['advertisements'])->flush();
             Cache::tags(['dashboard'])->flush();
 
             return $advertisement->load('files', 'role');
@@ -122,7 +122,7 @@ class AdvertisementRepository
 
             DB::commit();
 
-            Cache::tags(['advertisements', 'advertisement:' . $advertisement->id])->flush();
+            Cache::tags(['advertisements'])->flush();
             Cache::tags(['dashboard'])->flush();
 
             return $result;

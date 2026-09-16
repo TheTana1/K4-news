@@ -17,7 +17,7 @@ class AdvertisementController extends Controller
 
     public function index(): View
     {
-        $advertisements = $this->advertisementRepository->paginate();
+        $advertisements = $this->advertisementRepository->index();
         return view('advertisements.index', compact('advertisements'));
     }
 
