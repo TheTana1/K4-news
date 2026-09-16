@@ -105,37 +105,6 @@ class ReviewParserService
             'text_preview' => mb_substr($text, 0, 50)
         ]);
 
-        // 1. Ищем звёзды ★★★★★ (5 подряд)
-        if (preg_match('/[★☆⭐]{5}/', $text)) {
-            Log::debug('Found 5 stars');
-            return 5;
-        }
-
-        // 2. Ищем 4 звёзды
-        if (preg_match('/[★☆⭐]{4}/', $text)) {
-            Log::debug('Found 4 stars');
-            return 4;
-        }
-
-        // 3. Ищем 3 звёзды
-        if (preg_match('/[★☆⭐]{3}/', $text)) {
-            Log::debug('Found 3 stars');
-            return 3;
-        }
-
-        // 4. Ищем 2 звёзды
-        if (preg_match('/[★☆⭐]{2}/', $text)) {
-            Log::debug('Found 2 stars');
-            return 2;
-        }
-
-        // 5. Ищем 1 звезду
-        if (preg_match('/[★☆⭐]{1}/', $text)) {
-            Log::debug('Found 1 star');
-            return 1;
-        }
-
-        // 6. Ищем звёзды с пробелами ★ ★ ★ ★ ★
         if (preg_match_all('/[★☆⭐]/', $text, $matches)) {
             $count = count($matches[0]);
             if ($count >= 1 && $count <= 5) {

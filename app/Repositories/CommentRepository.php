@@ -36,10 +36,12 @@ class CommentRepository
             ]);
 
             $model->comments()->save($comment);
+
             DB::commit();
 
             if($type === 'news') Cache::tags(['news', 'news:' . $comment->commentable_id])->flush();
             else Cache::tags([$type.'s', $type.':'.$comment->commentable_id])->flush();
+            Cache::tags(['users', 'users:'.$comment->user_id])->flush();
 
             return $comment;
         } catch (\Exception $exception) {
@@ -64,8 +66,10 @@ class CommentRepository
 
             DB::commit();
             $commentableClass = strtolower(class_basename($comment->commentable_type));
+
             if($commentableClass === 'news') Cache::tags(['news','news:'.$comment->commentable_id])->flush();
             else Cache::tags([$commentableClass.'s', $commentableClass.':'.$comment->commentable_id])->flush();
+            Cache::tags(['users', 'users:'.$comment->user_id])->flush();
 
             return $result;
 
@@ -92,8 +96,10 @@ class CommentRepository
             DB::commit();
 
             $commentableClass = strtolower(class_basename($comment->commentable_type));
+
             if($commentableClass === 'news') Cache::tags(['news','news:'.$comment->commentable_id])->flush();
             else Cache::tags([$commentableClass.'s', $commentableClass.':'.$comment->commentable_id])->flush();
+            Cache::tags(['users', 'users:'.$comment->user_id])->flush();
 
             return $result;
 

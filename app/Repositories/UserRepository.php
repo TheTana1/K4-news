@@ -48,9 +48,9 @@ class UserRepository
             fn() => $user->load(['role', 'phones'])
         );
 
-        $comments = Cache::tags(['users', 'user3:' . $user->id])->remember(
+        $comments = Cache::tags(['users', 'user:' . $user->id])->remember(
             'user:' . $user->id . ':comments:page:' . request()->query('page'),
-            10,
+            self::CACHE_TTL,
             fn() => $user->comments()
                 ->with(['commentable'])
                 ->latest()

@@ -30,7 +30,7 @@
 
     <style>
         /* Плавный переход при смене темы */
-        html, body, .navbar, .card, .alert, footer {
+        html, body, .navbar, .alert, footer {
             transition: background-color .25s ease, color .25s ease, border-color .25s ease;
         }
         /* Небольшая доводка: убираем резкий белый цвет у навбара/футера */
@@ -194,5 +194,7 @@
 </script>
 
 @stack('scripts')
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
+
 </html>

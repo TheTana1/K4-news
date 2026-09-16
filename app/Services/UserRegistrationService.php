@@ -36,14 +36,13 @@ class UserRegistrationService
     {
         DB::beginTransaction();
         try {
-
             $userDb = User::create([
                 'telegram_id' => $user['id'],
                 'name' => trim(($user['first_name'] ?? '') . ' ' . ($user['last_name'] ?? '')),
                 'email' => $user['email'],
                 'telegram_username' => $user['username'],
                 'is_active_in_group' => true,
-                'password' => Hash::make($user['password']),
+                'password' => $user['password'],
                 'role_id' => $user['role'],
             ]);
             $userDb->phones()->create([
@@ -52,7 +51,7 @@ class UserRegistrationService
             DB::commit();
             Cache::tags(['users'])->flush();
             Cache::tags(['dashboard'])->flush();
-            Log::info('New Telegram user registered', [
+            Log::info('Успешное создание user: ', [
                 'telegram_id' => $user->id,
                 'user_id' => $userDb->id,
                 'username' => $user->username
@@ -61,7 +60,7 @@ class UserRegistrationService
             return $userDb;
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Failed to register user', [
+            Log::error('Ошибка создания user: ' , [
                 'telegram_id' => $userDb->id ?? null,
                 'error' => $e->getMessage()
             ]);
@@ -84,7 +83,7 @@ class UserRegistrationService
             Cache::tags(['users'])->flush();
             Cache::tags(['dashboard'])->flush();
 
-            Log::info('Telegram user updated', [
+            Log::info('Успешное обновление user: ', [
                 'telegram_id' => $user->id,
                 'user_id' => $userDb->id,
                 'username' => $user->username
@@ -92,7 +91,7 @@ class UserRegistrationService
             return $userDb;
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Failed to update user', [
+            Log::error('Ошибка обновления user: ', [
                 'telegram_id' => $userDb->id ?? null,
                 'error' => $e->getMessage()
             ]);
