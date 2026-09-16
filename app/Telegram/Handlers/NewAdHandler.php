@@ -313,7 +313,7 @@ class NewAdHandler
     /**
      * Обработка всех файлов в сообщении
      */
-    private function processAllFiles($message): array
+    private function processAllFiles($message)
     {
         $files = [];
 

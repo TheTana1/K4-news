@@ -71,17 +71,16 @@ class TelegramBotService
 
         // 2. Проверяем активную сессию новости
         if ($chatId && $this->isInSession($chatId, 'news')) {
-            return app(NewAdHandler::class)->handleMessage($message);
+            return app(NewNewsHandler::class)->handleMessage($message);
         }
 
         // === Обработка отзывов (проверяем наличие звёзд в тексте) ===
         if (!empty($text) && preg_match('/★/u', $text)) {
+
             $count =mb_substr_count($text, '★', 'UTF-8');
 
             ReviewParseService::parse($chatId, $count);
-            ReviewParseService::reviewCreate($text, $count, $message->from->first_name);
-
-           return true;
+            return ReviewParseService::reviewCreate($text, $count, $message->from->first_name);
 
         }
 
