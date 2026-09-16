@@ -147,15 +147,11 @@
                         @auth()
                             @forelse($recentReviews ?? [] as $review)
                                 <li class="list-group-item">
-
                                     <a href="{{ route('reviews.show', $review) }}"
                                        class="text-black fw-semibold text-decoration-none">
-                                        <div>
                                             {{ Str::limit($review->content, 50) }}
-                                            <div class="small text-muted">{{ $news->created_at->diffForHumans() }}</div>
-                                        </div>
+                                        <div class="small text-muted">{{ $news->created_at->diffForHumans() }}</div>
                                     </a>
-
                                 </li>
                             @empty
                                 <li class="list-group-item text-muted">Нет отзывов</li>

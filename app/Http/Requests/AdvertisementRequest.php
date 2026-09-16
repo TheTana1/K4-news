@@ -56,7 +56,7 @@ class AdvertisementRequest extends FormRequest
             'delete_files.*.exists' => 'Выбранный файл для удаления не существует',
         ];
     }
-    public function after()
+    public function after():array
     {
         return [
             function ($validator) {

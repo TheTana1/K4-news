@@ -43,7 +43,7 @@ class CommentRequest extends FormRequest
             'commentable_id.exists' => 'Запись не найдена.',
         ];
     }
-    public function after()
+    public function after():array
     {
         return [
             function ($validator) {

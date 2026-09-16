@@ -21,7 +21,7 @@ class NewsRepository
     final public function index(int $perPage = self::PER_PAGE)
     {
         $key = 'news-index:' . md5(
-                $perPage.request('page')
+                $perPage.request('page').auth()->user()->role_id
             );
         return Cache::tags(['news-index'])->remember($key, self::CACHE_TTL, fn()=>News::query()
             ->forCurrentUser()
@@ -31,7 +31,7 @@ class NewsRepository
             ->withQueryString()
         );
     }
-    final public function show(News $news, int $countPaginate = self::COMMENTS_PER_PAGE)
+    final public function show(News $news, int $countPaginate = self::COMMENTS_PER_PAGE):array
     {
         $news = Cache::tags(['news'])->remember(
             'news:'. $news->id,

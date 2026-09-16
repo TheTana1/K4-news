@@ -67,11 +67,9 @@ class CommentRepository
             $result = $comment->update($data);
 
             DB::commit();
-            $commentableClass = strtolower(class_basename($comment->commentable_type));
 
-            if($commentableClass === 'news') Cache::tags(['news','news:'.$comment->commentable_id])->flush();
-            else Cache::tags([$commentableClass.'s', $commentableClass.':'.$comment->commentable_id])->flush();
-            Cache::tags(['users', 'users:'.$comment->user_id])->flush();
+            $this->cacheFlushig($comment);
+
 
             return $result;
 
@@ -99,11 +97,7 @@ class CommentRepository
 
             DB::commit();
 
-            $commentableClass = strtolower(class_basename($comment->commentable_type));
-
-            if($commentableClass === 'news') Cache::tags(['news','news:'.$comment->commentable_id])->flush();
-            else Cache::tags([$commentableClass.'s', $commentableClass.':'.$comment->commentable_id])->flush();
-            Cache::tags(['users', 'users:'.$comment->user_id])->flush();
+            $this->cacheFlushig($comment);
 
             return $result;
 
@@ -121,5 +115,14 @@ class CommentRepository
             throw new BadRequestHttpException('Ошибка при удалении комментария: ' . $exception->getMessage());
 
         }
+    }
+
+    private function cacheFlushig(Comment $comment)
+    {
+        $commentableClass = strtolower(class_basename($comment->commentable_type));
+
+        if($commentableClass === 'news') Cache::tags(['news','news:'.$comment->commentable_id])->flush();
+        else Cache::tags([$commentableClass.'s', $commentableClass.':'.$comment->commentable_id])->flush();
+        Cache::tags(['users', 'users:'.$comment->user_id])->flush();
     }
 }

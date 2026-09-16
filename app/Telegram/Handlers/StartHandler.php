@@ -5,22 +5,27 @@ namespace App\Telegram\Handlers;
 use App\Services\UserRegistrationService;
 use WeStacks\TeleBot\Laravel\TeleBot;
 use App\Models\User;
+use WeStacks\TeleBot\Objects\Message;
 
 class StartHandler
 {
-    public function __construct(readonly UserRegistrationService $userRegistrationService)
+    public function __construct()
     {
     }
 
-    public function handle($update)
+    public function handle($chatId):Message|bool
     {
-        $message = $update->message;
-        $chatId = $message->chat->id ?? null;
-        if (!$chatId) return;
 
-        $telegramUser = $message->from ?? null;
+        if (!$chatId) {
+            return TeleBot::sendMessage([
+                'chat_id' => $chatId,
+                'text' => '❌ Ошибка чата',
+                'reply_markup' => [
+                    'resize_keyboard' => true,
+                ],
+            ]);
+        }
 
-        $this->userRegistrationService->registerFromTelegram($telegramUser);
 
         $text = "👋 Привет!\n\n";
         $text .= "Я бот для публикации объявлений и отзывов.\n\n";

@@ -6,13 +6,12 @@ use App\Models\Advertisement;
 use App\Models\News;
 use App\Models\Review;
 use App\Models\User;
-use Carbon\Carbon;
 use Illuminate\Support\Facades\Cache;
 
 class DashboardController extends Controller
 {
     private const CACHE_TTL = 900; //15минут
-    public function index()
+    public function index(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View|\Illuminate\View\View
     {
         $userId = auth()->id(); //работает dashboard в отличие от $userId->id
 

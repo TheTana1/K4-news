@@ -19,9 +19,9 @@ class ReviewController extends Controller
     {
     }
 
-    public function index(Request $request): AnonymousResourceCollection
+    public function index(): AnonymousResourceCollection
     {
-        return ReviewResource::collection($this->reviewRepository->paginate());
+        return ReviewResource::collection($this->reviewRepository->index());
     }
 
     public function show(Review $review): ReviewResource

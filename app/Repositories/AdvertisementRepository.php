@@ -19,7 +19,7 @@ class AdvertisementRepository
     final public function index(int $perPage = self::PER_PAGE)
     {
         $key = 'advertisement-index:' . md5(
-                $perPage.request('page')
+                $perPage.request('page').auth()->user()->role_id
             );
 
         return Cache::tags(['advertisements-index'])->remember($key, self::CACHE_TTL, fn ()=>
@@ -33,7 +33,7 @@ class AdvertisementRepository
 
     }
 
-    final  public function show(Advertisement $advertisement, int $countPaginate = self::COMMENTS_PER_PAGE)
+    final  public function show(Advertisement $advertisement, int $countPaginate = self::COMMENTS_PER_PAGE): array
     {
         $advertisement = Cache::tags(['advertisements'])->remember(
             'advertisement:'. $advertisement->id,

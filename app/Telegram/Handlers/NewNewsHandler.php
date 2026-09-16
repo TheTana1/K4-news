@@ -10,6 +10,7 @@ use WeStacks\TeleBot\Laravel\TeleBot;
 use App\Models\News;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
+use WeStacks\TeleBot\Objects\Message;
 
 class NewNewsHandler
 {
@@ -17,38 +18,31 @@ class NewNewsHandler
     {
     }
 
-    public function handle($update)
+    public function handle($chatId, $userDb):Message
     {
-        $chatId = $update->message->chat->id ?? null;
-        if (!$chatId) return false;
-
-        $telegramUser = $update->message->from ?? null;
-        if (!$telegramUser) {
-            Log::error('Telegram user not found in update');
-            return false;
-        }
-
-        // Регистрируем пользователя
-        $userDb = $this->userRegistrationService->registerFromTelegram($telegramUser);
-
-        if (!$userDb) {
-            Log::error('Failed to register user', ['telegram_id' => $telegramUser->id]);
+        if (!$chatId) {
             return TeleBot::sendMessage([
                 'chat_id' => $chatId,
-                'text' => '❌ Ошибка регистрации. Попробуйте позже.',
+                'text' => '❌ Ошибка чата',
                 'reply_markup' => [
-                    'keyboard' => [
-                        [['text' => '🏠 На главную']],
-                    ],
-                    'remove_keyboard' => true],
+                    'resize_keyboard' => true,
+                ],
             ]);
-
+        }
+        if (!$userDb) {
+            return TeleBot::sendMessage([
+                'chat_id' => $chatId,
+                'text' => '❌ Ошибка базы данных',
+                'reply_markup' => [
+                    'resize_keyboard' => true,
+                ],
+            ]);
         }
 
         session(["news_user_{$chatId}" => [
             'name' => $userDb->name,
-            'telegram_id' => $telegramUser->id,
-            'telegram_username' => $telegramUser->username ?? null,
+            'telegram_id' => $userDb->telegram_id ?? null,
+            'telegram_username' => $userDb->telegram_username ?? null,
             'user_id' => $userDb->id,
         ]]);
 
@@ -263,7 +257,7 @@ class NewNewsHandler
     /**
      * Запрос на отправку фото
      */
-    private function askForPhotos($chatId)
+    private function askForPhotos($chatId):Message
     {
         return TeleBot::sendMessage([
             'chat_id' => $chatId,
@@ -284,7 +278,7 @@ class NewNewsHandler
     /**
      * Запрос на выбор аудитории
      */
-    private function askForAudience($chatId, $data)
+    private function askForAudience($chatId):Message
     {
         return TeleBot::sendMessage([
             'chat_id' => $chatId,
@@ -304,7 +298,7 @@ class NewNewsHandler
     /**
      * Подтверждение новости
      */
-    private function confirmNews($chatId, $data)
+    private function confirmNews($chatId, $data):Message
     {
         // Получаем название роли для отображения
         $roleLabels = [
@@ -345,7 +339,7 @@ class NewNewsHandler
     /**
      * Обработка фото
      */
-    private function processPhoto($photo)
+    private function processPhoto($photo):array|null
     {
         try {
             // Берем самое большое фото (последнее в массиве)
@@ -369,7 +363,7 @@ class NewNewsHandler
     /**
      * Скачивание и сохранение фото
      */
-    private function downloadAndSavePhoto($fileId, $fileName, $mimeType)
+    private function downloadAndSavePhoto($fileId, $fileName, $mimeType):array|null
     {
         try {
             $file = TeleBot::getFile(['file_id' => $fileId]);
@@ -404,7 +398,7 @@ class NewNewsHandler
     /**
      * Публикация новости
      */
-    private function publishNews($chatId, $data)
+    private function publishNews($chatId, $data):Message
     {
         DB::beginTransaction();
         try {

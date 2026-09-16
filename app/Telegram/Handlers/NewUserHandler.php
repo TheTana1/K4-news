@@ -3,6 +3,7 @@
 namespace App\Telegram\Handlers;
 
 use App\Services\UserRegistrationService;
+use WeStacks\TeleBot\Objects\Message;
 
 class NewUserHandler
 {
@@ -33,22 +34,19 @@ class NewUserHandler
         ]);
     }
 
-    public function handleMessage($message)
+    public function handleMessage($chatId, $from, $text)
     {
-        $chatId = $message->chat->id ?? null;
         if (!$chatId) return false;
-
-        $text = $message->text;
         $sessionKey = "user_{$chatId}";
         $data = session($sessionKey, ['step' => 1]);
 
 
         if ($text === '✅ Отправить') {
             $data = array_merge($data, [
-                'id' => $message->from->id,
-                'first_name' => $message->from->first_name ?? null,
-                'last_name' => $message->from->last_name ?? null,
-                'username' => $message->from->username ?? null,
+                'id' => $from->id,
+                'first_name' => $from->first_name ?? null,
+                'last_name' => $from->last_name ?? null,
+                'username' => $from->username ?? null,
 
             ]);
 
@@ -274,7 +272,7 @@ class NewUserHandler
         }
     }
 
-    private function askForEmail($chatId)
+    private function askForEmail($chatId):Message
     {
         return \TeleBot::sendMessage([
             'chat_id' => $chatId,
@@ -288,7 +286,7 @@ class NewUserHandler
         ]);
     }
 
-    private function askForPassword($chatId)
+    private function askForPassword($chatId):Message
     {
         return \TeleBot::sendMessage([
             'chat_id' => $chatId,
@@ -302,7 +300,7 @@ class NewUserHandler
         ]);
     }
 
-    private function askForPasswordConfirm($chatId)
+    private function askForPasswordConfirm($chatId):Message
     {
         return \TeleBot::sendMessage([
             'chat_id' => $chatId,
@@ -316,7 +314,7 @@ class NewUserHandler
         ]);
     }
 
-    private function askForRole($chatId)
+    private function askForRole($chatId):Message
     {
         return \TeleBot::sendMessage([
             'chat_id' => $chatId,
@@ -332,7 +330,7 @@ class NewUserHandler
         ]);
     }
 
-    private function confirmUser($chatId, $data)
+    private function confirmUser($chatId, $data):Message
     {
         $text = "✅ Проверьте данные:\n" .
             "Номер: {$data['phone']}\n" .
@@ -431,7 +429,7 @@ class NewUserHandler
         }
     }
 
-    private function handleCancel($chatId)
+    private function handleCancel($chatId):Message
     {
         session()->forget("user_{$chatId}");
 

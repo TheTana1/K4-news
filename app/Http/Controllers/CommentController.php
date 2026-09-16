@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\CommentRequest;
 use App\Models\Comment;
 use App\Repositories\CommentRepository;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
 
@@ -16,7 +17,7 @@ class CommentController extends Controller
     {
     }
 
-    public function show(Comment $comment)
+    public function show(Comment $comment): RedirectResponse
     {
         $model = $comment->commentable_type;
         $responseClass = strtolower(class_basename($model));
@@ -27,7 +28,7 @@ class CommentController extends Controller
         return redirect()->route($responseClass . 's.show', [$responseClass => $object]);
     }
 
-    public function store(CommentRequest $request)
+    public function store(CommentRequest $request):RedirectResponse
     {
         try {
 
@@ -48,7 +49,7 @@ class CommentController extends Controller
         }
     }
 
-    public function update(CommentRequest $request, Comment $comment)
+    public function update(CommentRequest $request, Comment $comment):RedirectResponse
     {
         // Проверка прав CommentPolicy
         if (!Gate::allows('update', $comment)) {
@@ -72,7 +73,7 @@ class CommentController extends Controller
         }
     }
 
-    public function destroy(Comment $comment)
+    public function destroy(Comment $comment):RedirectResponse
     {
         // Проверка прав CommentPolicy
         if (!Gate::allows('delete', $comment)) {

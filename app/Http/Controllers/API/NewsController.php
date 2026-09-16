@@ -19,9 +19,9 @@ class NewsController extends Controller
     {
     }
 
-    public function index(Request $request): AnonymousResourceCollection
+    public function index(): AnonymousResourceCollection
     {
-        return NewsResource::collection($this->newsRepository->paginate());
+        return NewsResource::collection($this->newsRepository->index());
     }
 
     public function show(News $news): NewsResource

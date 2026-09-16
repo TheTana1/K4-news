@@ -23,7 +23,7 @@ class UserController extends Controller
 
     public function index(Request $request): AnonymousResourceCollection
     {
-        return UserResource::collection($this->userRepository->paginate($request));
+        return UserResource::collection($this->userRepository->index($request));
     }
 
     public function show(User $user): UserResource

@@ -8,6 +8,7 @@ use App\Http\Requests\RegisterRequest;
 use App\Http\Requests\UserRequest;
 use App\Models\User;
 use Carbon\Carbon;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -17,7 +18,7 @@ use Tymon\JWTAuth\Facades\JWTAuth;
 
 class AuthController extends Controller
 {
-    public function register(RegisterRequest $request)
+    public function register(RegisterRequest $request): JsonResponse
     {
         DB::beginTransaction();
         try {
@@ -40,15 +41,14 @@ class AuthController extends Controller
         }
     }
 
-    public function login(Request $request)
+    public function login(Request $request): JsonResponse
     {
         $credentials = $request->validate([
             'email'    => 'required|email',
             'password' => 'required',
         ]);
 
-        // Отладка
-        $user = \App\Models\User::where('email', $credentials['email'])->first();
+        $user = User::where('email', $credentials['email'])->first();
 
         if (!$user) {
             return response()->json(['error' => 'Пользователь не найден'], 401);
@@ -57,7 +57,6 @@ class AuthController extends Controller
         if (!\Hash::check($credentials['password'], $user->password)) {
             return response()->json([
                 'error' => 'Неверный пароль',
-                'db_password' => $user->password, // только для отладки!
             ], 401);
         }
 
@@ -71,12 +70,12 @@ class AuthController extends Controller
         ]);
     }
 
-    public function me()
+    public function me():JsonResponse
     {
         return response()->json(auth('api')->user());
     }
 
-    public function update(UserRequest $request)
+    public function update(UserRequest $request):JsonResponse
     {
         $user = auth('api')->user();
         $validated = $request->validated();
@@ -86,7 +85,7 @@ class AuthController extends Controller
         return response()->json($user);
     }
 
-    public function logout()
+    public function logout():JsonResponse
     {
         auth('api')->logout();
 

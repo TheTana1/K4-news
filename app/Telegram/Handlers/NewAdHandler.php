@@ -10,6 +10,7 @@ use App\Models\Advertisement;
 use App\Models\Role;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
+use WeStacks\TeleBot\Objects\Message;
 
 class NewAdHandler
 {
@@ -17,33 +18,31 @@ class NewAdHandler
     {
     }
 
-    public function handle($update)
+    public function handle($chatId,  $userDb):Message
     {
-        $chatId = $update->message->chat->id ?? null;
-        if (!$chatId) return false;
-
-        $telegramUser = $update->message->from ?? null;
-        if (!$telegramUser) {
-            Log::error('Telegram user not found in update');
-            return false;
-        }
-
-        // Регистрируем пользователя
-        $userDb = $this->userRegistrationService->registerFromTelegram($telegramUser);
-
-        if (!$userDb) {
-            Log::error('Failed to register user', ['telegram_id' => $telegramUser->id]);
-            TeleBot::sendMessage([
+        if (!$chatId) {
+            return TeleBot::sendMessage([
                 'chat_id' => $chatId,
-                'text' => '❌ Ошибка регистрации. Попробуйте позже.'
+                'text' => '❌ Ошибка чата',
+                'reply_markup' => [
+                    'resize_keyboard' => true,
+                ],
             ]);
-            return false;
+        }
+        if (!$userDb) {
+            return TeleBot::sendMessage([
+                'chat_id' => $chatId,
+                'text' => '❌ Ошибка базы данных',
+                'reply_markup' => [
+                    'resize_keyboard' => true,
+                ],
+            ]);
         }
 
         session(["ad_user_{$chatId}" => [
             'name' => $userDb->name,
-            'telegram_id' => $telegramUser->id,
-            'telegram_username' => $telegramUser->username ?? null,
+            'telegram_id' => $userDb->telegram_id ?? null,
+            'telegram_username' => $userDb->telegram_username ?? null,
             'user_id' => $userDb->id,
         ]]);
 
@@ -240,7 +239,7 @@ class NewAdHandler
         ]);
     }
 
-    private function askForFile($chatId)
+    private function askForFile($chatId):Message
     {
         return TeleBot::sendMessage([
             'chat_id' => $chatId,
@@ -256,7 +255,7 @@ class NewAdHandler
         ]);
     }
 
-    private function askForAudience($chatId, $data)
+    private function askForAudience($chatId):Message
     {
         return TeleBot::sendMessage([
             'chat_id' => $chatId,
@@ -273,7 +272,7 @@ class NewAdHandler
         ]);
     }
 
-    private function confirmAd($chatId, $data)
+    private function confirmAd($chatId, $data):Message
     {
         // Получаем название роли для отображения
         $roleLabels = [
@@ -314,7 +313,7 @@ class NewAdHandler
     /**
      * Обработка всех файлов в сообщении
      */
-    private function processAllFiles($message)
+    private function processAllFiles($message): array
     {
         $files = [];
 
@@ -341,7 +340,7 @@ class NewAdHandler
         return $files;
     }
 
-    private function processPhoto($photo)
+    private function processPhoto($photo):array|null
     {
         try {
             $fileId = $photo->file_id;
@@ -355,7 +354,7 @@ class NewAdHandler
         }
     }
 
-    private function processDocument($document)
+    private function processDocument($document):array|null
     {
         try {
             $fileId = $document->file_id;
@@ -369,7 +368,7 @@ class NewAdHandler
         }
     }
 
-    private function downloadAndSaveFile($fileId, $fileName, $mimeType)
+    private function downloadAndSaveFile($fileId, $fileName, $mimeType):array|null
     {
         try {
             $file = TeleBot::getFile(['file_id' => $fileId]);
@@ -401,7 +400,7 @@ class NewAdHandler
         }
     }
 
-    private function publishAd($chatId, $data)
+    private function publishAd($chatId, $data):Message
     {
         DB::beginTransaction();
         try {
@@ -458,6 +457,9 @@ class NewAdHandler
                     "👥 Отправлено: " . ($roleLabels[$data['role_id'] ?? 2] ?? 'всем') . "\n" .
                     "📅 Дата: " . now()->format('d.m.Y H:i'),
                 'reply_markup' => [
+                    'keyboard' => [
+                        [['text' => '🏠 На главную']],
+                    ],
                     'remove_keyboard' => true
                 ],
             ]);

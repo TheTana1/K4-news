@@ -50,10 +50,7 @@ class Comment extends Model
         'created_at' => 'datetime',
         'deleted_at' => 'datetime',
     ];
-//    protected function getCommentable_typeAttribute()
-//    {
-//        return class_basename($this->attributes['commentable_type']);
-//    }
+
     protected function getSourceAttribute(): string
     {
         $model = $this->commentable;

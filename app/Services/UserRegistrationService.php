@@ -12,21 +12,23 @@ use Illuminate\Support\Facades\Log;
 
 class UserRegistrationService
 {
-    public function registerFromTelegram($user): ?User
+    public function registerFromTelegram($from): ?User
     {
-
-        if (!$user || !isset($user->id)) {
+        if (!$from || !isset($from->id)) {
             Log::warning('Invalid Telegram user data');
             return null;
         }
 
-        $userDb = User::where('telegram_id', $user->id)->first();
-        if ($userDb) {
-            $this->updateUser($userDb);
+        $userDb = User::where('telegram_username', $from->username)->first();
+        if (!$userDb) {
+            $userDb = User::where('telegram_id', $from->id)->first();
+            if (!$userDb) {
+                return null;
+            }
+            $this->updateUser($userDb, $from);
+
         }
-//        else {
-//            $this->createUser($user);
-//        }
+
         return $userDb;
     }
 
@@ -73,15 +75,13 @@ class UserRegistrationService
         }
     }
 
-    private function updateUser($userDb): ?User
+    private function updateUser($userDb, $from): ?User
     {
         DB::beginTransaction();
 
         try {
             $userDb->update([
-                'name' => trim(($user->first_name ?? '') . ' ' . ($user->last_name ?? '')),
-                'telegram_username' => $user->username,
-                'is_active_in_group' => true,
+                'telegram_username' => $from->username,
                 'updated_at' => now(),
             ]);
 
@@ -91,9 +91,9 @@ class UserRegistrationService
             Cache::tags(['dashboard'])->flush();
 
             Log::info('Успешное обновление user: ', [
-                'telegram_id' => $user->id,
+                'telegram_id' => $from->id,
                 'user_id' => $userDb->id,
-                'username' => $user->username
+                'username' => $from->username
             ]);
             return $userDb;
         } catch (\Exception $e) {

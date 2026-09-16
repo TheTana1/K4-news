@@ -16,7 +16,7 @@ use Illuminate\Support\Facades\Log;
 class TelegramBotService
 {
     public function __construct(
-        readonly UserRegistrationService $userRegistrationService
+
     )
     {
     }
@@ -30,27 +30,32 @@ class TelegramBotService
         }
         $chatId = $message->chat->id ?? null;
         $text = $message->text ?? '';
+        $from = $message->from ?? null;
 
         if ($chatId && $this->isInSession($chatId, 'user')) {
-            return (new NewUserHandler($this->userRegistrationService))->handleMessage($message);
+            return app(NewUserHandler::class)->handleMessage($chatId, $from, $text);
         }
+
         // Регистрируем пользователя
-        $user = $this->userRegistrationService->registerFromTelegram($message->from);
+        $user = app(UserRegistrationService::class)->registerFromTelegram($from);
+        if (!$user){
+            app(NewUserHandler::class)->handle($update);
+        }
 
         // === Обработка команд ===
         if ($text === '/start' || $text === '❌ Отмена' || $text === '🏠 На главную' || $text === '❌ Сначала') {
             if ($user) {
-                return (new StartHandler($this->userRegistrationService))->handle($update);
+                return app(StartHandler::class)->handle($chatId);
             }
-            return (new NewUserHandler($this->userRegistrationService))->handle($update);
+
         }
 
         if ($text === '/new_ad' || $text === '📝 Новое объявление') {
-            return (new NewAdHandler($this->userRegistrationService))->handle($update);
+            return app(NewAdHandler::class)->handle($chatId, $user);
         }
 
         if ($text === '/new_news' || $text === '📝 Новая новость') {
-            return (new NewNewsHandler($this->userRegistrationService))->handle($update);
+            return app(NewNewsHandler::class)->handle($chatId, $user);
         }
 
         if ($text === '/help' || $text === '❓ Помощь') {
@@ -61,12 +66,12 @@ class TelegramBotService
 
         // 1. Проверяем активную сессию объявления
         if ($chatId && $this->isInSession($chatId, 'ad')) {
-            return (new NewAdHandler($this->userRegistrationService))->handleMessage($message);
+            return app(NewAdHandler::class)->handleMessage($message);
         }
 
         // 2. Проверяем активную сессию новости
         if ($chatId && $this->isInSession($chatId, 'news')) {
-            return (new NewNewsHandler($this->userRegistrationService))->handleMessage($message);
+            return app(NewAdHandler::class)->handleMessage($message);
         }
 
         // === Обработка отзывов (проверяем наличие звёзд в тексте) ===

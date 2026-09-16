@@ -63,7 +63,7 @@ class News extends Model
         }
         return $query->where('role_id', 2);
     }
-    public function user()
+    public function user():BelongsTo
     {
         return $this->belongsTo(User::class);
     }
@@ -81,7 +81,7 @@ class News extends Model
        return $this->morphMany(File::class, 'fileable');
     }
 
-    public function author()
+    public function author():BelongsTo
     {
         return $this->belongsTo(User::class, 'telegram_author_id', 'telegram_id');
     }

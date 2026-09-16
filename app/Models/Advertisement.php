@@ -70,7 +70,7 @@ class Advertisement extends Model
         }
         return $query->where('role_id', 2);
     }
-    public function user()
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }

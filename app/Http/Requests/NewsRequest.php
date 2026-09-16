@@ -57,7 +57,7 @@ class NewsRequest extends FormRequest
         ];
     }
 
-    public function after()
+    public function after():array
     {
         return [
             function ($validator) {
