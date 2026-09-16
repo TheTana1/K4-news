@@ -2,8 +2,10 @@
 
 namespace App\Services;
 
+use App\Models\Review;
 use App\Telegram\Handlers\NewNewsHandler;
 use App\Telegram\Handlers\NewUserHandler;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
 use WeStacks\TeleBot\Laravel\TeleBot;
 use App\Telegram\Handlers\StartHandler;
@@ -68,38 +70,33 @@ class TelegramBotService
             return (new NewNewsHandler($this->userRegistrationService))->handleMessage($message);
         }
 
-        // 3. Проверяем активную сессию отзыва
-        if ($chatId && $this->isInSession($chatId, 'review')) {
-            return (new ReviewHandler(
-                $this->userRegistrationService,
-                app(ReviewParserService::class)
-            ))->handle($update);
-        }
-
         // === Обработка отзывов (проверяем наличие звёзд в тексте) ===
-        if (!empty($text) && $this->hasStars($text)) {
-            Log::info('⭐ Stars detected in message, processing as review', [
+        if (!empty($text)) {
+            $count =mb_substr_count($text, '★', 'UTF-8');
+            $stars = str_repeat('★', $count);
+            TeleBot::sendMessage([
                 'chat_id' => $chatId,
-                'text_preview' => mb_substr($text, 0, 50)
+                'text' => "✅ Отзыв сохранён!\n\n" .
+                    "⭐ Рейтинг: {$stars} ({$count}/5)\n" .
+                    "📅 Дата: " . now()->format('d.m.Y H:i'),
+            ]);
+            Review::create([
+                'content' => $text,
+                'rating' => $count,
+                'telegram_author_name' => $message->from->first_name,
+                'published_at' => now(),
             ]);
 
-            return (new ReviewHandler(
-                $this->userRegistrationService,
-                new ReviewParserService()
-            ))->handle($update);
+            Cache::tags(['reviews'])->flush();
+            Cache::tags(['dashboard'])->flush();
+            return true;
+
         }
 
         // === Ответ по умолчанию ===
         return $this->sendDefaultMessage($chatId);
     }
 
-    /**
-     * Проверка наличия звёзд в тексте
-     */
-    private function hasStars($text): bool
-    {
-        return preg_match('/[★☆⭐]/', $text);
-    }
 
     /**
      * Проверка наличия активной сессии

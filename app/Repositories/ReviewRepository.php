@@ -20,7 +20,7 @@ class  ReviewRepository
         $key = 'review-index:' . md5(
                 $perPage
             );
-        return Cache::tags(['review'])->remember($key, self::CACHE_TTL, fn()=>Review::query()
+        return Cache::tags(['reviews'])->remember($key, self::CACHE_TTL, fn()=>Review::query()
             ->latest()
             ->paginate($perPage)
             ->withQueryString()
@@ -53,7 +53,7 @@ class  ReviewRepository
             $result = $review->delete();
 
             DB::commit();
-            Cache::tags(['review', 'review:' . $review->id])->flush();
+            Cache::tags(['reviews', 'review:' . $review->id])->flush();
 
             return $result;
 
