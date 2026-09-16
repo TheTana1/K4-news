@@ -228,94 +228,55 @@
                     </div>
                     <span class="badge bg-primary rounded-pill">{{ $comments->total() ?? $comments->count() }}</span>
                 </div>
-                <div class="card-body p-0">
+                <div class="card-body">
                     @if($comments->count() > 0)
-                        <div class="table-responsive">
-                            <table class="table table-hover table-striped mb-0">
-                                <thead class="table-light">
-                                <tr>
-                                    <th style="width: 40%">
-                                        <i class="bi bi-chat-quote me-1"></i> Комментарий
-                                    </th>
-                                    <th style="width: 35%">
-                                        <i class="bi bi-link-45deg me-1"></i> Источник
-                                    </th>
-                                    <th style="width: 25%" class="text-end">
-                                        <i class="bi bi-clock me-1"></i> Дата
-                                    </th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                @foreach($comments as $comment)
-                                    <tr>
-                                        <td class="align-middle">
-                                            <div class="text-truncate" style="max-width: 350px;"
-                                                 title="{{ $comment->comment }}">
-                                                {{ Str::limit($comment->comment, 100) }}
-                                            </div>
-                                        </td>
-                                        <td class="align-middle">
+                        <div class="list-group">
+                            @foreach($comments as $comment)
+                                <div class="list-group-item list-group-item-action flex-column align-items-start">
+                                    <div class="d-flex w-100 justify-content-between align-items-center">
+                                        <div>
+                                            <strong>{{ $comment->user?->name ?? 'Гость' }}</strong>
+                                            <small class="text-muted ms-2">{{ $comment->created_at->diffForHumans() }}</small>
+                                        </div>
+                                        <div>
+                                            <small class="text-muted">
+                                                <i class="bi bi-calendar3 me-1"></i>
+                                                {{ $comment->created_at->format('d.m.Y') }}
+                                                <i class="bi bi-clock ms-1 me-1"></i>
+                                                {{ $comment->created_at->format('H:i') }}
+                                            </small>
+                                        </div>
+                                    </div>
+                                    <p class="mt-1 mb-0">{{ $comment->comment }}</p>
+                                    <div class="mt-1">
+                                        <small class="text-muted">
+                                            <i class="bi bi-link-45deg me-1"></i>
                                             @if($comment->source != 'Удалено')
                                                 <a href="{{ route('comments.show', $comment) }}"
-                                                   class="text-decoration-none text-dark"
+                                                   class="text-decoration-none text-muted"
                                                    title="{{ $comment->source }}">
                                                     {{ Str::limit($comment->source, 80) }}
                                                 </a>
                                             @else
-                                                {{$comment->source}}
+                                                {{ $comment->source }}
                                             @endif
-                                        </td>
-                                        <td class="align-middle text-end text-nowrap">
-                                            <small>
-                                                <i class="bi bi-calendar3 text-muted me-1"></i>
-                                                {{ $comment->created_at->format('d.m.Y') }}
-                                                <i class="bi bi-clock text-muted ms-1 me-1"></i>
-                                                {{ $comment->created_at->format('H:i') }}
-                                            </small>
-                                        </td>
-                                    </tr>
-                                @endforeach
-                                </tbody>
-                            </table>
+                                        </small>
+                                    </div>
+                                </div>
+                            @endforeach
                         </div>
-
-                        {{-- Пагинация --}}
-                        @if ($comments->hasPages())
-                            <div class="m-1 d-flex justify-content-center align-items-center gap-2">
-                                {{-- Назад --}}
-                                @if ($comments->onFirstPage())
-                                    <button class="btn btn-sm btn-outline-secondary" disabled>
-                                        <i class="bi bi-chevron-left"></i>
-                                    </button>
-                                @else
-                                    <a href="{{ $comments->previousPageUrl() }}" class="btn btn-sm btn-outline-primary">
-                                        <i class="bi bi-chevron-left"></i>
-                                    </a>
-                                @endif
-
-                                <span class="small text-muted">
-            {{ $comments->currentPage() }} / {{ $comments->lastPage() }}
-        </span>
-
-                                {{-- Вперёд --}}
-                                @if ($comments->hasMorePages())
-                                    <a href="{{ $comments->nextPageUrl() }}" class="btn btn-sm btn-outline-primary">
-                                        <i class="bi bi-chevron-right"></i>
-                                    </a>
-                                @else
-                                    <button class="btn btn-sm btn-outline-secondary" disabled>
-                                        <i class="bi bi-chevron-right"></i>
-                                    </button>
-                                @endif
-                            </div>
-                        @endif
                     @else
-                        <div class="text-center py-5">
-                            <i class="bi bi-chat-dots display-1 text-muted"></i>
+                        <div class="text-center py-4">
+                            <i class="bi bi-chat-dots display-4 text-muted"></i>
                             <p class="text-muted mt-3 mb-0">Нет комментариев</p>
                         </div>
                     @endif
                 </div>
+                @if($comments->hasPages())
+                    <div class="card-footer">
+                        {{ $comments->links() }}
+                    </div>
+                @endif
             </div>
         </div>
     </div>

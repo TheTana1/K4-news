@@ -102,9 +102,11 @@
                                     <div class="modal-body">
                                         <div class="mb-3">
                                             <label for="comment-{{ $comment->id }}" class="form-label">Текст комментария</label>
-                                            <textarea name="comment" id="comment-{{ $comment->id }}" rows="4"
+                                            <textarea name="comment" id="comment-{{ $comment->id }}"
+                                                      rows="4"
                                                       class="form-control @error('comment') is-invalid @enderror">{{ old('comment', $comment->comment) }}</textarea>
-                                            @error('comment') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                                            @error('comment')
+                                            <div class="invalid-feedback">{{ $message }}</div> @enderror
                                         </div>
                                     </div>
                                     <div class="modal-footer">
@@ -121,33 +123,9 @@
                 @endforelse
             </div>
         </div>
-        @if ($comments->hasPages())
-            <div class="m-1 d-flex justify-content-center align-items-center gap-2">
-                {{-- Назад --}}
-                @if ($comments->onFirstPage())
-                    <button class="btn btn-sm btn-outline-secondary" disabled>
-                        <i class="bi bi-chevron-left"></i>
-                    </button>
-                @else
-                    <a href="{{ $comments->previousPageUrl() }}" class="btn btn-sm btn-outline-primary">
-                        <i class="bi bi-chevron-left"></i>
-                    </a>
-                @endif
-
-                <span class="small text-muted">
-            {{ $comments->currentPage() }} / {{ $comments->lastPage() }}
-        </span>
-
-                {{-- Вперёд --}}
-                @if ($comments->hasMorePages())
-                    <a href="{{ $comments->nextPageUrl() }}" class="btn btn-sm btn-outline-primary">
-                        <i class="bi bi-chevron-right"></i>
-                    </a>
-                @else
-                    <button class="btn btn-sm btn-outline-secondary" disabled>
-                        <i class="bi bi-chevron-right"></i>
-                    </button>
-                @endif
+        @if($comments->hasPages())
+            <div class="card-footer">
+                {{ $comments->links() }}
             </div>
         @endif
     </div>

@@ -271,42 +271,20 @@
                                 </div>
                             @endforeach
                         </div>
-                            @if ($comments->hasPages())
-                                <div class="m-1 d-flex justify-content-center align-items-center gap-2">
-                                    {{-- Назад --}}
-                                    @if ($comments->onFirstPage())
-                                        <button class="btn btn-sm btn-outline-secondary" disabled>
-                                            <i class="bi bi-chevron-left"></i>
-                                        </button>
-                                    @else
-                                        <a href="{{ $comments->previousPageUrl() }}" class="btn btn-sm btn-outline-primary">
-                                            <i class="bi bi-chevron-left"></i>
-                                        </a>
-                                    @endif
-
-                                    <span class="small text-muted">
-            {{ $comments->currentPage() }} / {{ $comments->lastPage() }}
-        </span>
-
-                                    {{-- Вперёд --}}
-                                    @if ($comments->hasMorePages())
-                                        <a href="{{ $comments->nextPageUrl() }}" class="btn btn-sm btn-outline-primary">
-                                            <i class="bi bi-chevron-right"></i>
-                                        </a>
-                                    @else
-                                        <button class="btn btn-sm btn-outline-secondary" disabled>
-                                            <i class="bi bi-chevron-right"></i>
-                                        </button>
-                                    @endif
-                                </div>
-                            @endif
                     @else
                         <div class="text-center py-4">
                             <i class="bi bi-chat-dots display-4 text-muted"></i>
                             <p class="text-muted mt-3 mb-0">Комментариев пока нет</p>
                         </div>
                     @endif
+
+
                 </div>
+                @if($comments->hasPages())
+                    <div class="card-footer">
+                        {{ $comments->links() }}
+                    </div>
+                @endif
             </div>
         </div>
     </div>

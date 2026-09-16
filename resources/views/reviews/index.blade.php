@@ -56,7 +56,7 @@
     </div>
 
     @if($reviews->hasPages())
-        <div class="d-flex justify-content-center mt-4">
+        <div class="card-footer">
             {{ $reviews->links() }}
         </div>
     @endif
