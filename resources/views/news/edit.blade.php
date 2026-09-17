@@ -42,8 +42,8 @@
                         <div class="mb-3">
                             <label for="status" class="form-label">Статус</label>
                             <select name="status" id="status" class="form-select">
-                                <option value="active" {{ old('status', $news->status) == 'active' ? 'selected' : '' }}>Опубликовано</option>
-                                <option value="inactive" {{ old('status', $news->status) == 'inactive' ? 'selected' : '' }}>Черновик</option>
+                                <option value="active">Активно</option>
+                                <option value="inactive">Не активно</option>
                             </select>
                             @error('status')
                             <div class="invalid-feedback">{{ $message }}</div>
@@ -139,7 +139,7 @@
                 const fileList = document.getElementById('fileList');
 
                 if (fileInput) {
-                    fileInput.addEventListener('change', function(e) {
+                    fileInput.addEventListener('change', function() {
                         fileList.innerHTML = '';
 
                         if (this.files.length > 0) {

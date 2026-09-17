@@ -15,13 +15,11 @@ class UserRequest extends FormRequest
     {
 
         $user = auth()->user();
-//        $this->dd($user);
         return $user->isAdmin() || $user->isModerator() || $this->user()->id === $user->id;
     }
 
     public function rules(): array
     {
-        //dd(Hash::check($this->password, auth()->user()->password));
         $minDate = Carbon::today()->subYears(95)->format('Y-m-d');
         $maxDate = Carbon::today()->subYears(15)->format('Y-m-d');
         switch ($this->method()) {

@@ -6,6 +6,7 @@ use App\Models\News;
 use App\Http\Requests\NewsRequest;
 use App\Repositories\NewsRepository;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class NewsController extends Controller
@@ -15,9 +16,9 @@ class NewsController extends Controller
         $this->authorizeResource(News::class, 'news');
     }
 
-    public function index(): View
+    public function index(Request $request): View
     {
-        $news = $this->newsRepository->index();
+        $news = $this->newsRepository->index($request);
         return view('news.index', compact('news'));
     }
 

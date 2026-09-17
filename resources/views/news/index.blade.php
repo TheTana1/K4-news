@@ -9,7 +9,89 @@
             <i class="bi bi-plus-lg me-1"></i> Добавить новость
         </a>
     </div>
+    <!-- Фильтр -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="GET" action="{{ route('news.index') }}" id="filterForm">
+                <div class="row g-3">
+                    <!-- Content -->
+                    <div class="col-12 col-md-6 col-lg-2">
+                        <label class="form-label small text-muted">Содержимое</label>
+                        <input type="text"
+                               name="content"
+                               class="form-control form-control-sm"
+                               placeholder="Поиск по содержимому"
+                               value="{{ request('content') }}">
+                    </div>
 
+                    <!-- Author -->
+                    <div class="col-12 col-md-6 col-lg-2">
+                        <label class="form-label small text-muted">Автор</label>
+                        <input type="text"
+                               name="author"
+                               class="form-control form-control-sm"
+                               placeholder="Поиск по автору"
+                               value="{{ request('author') }}">
+                    </div>
+
+                    <!-- Роль -->
+                    <div class="col-12 col-md-6 col-lg-2">
+                        <label class="form-label small text-muted">Роль</label>
+                        <select name="role_id" class="form-select form-select-sm">
+                            <option value="">Все роли</option>
+                            <option value="2">Всем</option>
+                            <option value="3">Сотрудникам Кухни</option>
+                            <option value="4">Сотрудникам Зала</option>
+                        </select>
+                    </div>
+
+                    <!-- Статус -->
+                    <div class="col-12 col-md-6 col-lg-2">
+                        <label class="form-label small text-muted">Статус</label>
+                        <select name="status" class="form-select form-select-sm">
+                            <option value="">Все статусы</option>
+                            <option value="1" {{ request('status') === '1' ? 'selected' : '' }}>
+                                Активные
+                            </option>
+                            <option value="0" {{ request('status') === '0' ? 'selected' : '' }}>
+                                Не активные
+                            </option>
+                        </select>
+                    </div>
+
+                    <!-- Дата от -->
+                    <div class="col-12 col-md-6 col-lg-2">
+                        <label class="form-label small text-muted">Дата от</label>
+                        <input type="date"
+                               name="date_from"
+                               class="form-control form-control-sm"
+                               value="{{ request('date_from') }}">
+                    </div>
+
+                    <!-- Дата до -->
+                    <div class="col-12 col-md-6 col-lg-2">
+                        <label class="form-label small text-muted">Дата до</label>
+                        <input type="date"
+                               name="date_to"
+                               class="form-control form-control-sm"
+                               value="{{ request('date_to') }}">
+                    </div>
+
+                    <!-- Кнопки -->
+                    <div class="col-12">
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary btn-sm">
+                                <i class="bi bi-search me-1"></i> Применить
+                            </button>
+                            <a href="{{ route('news.index') }}" class="btn btn-secondary btn-sm">
+                                <i class="bi bi-arrow-counterclockwise me-1"></i> Сбросить
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
     <!-- Статистика -->
     <div class="row g-3 mb-4">
         <div class="col-6 col-lg-3">
@@ -103,15 +185,19 @@
                                         <div class="info-item">
                                             <small class="text-muted d-block">Роль</small>
                                             @php
-                                                $roleColors = [
-                                                    'admin' => 'text-purple',
-                                                    'moderator' => 'text-info',
-                                                    'user' => 'text-secondary',
-                                                ];
-                                                $roleSlug = $n->role?->slug ?? 'user';
+                                                $spanLabel = match($n->role?->slug){
+                                                    'moderator'=> 'Всем',
+                                                    'Kitchen_Worker' => 'Сотрудникам Кухни',
+                                                    'Service Staff'=>'Сотрудникам Зала'
+                                                };
+                                                 $spanColor = match($n->role?->slug){
+                                                    'moderator'=> "#0D6EFD",
+                                                    'Kitchen_Worker' => "#a40e13",
+                                                    'Service Staff'=> "#ff661b"
+                                                };
                                             @endphp
                                             <span
-                                                class="{{ $roleColors[$roleSlug] ?? $roleColors['user'] }}">{{ $n->role?->label ?? 'Пользователь' }}</span>
+                                                style="color: {{ $spanColor }}">{{ $spanLabel }}</span>
                                         </div>
                                     </div>
                                     <div class="col-6 col-sm-4">

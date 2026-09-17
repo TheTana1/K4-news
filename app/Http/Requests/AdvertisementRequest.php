@@ -10,8 +10,7 @@ class AdvertisementRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        $user = auth()->user();
-        return $user->isAdmin()||$user->isModerator();
+        return auth()->check();
     }
 
     public function rules(): array

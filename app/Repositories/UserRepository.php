@@ -24,38 +24,38 @@ class UserRepository
     {
     }
 
-    final public function index(Request $request, int $countPaginate = self::USER_PER_PAGE)
+    final public function index(Request $request, int $perPage = self::USER_PER_PAGE)
     {
 
         $key = 'users-index:' . md5(serialize([
                 $request->query(),
-                $countPaginate
+                $perPage
             ]));
 
-        return Cache::tags(['users-index'])->remember($key, self::CACHE_TTL, function () use ($request, $countPaginate) {
+        return Cache::tags(['users-index'])->remember($key, self::CACHE_TTL, function () use ($request, $perPage) {
             return $this->userFilter
                 ->apply($request, User::query())
                 ->with(['role'])
-                ->paginate($countPaginate)
+                ->paginate($perPage)
                 ->withQueryString();
         });
     }
 
-    final public function show(User $user, int $countPaginate = self::COMMENTS_PER_PAGE)
+    final public function show(User $user, int $perPage = self::COMMENTS_PER_PAGE)
     {
-        $user = Cache::tags(['users'])->remember(
+        $user = Cache::tags(['user:' . $user->id])->remember(
             'user:' . $user->id,
             self::CACHE_TTL,
             fn() => $user->load(['role', 'phones'])
         );
 
-        $comments = Cache::tags(['users'])->remember(
+        $comments = Cache::tags(['user:' . $user->id])->remember(
             'user:' . $user->id . ':comments:page:' . request()->query('page'),
             self::CACHE_TTL,
             fn() => $user->comments()
                 ->with(['commentable'])
                 ->latest()
-                ->paginate($countPaginate)
+                ->paginate($perPage)
                 ->withQueryString()
         );
 
@@ -95,7 +95,8 @@ class UserRepository
 
             DB::commit();
 
-            Cache::tags(['users'])->flush();
+            Cache::tags(['users-index'])->flush();
+            Cache::tags(['user:' . $user->id])->flush();
             Cache::tags(['dashboard'])->flush();
 
             return $user->load('phones', 'role');
@@ -151,7 +152,8 @@ class UserRepository
 
             DB::commit();
 
-            Cache::tags(['users'])->flush();
+            Cache::tags(['users-index'])->flush();
+            Cache::tags(['user:' . $user->id])->flush();
             Cache::tags(['dashboard'])->flush();
 
             return $user->load(['role', 'phones']);
@@ -184,7 +186,8 @@ class UserRepository
 
             DB::commit();
 
-            Cache::tags(['users'])->flush();
+            Cache::tags(['users-index'])->flush();
+            Cache::tags(['user:' . $user->id])->flush();
             Cache::tags(['dashboard'])->flush();
 
             return $result;
@@ -203,7 +206,7 @@ class UserRepository
 
     public function edit(User $user)
     {
-        return Cache::tags(['users'])->remember(
+        return Cache::tags(['user:' . $user->id])->remember(
             'user:' . $user->id,
             self::CACHE_TTL,
             fn() => $user->load(['role', 'phones'])

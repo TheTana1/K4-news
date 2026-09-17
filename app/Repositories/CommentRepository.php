@@ -121,8 +121,8 @@ class CommentRepository
     {
         $commentableClass = strtolower(class_basename($comment->commentable_type));
 
-        if($commentableClass === 'news') Cache::tags(['news','news:'.$comment->commentable_id])->flush();
-        else Cache::tags([$commentableClass.'s', $commentableClass.':'.$comment->commentable_id])->flush();
-        Cache::tags(['users', 'users:'.$comment->user_id])->flush();
+        if($commentableClass === 'news') Cache::tags(['news:'.$comment->commentable_id])->flush();
+        else Cache::tags([$commentableClass.':'.$comment->commentable_id])->flush();
+        Cache::tags(['users:'.$comment->user_id])->flush();
     }
 }

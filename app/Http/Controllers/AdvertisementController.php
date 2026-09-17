@@ -6,6 +6,7 @@ use App\Http\Requests\AdvertisementRequest;
 use App\Models\Advertisement;
 use App\Repositories\AdvertisementRepository;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class AdvertisementController extends Controller
@@ -15,9 +16,9 @@ class AdvertisementController extends Controller
         $this->authorizeResource(Advertisement::class, 'advertisement');
     }
 
-    public function index(): View
+    public function index(Request $request): View
     {
-        $advertisements = $this->advertisementRepository->index();
+        $advertisements = $this->advertisementRepository->index($request);
         return view('advertisements.index', compact('advertisements'));
     }
 

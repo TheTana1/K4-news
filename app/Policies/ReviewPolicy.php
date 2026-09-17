@@ -2,11 +2,11 @@
 
 namespace App\Policies;
 
-use App\Models\Advertisement;
+use App\Models\Review;
 use App\Models\User;
 use Illuminate\Auth\Access\Response;
 
-class AdvertisementPolicy
+class ReviewPolicy
 {
     /**
      * Determine whether the user can view any models.
@@ -29,38 +29,37 @@ class AdvertisementPolicy
      */
     public function create(): bool
     {
-
-        return true;
+        return false;
     }
 
     /**
      * Determine whether the user can update the model.
      */
-    public function update(User $user, Advertisement $advertisement): bool
+    public function update(): bool
     {
-        return $user->isAdmin()|| $user->isModerator() || $user->telegram_username===$advertisement->telegram_author_name;
+        return false;
     }
 
     /**
      * Determine whether the user can delete the model.
      */
-    public function delete(User $user, Advertisement $advertisement): bool
+    public function delete(User $user): bool
     {
-        return $user->isAdmin()|| $user->isModerator() || $user->telegram_username===$advertisement->telegram_author_name;
+        return $user->isModerator() || $user->isAdmin();
     }
 
     /**
      * Determine whether the user can restore the model.
      */
-    public function restore(User $user, Advertisement $advertisement): bool
+    public function restore(User $user): bool
     {
-        return $user->isAdmin();
+         return $user->isAdmin();
     }
 
     /**
      * Determine whether the user can permanently delete the model.
      */
-    public function forceDelete(User $user, Advertisement $advertisement): bool
+    public function forceDelete(User $user): bool
     {
         return $user->isAdmin();
     }

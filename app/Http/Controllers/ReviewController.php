@@ -14,9 +14,9 @@ class ReviewController extends Controller
     {
 
     }
-    public function index():View
+    public function index(Request $request):View
     {
-        $reviews = $this->reviewRepository->index();
+        $reviews = $this->reviewRepository->index($request);
         return view('reviews.index', compact('reviews'));
     }
 

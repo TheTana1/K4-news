@@ -14,14 +14,14 @@
     <div class="card">
         <div class="card-header d-flex justify-content-between align-items-center">
             <h5 class="mb-0">Отзыв</h5>
-            @auth
+            @can('delete', auth()->user())
                 <div>
                     <form action="{{ route('reviews.destroy', $review) }}" method="POST" class="d-inline">
                         @csrf @method('DELETE')
                         <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Удалить отзыв?')">Удалить</button>
                     </form>
                 </div>
-            @endauth
+            @endcan
         </div>
         <div class="card-body">
             <!-- Информация об авторе -->

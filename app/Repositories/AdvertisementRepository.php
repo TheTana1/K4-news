@@ -2,8 +2,10 @@
 
 namespace App\Repositories;
 
+use App\Filters\AdvertisementFilter;
 use App\Http\Requests\AdvertisementRequest;
 use App\Models\Advertisement;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -15,15 +17,20 @@ class AdvertisementRepository
     private const PER_PAGE = 10;
     private const COMMENTS_PER_PAGE = 10;
     private const CACHE_TTL = 900;
+public function __construct(readonly AdvertisementFilter $advertisementFilter)
+{
+}
 
-    final public function index(int $perPage = self::PER_PAGE)
+    final public function index(Request $request, int $perPage = self::PER_PAGE)
     {
-        $key = 'advertisement-index:' . md5(
-                $perPage.request('page').auth()->user()->role_id
-            );
+        $key = 'users-index:' . md5(serialize([
+                $request->query(),
+                $perPage
+            ]));
 
         return Cache::tags(['advertisements-index'])->remember($key, self::CACHE_TTL, fn ()=>
-             Advertisement::query()
+             $this->advertisementFilter
+                 ->apply(request(),Advertisement::query())
                 ->forCurrentUser()
                 ->with(['role'])
                 ->latest()
@@ -35,12 +42,12 @@ class AdvertisementRepository
 
     final  public function show(Advertisement $advertisement, int $countPaginate = self::COMMENTS_PER_PAGE): array
     {
-        $advertisement = Cache::tags(['advertisements'])->remember(
+        $advertisement = Cache::tags(['advertisement:'. $advertisement->id])->remember(
             'advertisement:'. $advertisement->id,
             self::CACHE_TTL,
             fn() =>  $advertisement->load([ 'files', 'role'])
         );
-        $comments = Cache::tags(['advertisements'])->remember(
+        $comments = Cache::tags(['advertisement:'. $advertisement->id])->remember(
             'advertisement:' . $advertisement->id . ':comments:page:'.request()->query('page'),
             self::CACHE_TTL,
             fn () => $advertisement->comments()
@@ -58,17 +65,18 @@ class AdvertisementRepository
         DB::beginTransaction();
         try {
             $validatedData = $request->validated();
-            if (auth()->check() && !isset($validatedData['author_id'])) {
-                $validatedData['author_id'] = auth()->id();
-            }
+            $validatedData['telegram_author_name'] = auth()->user()->telegram_username;
+
             $advertisement = Advertisement::query()->create($validatedData);
+
             if ($request->hasFile('files')) {
                 $this->uploadFiles($request->file('files'), $advertisement);
             }
 
             DB::commit();
 
-            Cache::tags(['advertisements'])->flush();
+            Cache::tags(['advertisements-index'])->flush();
+            Cache::tags(['advertisement:'. $advertisement->id])->flush();
             Cache::tags(['dashboard'])->flush();
 
             return $advertisement->load('files', 'role');
@@ -97,7 +105,8 @@ class AdvertisementRepository
             $advertisement->update($validatedData);
             DB::commit();
 
-            Cache::tags(['advertisements', 'advertisement:' . $advertisement->id])->flush();
+            Cache::tags(['advertisements-index'])->flush();
+            Cache::tags(['advertisement:' . $advertisement->id])->flush();
             Cache::tags(['dashboard'])->flush();
 
             return $advertisement->load('files', 'role');
@@ -122,7 +131,8 @@ class AdvertisementRepository
 
             DB::commit();
 
-            Cache::tags(['advertisements'])->flush();
+            Cache::tags(['advertisements-index'])->flush();
+            Cache::tags(['advertisement:'. $advertisement->id])->flush();
             Cache::tags(['dashboard'])->flush();
 
             return $result;
@@ -140,8 +150,7 @@ class AdvertisementRepository
     protected function uploadFiles(array $files, Advertisement $advertisement): void
     {
         foreach ($files as $file) {
-
-            $path = $file->store('advertisements/' . $advertisement->id, 'public');
+            $path =  $file->store('advertisements/' . $advertisement->id, 'public');
 
             $advertisement->files()->create([
                 'file_path' => $path,
