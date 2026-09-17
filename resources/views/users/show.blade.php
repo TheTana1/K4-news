@@ -45,13 +45,15 @@
                             <div class="info-item">
                                 @if($user->role)
                                     @php
-                                        $roleColors = [
-                                            'admin' => 'bg-purple-100 text-purple-800',
-                                            'moderator' => 'bg-blue-100 text-blue-800',
-                                            'user' => 'bg-gray-100 text-gray-800',
-                                        ];
+                                        $spanColor = match($user->role?->slug){
+                                        'admin' => '#',
+                                        'moderator'=> "#0D6EFD",
+                                        'Kitchen_Worker' => "#a40e13",
+                                        'Service Staff'=> "#ff661b"
+                                    };
                                     @endphp
-                                    <span class="{{ $roleColors[$user->role->slug] ?? $roleColors['user'] }}">
+                                    <span
+                                        style="color: {{ $spanColor }}">
                                         {{ $user->role->label }}
                                     </span>
                                 @endif

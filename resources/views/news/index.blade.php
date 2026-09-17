@@ -229,7 +229,7 @@
                                         <i class="bi bi-eye me-1"></i> Просмотр
                                     </a>
                                     @can('update', $n)
-                                        <a href="{{ route('news.edit', $n) }}"
+                                        <a href="{{ route('news.edit',  $n) }}"
                                            class="btn btn-sm btn-outline-success">
                                             <i class="bi bi-pencil"></i>
                                         </a>

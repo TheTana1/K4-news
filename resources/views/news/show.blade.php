@@ -33,7 +33,20 @@
                                 <span class="text-muted">
                                     <i class="bi bi-person me-1"></i> Кому
                                 </span>
-                                <span>{{ $news->role->label ?? 'Сотрудникам' }}</span>
+                                @php
+                                    $spanLabel = match($news->role?->slug){
+                                        'moderator'=> 'Всем',
+                                        'Kitchen_Worker' => 'Сотрудникам Кухни',
+                                        'Service Staff'=>'Сотрудникам Зала'
+                                    };
+                                     $spanColor = match($news->role?->slug){
+                                        'moderator'=> "#0D6EFD",
+                                        'Kitchen_Worker' => "#a40e13",
+                                        'Service Staff'=> "#ff661b"
+                                    };
+                                @endphp
+                                <span
+                                    style="color: {{ $spanColor }}">{{ $spanLabel }}</span>
                             </li>
                             @if($news->updated_at && $news->updated_at != $news->created_at)
                                 <li class="list-group-item d-flex justify-content-between align-items-center">

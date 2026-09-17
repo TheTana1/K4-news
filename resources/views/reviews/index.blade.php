@@ -106,7 +106,7 @@
                             <a href="{{ route('reviews.show', $review) }}" class="btn btn-sm btn-outline-primary">
                                 Читать полностью →
                             </a>
-                            @can('delete' , auth()->user())
+                            @can('delete' , $review)
                                 <div class="d-inline-flex gap-1">
                                     <form action="{{ route('reviews.destroy', $review) }}" method="POST" class="d-inline">
                                         @csrf @method('DELETE')

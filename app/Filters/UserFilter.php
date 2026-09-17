@@ -25,7 +25,12 @@ class UserFilter
         if ($request->has('is_active_in_group') && $request->input('is_active_in_group') != null) {
             $query->where('is_active_in_group', $request->input('is_active_in_group'));
         }
-
+        if ($request->has('date_from') && $request->input('date_from') != null) {
+            $query->whereDate('created_at', '>=', $request->input('date_from'));
+        }
+        if ($request->has('date_to') && $request->input('date_to') != null) {
+            $query->whereDate('created_at', '<=', $request->input('date_to'));
+        }
         return $query;
     }
 }

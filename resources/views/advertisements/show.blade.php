@@ -33,7 +33,21 @@
                                 <span class="text-muted">
                                     <i class="bi bi-person me-1"></i> Кому
                                 </span>
-                                <span>{{ $advertisement->role->label ?? 'Сотрудникам' }}</span>
+                                @php
+                                    $spanLabel = match($advertisement->role?->slug){
+                                        'moderator'=> 'Всем',
+                                        'Kitchen_Worker' => 'Сотрудникам Кухни',
+                                        'Service Staff'=>'Сотрудникам Зала'
+                                    };
+                                     $spanColor = match($advertisement->role?->slug){
+                                        'moderator'=> "#0D6EFD",
+                                        'Kitchen_Worker' => "#a40e13",
+                                        'Service Staff'=> "#ff661b"
+                                    };
+                                @endphp
+                                <span style="color: {{ $spanColor }}">
+                                    {{ $spanLabel }}
+                                </span>
                             </li>
                             <li class="list-group-item d-flex justify-content-between align-items-center">
                                 <span class="text-muted">

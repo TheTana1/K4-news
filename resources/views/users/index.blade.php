@@ -5,9 +5,11 @@
 @section('content')
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1 class="h3 mb-0">Пользователи</h1>
-        <a href="{{ route('users.create') }}" class="btn btn-sm btn-primary">
-            <i class="bi bi-plus-lg me-1"></i> Добавить пользователя
-        </a>
+        @can('create')
+            <a href="{{ route('users.create') }}" class="btn btn-sm btn-primary">
+                <i class="bi bi-plus-lg me-1"></i> Добавить пользователя
+            </a>
+        @endcan
     </div>
     <!-- Фильтр -->
     <div class="card mb-4">

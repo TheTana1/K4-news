@@ -108,7 +108,7 @@ class UserRepository
                 'trace' => $exception->getTraceAsString()
             ]);
 
-            throw new BadRequestHttpException('Ошибка при создании пользователя: ' . $exception->getMessage());
+            throw new BadRequestHttpException('Ошибка при создании пользователя');
         }
     }
 
@@ -206,10 +206,9 @@ class UserRepository
 
     public function edit(User $user)
     {
-        return Cache::tags(['user:' . $user->id])->remember(
-            'user:' . $user->id,
-            self::CACHE_TTL,
-            fn() => $user->load(['role', 'phones'])
-        );
+        if(Cache::tags(['user:' . $user->id])->has('user:' . $user->id)) {
+            return Cache::tags(['user:' . $user->id])->get('user:' . $user->id);
+        }
+        return $user->load(['role', 'phones']);
     }
 }

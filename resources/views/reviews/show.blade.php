@@ -14,7 +14,7 @@
     <div class="card">
         <div class="card-header d-flex justify-content-between align-items-center">
             <h5 class="mb-0">Отзыв</h5>
-            @can('delete', auth()->user())
+            @can('delete', $review)
                 <div>
                     <form action="{{ route('reviews.destroy', $review) }}" method="POST" class="d-inline">
                         @csrf @method('DELETE')
