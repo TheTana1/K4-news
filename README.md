@@ -1,59 +1,143 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+K4-News
+CRM-система для сотрудников ресторана с веб-интерфейсом и Telegram-ботом для быстрого создания записей с мобильного телефона.
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+📖 О проекте
+K4-News — это внутренняя CRM-система, предназначенная для работников ресторана. Она объединяет в себе новостную ленту, доску объявлений, отзывы, список сотрудников и аналитический дашборд. Дополнительно система интегрирована с Telegram-ботом, что позволяет сотрудникам создавать записи прямо со смартфона, а также проходить регистрацию через бота.
 
-## About Laravel
+✨ Возможности
+Веб-интерфейс разделён на 5 основных разделов:
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+Раздел	Описание
+📊 Дашборд	Сводная аналитика и ключевые показатели
+⭐ Отзывы	Просмотр и управление отзывами о работе ресторана
+📰 Новости	Публикация новостей с поддержкой текста и прикреплённых фото
+📢 Объявления	Важные события и уведомления (текст + фото + документы)
+👥 Сотрудники	Список работников ресторана
+Telegram-бот
+Работает через polling (не требует вебхуков и внешнего домена)
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+Позволяет создавать записи с телефона в те же разделы, что и веб-интерфейс
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+Регистрация новых сотрудников проходит через бота
 
-## Learning Laravel
+🛠 Технологический стек
+Backend
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+PHP 8.x
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+Laravel
 
-## Laravel Sponsors
+PostgreSQL
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+Redis (кэширование)
 
-### Premium Partners
+JWT (аутентификация)
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+Westacks/Telebot-Laravel — интеграция Telegram-бота
 
-## Contributing
+Frontend
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+Blade-шаблоны
 
-## Code of Conduct
+Bootstrap
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+Laravel UI (bootstrap auth)
 
-## Security Vulnerabilities
+Инфраструктура
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+Docker / Docker Compose
 
-## License
+🚀 Установка и запуск
+Требования
+Docker и Docker Compose
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+Telegram Bot Token (получить у @BotFather)
+
+Шаги
+Клонируйте репозиторий
+
+bash
+git clone https://github.com/TheTana1/K4-news.git
+cd k4-news
+Скопируйте конфигурацию окружения
+
+bash
+cp .env.example .env
+Настройте .env — укажите параметры подключения к БД, Redis и токен бота:
+
+env
+DB_CONNECTION=pgsql
+DB_HOST=postgres
+DB_PORT=5432
+DB_DATABASE=k4_news
+DB_USERNAME=your_user
+DB_PASSWORD=your_password
+
+REDIS_HOST=redis
+REDIS_PORT=6379
+
+TELEGRAM_BOT_TOKEN=your_bot_token_here
+Запустите контейнеры
+
+bash
+docker-compose up -d --build
+Выполните миграции и сиды
+
+bash
+docker-compose exec php php artisan migrate --seed
+Сгенерируйте JWT-секрет (если используется отдельно)
+
+bash
+docker-compose exec php php artisan jwt:secret
+Запустите Telegram-бот (polling)
+
+bash
+docker-compose exec app php artisan telegram:poll
+Команда может отличаться в зависимости от конфигурации Telebot.
+
+Приложение будет доступно по адресу: http://localhost:8080
+
+📂 Структура проекта
+text
+app/
+├── Http/
+│   ├── Controllers/      # Контроллеры веб-интерфейса
+│   └── Middleware/
+├── Models/               # Eloquent-модели
+├── Services/             # Бизнес-логика
+└── Telegram/             # Команды и хендлеры Telegram-бота
+
+database/
+├── migrations/           # Миграции
+└── seeders/              # Сиды
+
+resources/views/          # Blade-шаблоны (Bootstrap)
+routes/
+├── web.php               # Web-маршруты
+└── api.php               # API-маршруты (в разработке)
+🔐 Аутентификация
+Веб-интерфейс — стандартная авторизация Laravel UI (Bootstrap)
+
+API — JWT-токены
+
+Регистрация новых сотрудников — через Telegram-бота
+
+🧩 Статус разработки
+☑ Веб-интерфейс (5 разделов)
+☑ Telegram-бот (polling)
+☑ Регистрация через бота
+☑ Redis-кэширование
+☑ Docker-окружение
+□ REST API (в активной разработке)
+□ Написание тестов
+□ CI/CD
+⚠️ API-составляющая находится в разработке. На данный момент полностью функционален только web-интерфейс.
+
+🤝 Вклад в проект
+Pull request'ы приветствуются. Для крупных изменений сначала откройте issue для обсуждения.
+
+📄 Лицензия
+Проект распространяется под лицензией MIT. Подробности — в файле LICENSE.
+
+📬 Контакты
+Если у вас есть вопросы или предложения — создайте issue в этом репозитории.
