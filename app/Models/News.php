@@ -50,8 +50,8 @@ class News extends Model
 
     protected $casts = [
         'published_at' => 'datetime',
-        'views' => 'integer',
     ];
+
     public function scopeForCurrentUser($query)
     {
         if (Auth::check()) {

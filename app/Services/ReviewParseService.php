@@ -26,29 +26,7 @@ class ReviewParseService
 
     }
 
-    public static function reviewCreate($text, $count, $author)
-    {
-        DB::beginTransaction();
-        try {
-            Review::create([
-                'content' => $text,
-                'rating' => $count,
-                'telegram_author_name' => $author,
-                'published_at' => now(),
-            ]);
-            DB::commit();
 
-            Cache::tags(['reviews-index'])->flush();
-            Cache::tags(['dashboard'])->flush();
-
-            return true;
-        } catch (\Exception $e) {
-            DB::rollBack();
-
-            \Log::error("Ошибка создания отзыва: " . $e->getMessage());
-            return false;
-        }
-    }
 
 
 }

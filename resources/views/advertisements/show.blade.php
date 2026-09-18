@@ -27,7 +27,7 @@
                                 <span class="text-muted">
                                     <i class="bi bi-person me-1"></i> Автор
                                 </span>
-                                <span>{{ $advertisement->telegram_author_name ?? 'Руководство' }}</span>
+                                <span>{{ auth()->user()->name ?? 'Руководство' }}</span>
                             </li>
                             <li class="list-group-item d-flex justify-content-between align-items-center">
                                 <span class="text-muted">
@@ -61,16 +61,22 @@
                             </li>
                             <li class="list-group-item d-flex justify-content-between align-items-center">
                                 <span class="text-muted">
+                                    <i class="bi bi-calendar-event me-1"></i> Дата публикации
+                                </span>
+                                <span>{{ local_date($advertisement->created_at) }}</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <span class="text-muted">
                                     <i class="bi bi-clock-history me-1"></i> Создано
                                 </span>
-                                <span>{{ $advertisement->created_at->format('d.m.Y H:i') }}</span>
+                                <span>{{ local_date($advertisement->created_at) }}</span>
                             </li>
                             @if($advertisement->updated_at && $advertisement->updated_at != $advertisement->created_at)
                                 <li class="list-group-item d-flex justify-content-between align-items-center">
                                     <span class="text-muted">
                                         <i class="bi bi-pencil-square me-1"></i> Обновлено
                                     </span>
-                                    <span>{{ $advertisement->updated_at->format('d.m.Y H:i') }}</span>
+                                    <span>{{ local_date($advertisement->updated_at) }}</span>
                                 </li>
                             @endif
                         </ul>

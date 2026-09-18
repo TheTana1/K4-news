@@ -14,13 +14,12 @@
     <div class="card">
         <div class="card-header d-flex justify-content-between align-items-center">
             <h5 class="mb-0">Отзыв</h5>
+
             @can('delete', $review)
-                <div>
                     <form action="{{ route('reviews.destroy', $review) }}" method="POST" class="d-inline">
                         @csrf @method('DELETE')
                         <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Удалить отзыв?')">Удалить</button>
                     </form>
-                </div>
             @endcan
         </div>
         <div class="card-body">
@@ -28,12 +27,17 @@
             <div class="d-flex flex-wrap align-items-start mb-4">
                 <div class="flex-grow-1">
                     <h6 class="mb-0">
-                        {{ $review->user?->name ?? $review->author_name ?? 'Гость' }}
-                        @if($review->user && $review->user->is_active_in_group)
-                            <span class="badge bg-success ms-2">В группе</span>
-                        @endif
+                        {{ $review->user?->name ?? $review->telegram_author_name ?? 'Гость' }}
+                        <div class="d-flex flex-wrap align-items-center gap-2">
+                            <small class="text-muted">
+                                Дата публикации: {{ local_date($review->published_at) }}
+                            </small>
+                            <small class="text-muted">
+                                Создано: {{ local_date($review->created_at) }}
+                            </small>
+                        </div>
                     </h6>
-                    <small class="text-muted">{{ $review->created_at->format('d.m.Y H:i') }}</small>
+
                 </div>
                 @if($review->rating)
                     <div class="text-warning" style="font-size: 1.5rem;">
@@ -74,16 +78,23 @@
                             </div>
                             <div>
                                 @can('update', $comment)
-                                    <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editCommentModal{{ $comment->id }}">
-                                        Ред.
+                                    <button type="button"
+                                            class="btn btn-sm btn-outline-primary"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#editCommentModal{{ $comment->id }}">
+                                        <i class="bi bi-pencil"></i>
                                     </button>
                                 @endcan
-                                @can('delete', $comment)
-                                    <form action="{{ route('comments.destroy', $comment) }}" method="POST" class="d-inline">
-                                        @csrf @method('DELETE')
-                                        <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Удалить комментарий?')">Удалить</button>
-                                    </form>
-                                @endcan
+                                    @can('delete', $comment)
+                                        <form action="{{ route('comments.destroy', $comment) }}" method="POST"
+                                              class="d-inline">
+                                            @csrf @method('DELETE')
+                                            <button type="submit" class="btn btn-sm btn-outline-danger"
+                                                    onclick="return confirm('Удалить комментарий?')">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </form>
+                                    @endcan
                             </div>
                         </div>
                         <p class="mt-1 mb-0">{{ $comment->comment }}</p>

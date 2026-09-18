@@ -97,7 +97,10 @@ public function __construct(readonly NewsFilter $newsFilter)
         try {
             $validatedData = $request->validated();
             $validatedData['telegram_author_name'] = auth()->user()->telegram_username;
+            $validatedData['published_at'] = now();
+
             $news = News::query()->create($validatedData);
+
             if ($request->hasFile('files')) {
                 $this->uploadFiles($request->file('files'), $news);
             }

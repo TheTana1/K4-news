@@ -65,7 +65,9 @@ public function __construct(readonly AdvertisementFilter $advertisementFilter)
         DB::beginTransaction();
         try {
             $validatedData = $request->validated();
-            $validatedData['telegram_author_name'] = auth()->user()->telegram_username;
+            $validatedData['telegram_author_name'] = auth()->user()->telegram_username
+                ?? auth()->user()->name;
+            $validatedData['published_at'] = now();
 
             $advertisement = Advertisement::query()->create($validatedData);
 

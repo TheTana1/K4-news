@@ -45,19 +45,20 @@ Telegram-бот
 
 ### Шаги
 
-Клонируйте репозиторий
+**1. Клонируйте репозиторий**
 
 ```bash
 git clone https://github.com/TheTana1/K4-news.git
 cd k4-news
 ```
 
-Скопируйте конфигурацию окружения
+**2. Скопируйте конфигурацию окружения**
 
 ```bash
 cp .env.example .env
-````
-Настройте .env — укажите параметры подключения к БД, Redis и токен бота:
+```
+
+**3. Настройте `.env`** — укажите параметры подключения к БД, Redis и токен бота:
 
 ```env
 DB_CONNECTION=pgsql
@@ -72,27 +73,44 @@ REDIS_PORT=6379
 
 TELEGRAM_BOT_TOKEN=your_bot_token_here
 ```
-Запустите контейнеры
+
+**4. Запустите контейнеры**
 
 ```bash
-docker-compose up -d --build
+docker compose up -d --build
 ```
-Выполните миграции и сиды
+
+**5. Установите PHP-зависимости**
 
 ```bash
-docker-compose exec php php artisan migrate --seed
+docker compose exec php composer install
 ```
-Сгенерируйте JWT-секрет (если используется отдельно)
+
+**6. Сгенерируйте ключ приложения**
 
 ```bash
-docker-compose exec php php artisan jwt:secret
+docker compose exec php php artisan key:generate
 ```
-Запустите Telegram-бот (polling)
+
+**7. Выполните миграции и сиды**
 
 ```bash
-docker-compose exec app php artisan telegram:poll
+docker compose exec php php artisan migrate --seed
 ```
-Команда может отличаться в зависимости от конфигурации Telebot.
+
+**8. Сгенерируйте JWT-секрет** (если используется отдельно)
+
+```bash
+docker compose exec php php artisan jwt:secret
+```
+
+**9. Запустите Telegram-бот (polling)**
+
+```bash
+docker compose exec php php artisan telegram:poll
+```
+
+> Команда может отличаться в зависимости от конфигурации Telebot.
 
 Приложение будет доступно по адресу: http://localhost:8080
 

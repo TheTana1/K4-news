@@ -136,7 +136,10 @@
                                         <span class="text-muted">
                                             <i class="bi bi-at me-1"></i> Username
                                         </span>
-                                        <span>@ {{ $user->telegram_username }}</span>
+                                        <a href="https://t.me/{{$user->telegram_username}}" target="_blank" rel="noopener">
+                                            <span>{{'@'.$user->telegram_username}}</span>
+                                        </a>
+
                                     </div>
                                 </li>
                             @endif

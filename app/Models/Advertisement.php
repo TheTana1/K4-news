@@ -48,8 +48,6 @@ class Advertisement extends Model
 
     protected $casts = [
         'published_at' => 'datetime',
-        'views' => 'integer',
-        'price' => 'integer',
     ];
     public function scopeForRole($query, $roleId = null)
     {
@@ -58,7 +56,17 @@ class Advertisement extends Model
         }
         return $query;
     }
-
+    protected function getSourceAttribute(): string
+    {
+        $model = $this->commentable;
+        if(!$model) return 'Удалено';
+        return match (get_class($model)) {
+            \App\Models\Advertisement::class => $model->content ?? 'Объявление #' . $model->id,
+            \App\Models\News::class => $model->content ?? 'Новость #' . $model->id,
+            \App\Models\Review::class => $model->content ?? $model->name ?? 'Отзыв #' . $model->id,
+            default => 'Запись #' . $model->id,
+        };
+    }
     public function scopeForCurrentUser($query)
     {
         if (Auth::check()) {

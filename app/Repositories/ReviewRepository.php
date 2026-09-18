@@ -52,7 +52,30 @@ public function __construct(readonly ReviewFilter $reviewFilter)
         );
         return ['review'=>$review, 'comments'=>$comments];
     }
+    public static function store($text, $count, $from, $publishedAt)
+    {
+        DB::beginTransaction();
+        try {
 
+            Review::create([
+                'content' => $text,
+                'rating' => $count,
+                'telegram_author_name' => $from->username,
+                'published_at' => \Carbon\Carbon::createFromTimestamp($publishedAt),
+            ]);
+            DB::commit();
+
+            Cache::tags(['reviews-index'])->flush();
+            Cache::tags(['dashboard'])->flush();
+
+            return true;
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            \Log::error("Ошибка создания отзыва: " . $e->getMessage());
+            return false;
+        }
+    }
     public function delete(Review $review)
     {
         DB::beginTransaction();

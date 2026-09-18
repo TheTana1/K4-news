@@ -213,8 +213,8 @@
                                     </div>
                                     <div class="col-6 col-sm-4">
                                         <div class="info-item">
-                                            <small class="text-muted d-block">Дата создания</small>
-                                            <span class="small">{{ $ad->created_at->format('d.m.Y') }}</span>
+                                            <small class="text-muted d-block">Дата публикации</small>
+                                            <span class="small">{{ local_date($ad->published_at) }}</span>
                                         </div>
                                     </div>
 

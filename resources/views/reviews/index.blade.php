@@ -84,10 +84,7 @@
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-start mb-2">
                             <div>
-                                <h5 class="card-title mb-0">
-                                    {{ $review->user?->name ?? $review->author_name ?? 'Гость' }}
-                                </h5>
-                                <small class="text-muted">{{ $review->created_at->format('d.m.Y') }}</small>
+                                <small class="text-muted">{{ local_date($review->published_at) }}</small>
                             </div>
                             @if($review->rating)
                                 <div class="text-nowrap">

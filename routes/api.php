@@ -13,13 +13,13 @@ Route::middleware('jwt')->group(function () {
     Route::put('/me', [AuthController::class, 'update']);
     Route::post('/logout', [AuthController::class, 'logout']);
 
-    Route::resource('users', \App\Http\Controllers\API\UserController::class)
+    Route::resource('users', \App\Http\Controllers\Api\UserController::class)
         ->names('api.users');
-    Route::resource('advertisements', \App\Http\Controllers\API\AdvertisementController::class)
+    Route::resource('advertisements', \App\Http\Controllers\Api\AdvertisementController::class)
         ->names('api.advertisements');
-    Route::resource('news', \App\Http\Controllers\API\NewsController::class)
+    Route::resource('news', \App\Http\Controllers\Api\NewsController::class)
         ->names('api.news');
-    Route::resource('reviews', \App\Http\Controllers\API\ReviewController::class)
+    Route::resource('reviews', \App\Http\Controllers\Api\ReviewController::class)
         ->names('api.reviews');
 });
 

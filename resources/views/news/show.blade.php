@@ -27,7 +27,7 @@
                                 <span class="text-muted">
                                     <i class="bi bi-person me-1"></i> Автор
                                 </span>
-                                <span>{{ $news->telegram_author_name ?? 'Руководство' }}</span>
+                                <span>{{ auth()->user()->name ?? 'Руководство' }}</span>
                             </li>
                             <li class="list-group-item d-flex justify-content-between align-items-center">
                                 <span class="text-muted">
@@ -48,22 +48,8 @@
                                 <span
                                     style="color: {{ $spanColor }}">{{ $spanLabel }}</span>
                             </li>
-                            @if($news->updated_at && $news->updated_at != $news->created_at)
-                                <li class="list-group-item d-flex justify-content-between align-items-center">
-                                    <span class="text-muted">
-                                        <i class="bi bi-pencil-square me-1"></i> Обновлено
-                                    </span>
-                                    <span>{{ $news->updated_at->format('d.m.Y H:i') }}</span>
-                                </li>
-                            @endif
-                            @if($news->published_at)
-                                <li class="list-group-item d-flex justify-content-between align-items-center">
-                                    <span class="text-muted">
-                                        <i class="bi bi-calendar-event me-1"></i> Дата публикации
-                                    </span>
-                                    <span>{{ $news->published_at->format('d.m.Y H:i') }}</span>
-                                </li>
-                            @endif
+
+
                             <li class="list-group-item d-flex justify-content-between align-items-center">
                                 <span class="text-muted">
                                     <i class="bi bi-tag me-1"></i> Статус
@@ -74,12 +60,26 @@
                                     <span class="badge bg-secondary">Не активно</span>
                                 @endif
                             </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <span class="text-muted">
+                                        <i class="bi bi-calendar-event me-1"></i> Дата публикации
+                                    </span>
+                                    <span>{{ local_date($news->published_at) }}</span>
+                                </li>
                             <li class="list-group-item d-flex justify-content-between align-items-center">
                                 <span class="text-muted">
                                     <i class="bi bi-clock-history me-1"></i> Создано
                                 </span>
-                                <span>{{ $news->created_at->format('d.m.Y H:i') }}</span>
+                                <span>{{ local_date($news->created_at) }}</span>
                             </li>
+                            @if($news->updated_at && $news->updated_at != $news->created_at)
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <span class="text-muted">
+                                        <i class="bi bi-pencil-square me-1"></i> Обновлено
+                                    </span>
+                                    <span>{{ local_date($news->updated_at) }}</span>
+                                </li>
+                            @endif
                         </ul>
                     </div>
                 </div>

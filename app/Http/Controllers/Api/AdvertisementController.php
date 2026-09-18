@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\API;
+namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\AdvertisementRequest;
@@ -19,9 +19,9 @@ class AdvertisementController extends Controller
     {
     }
 
-    public function index(): AnonymousResourceCollection
+    public function index(Request $request): AnonymousResourceCollection
     {
-        return AdvertisementResource::collection($this->AdvertisementRepository->index());
+        return AdvertisementResource::collection($this->AdvertisementRepository->index($request));
     }
 
     public function show(Advertisement $Advertisement): AdvertisementResource

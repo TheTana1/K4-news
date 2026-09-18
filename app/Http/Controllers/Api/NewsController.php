@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\API;
+namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\NewsRequest;
@@ -19,9 +19,9 @@ class NewsController extends Controller
     {
     }
 
-    public function index(): AnonymousResourceCollection
+    public function index(Request $request): AnonymousResourceCollection
     {
-        return NewsResource::collection($this->newsRepository->index());
+        return NewsResource::collection($this->newsRepository->index($request));
     }
 
     public function show(News $news): NewsResource

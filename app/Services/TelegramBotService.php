@@ -3,8 +3,10 @@
 namespace App\Services;
 
 use App\Models\Review;
+use App\Repositories\ReviewRepository;
 use App\Telegram\Handlers\NewNewsHandler;
 use App\Telegram\Handlers\NewUserHandler;
+use http\Message;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
 use WeStacks\TeleBot\Laravel\TeleBot;
@@ -31,6 +33,7 @@ class TelegramBotService
         $chatId = $message->chat->id ?? null;
         $text = $message->text ?? '';
         $from = $message->from ?? null;
+        $published_at = $message->forward_origin->date ?? null;
 
         if ($chatId && $this->isInSession($chatId, 'user')) {
             return app(NewUserHandler::class)->handleMessage($chatId, $from, $text);
@@ -80,7 +83,8 @@ class TelegramBotService
             $count =mb_substr_count($text, '★', 'UTF-8');
 
             ReviewParseService::parse($chatId, $count);
-            return ReviewParseService::reviewCreate($text, $count, $message->from->first_name);
+
+            return app(ReviewRepository::class)->store($text, $count, $from, $published_at);
 
         }
 
