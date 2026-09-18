@@ -74,9 +74,6 @@ class User extends Authenticatable implements JWTSubject
         'is_active_in_group',
         'telegram_id',
         'telegram_username',
-        'is_primary',
-        'phone_number',
-        'phone_number',
         'updated_at',
     ];
 

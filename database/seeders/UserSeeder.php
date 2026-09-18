@@ -14,9 +14,9 @@ class UserSeeder extends Seeder
      */
     public function run(): void
     {
-        User::factory(5)
-            ->has(Phone::factory()->count(rand(1,3)))
-            ->create();
+//        User::factory(5)
+//            ->has(Phone::factory()->count(rand(1,3)))
+//            ->create();
 
     }
 }

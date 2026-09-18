@@ -17,7 +17,6 @@ class PhoneResource extends JsonResource
         return [
             'id' => $this->id,
             'phone_number' => $this->slug,
-            'is_primary' => $this->label,
         ];
     }
 }

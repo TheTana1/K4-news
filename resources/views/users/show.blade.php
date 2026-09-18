@@ -112,9 +112,6 @@
                                                 <a href="tel:{{ $phone->phone_number }}">
                                                     {{ $phone->phone_number }}
                                                 </a>
-                                                @if($phone->is_primary)
-                                                    <span class="badge bg-success ms-1">осн.</span>
-                                                @endif
                                             </div>
                                         </div>
                                     </li>

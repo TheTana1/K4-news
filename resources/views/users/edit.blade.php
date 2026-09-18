@@ -221,41 +221,44 @@
 
                             <!-- Роль и статус -->
 
-                            <div class="row g-3 mt-2">
-                                @if(auth()->user()->isAdmin())
-                                    <div class="col-md-6">
-                                        <label class="form-label">Роль</label>
-                                        <div class="fw-bold">
-                                            <select name="role_id" id="role_id"
-                                                    class="form-select @error('role_id') is-invalid @enderror">
-                                                @foreach($roles as $role)
-                                                    <option
-                                                        value="{{ $role->id }}" {{ old('role_id', $user->role_id) == $role->id ? 'selected' : '' }}>
-                                                        {{ $role->label }}
-                                                    </option>
-                                                @endforeach
-                                            </select>
-                                            @error('role_id')
-                                            <div class="invalid-feedback">{{ $message }}</div>
-                                            @enderror
-                                        </div>
-                                    </div>
-                                @endif
+                        <div class="row g-3 mt-2">
+                            @if(auth()->user()->isAdmin())
                                 <div class="col-md-6">
-                                    <label class="form-label">Статус в Telegram группе</label>
-                                    <div class="fw-bold">
-                                        @if($user->is_active_in_group)
-                                            <span class="text-success">
-                                                 <i class="bi bi-check-circle fs-3"></i> Активен
-                                            </span>
-                                        @else
-                                            <span class="text-secondary">
-                                                <i class="bi bi-x-circle fs-3"></i> Не активен
-                                            </span>
-                                        @endif
+                                    <div class="d-flex align-items-center gap-2">
+                                        <label for="role_id" class="form-label mb-0">Роль:</label>
+                                        <select name="role_id" id="role_id"
+                                                class="form-select form-select-sm w-auto @error('role_id') is-invalid @enderror">
+                                            @foreach($roles as $role)
+                                                <option value="{{ $role->id }}" @selected(old('role_id', $user->role_id) == $role->id)>
+                                                    {{ $role->label }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                        @error('role_id')
+                                        <div class="invalid-feedback d-block">{{ $message }}</div>
+                                        @enderror
                                     </div>
                                 </div>
+                            @endif
+
+                            <div class="col-md-6">
+                                <div class="d-flex align-items-center gap-2">
+                                    <label for="is_active_in_group" class="form-label mb-0">Статус в Telegram:</label>
+                                    @if(auth()->user()->isModerator()||auth()->user()->isAdmin())
+                                    <select name="is_active_in_group" id="is_active_in_group"
+                                            class="form-select form-select-sm w-auto @error('is_active_in_group') is-invalid @enderror">
+                                        <option value="1" @selected(old('is_active_in_group', $user->is_active_in_group) == 1)>Активен</option>
+                                        <option value="0" @selected(old('is_active_in_group', $user->is_active_in_group) == 0)>Неактивен</option>
+                                    </select>
+                                    @endif
+                                    @if($user->is_active_in_group)
+                                        <i class="bi bi-check-circle-fill text-success fs-5" title="Активен"></i>
+                                    @else
+                                        <i class="bi bi-x-circle-fill text-secondary fs-5" title="Не активен"></i>
+                                    @endif
+                                </div>
                             </div>
+                        </div>
 
                             <!-- Даты (только для просмотра) -->
                             <hr>

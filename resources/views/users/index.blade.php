@@ -5,7 +5,7 @@
 @section('content')
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1 class="h3 mb-0">Пользователи</h1>
-        @can('create')
+        @can('create', auth()->user())
             <a href="{{ route('users.create') }}" class="btn btn-sm btn-primary">
                 <i class="bi bi-plus-lg me-1"></i> Добавить пользователя
             </a>
