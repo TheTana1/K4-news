@@ -30,11 +30,11 @@ Telegram-бот
 
 ## 🛠 Технологический стек
 
-| Категория             | Технологии                                                                                                                                              |
-|:----------------------|:--------------------------------------------------------------------------------------------------------------------------------------------------------|
-| **Backend**           | PHP 8.x · Laravel · PostgreSQL · Redis (кэширование) · JWT (аутентификация) · Westacks/Telebot-Laravel — интеграция Telegram-бота                       |
-| **Frontend**          | Blade-шаблоны · Bootstrap · Laravel UI (bootstrap auth)                                                                                                 |
-| **Инфраструктура**    | Docker / Docker Compose                                                                                                                                 |
+| Категория          | Технологии                                                                                                                        |
+|:-------------------|:----------------------------------------------------------------------------------------------------------------------------------|
+| **Backend**        | PHP 8.x · Laravel · PostgreSQL · Redis (кэширование) · JWT (аутентификация) · Westacks/Telebot-Laravel — интеграция Telegram-бота |
+| **Frontend**       | Blade-шаблоны · Bootstrap · Laravel UI (bootstrap auth)                                                                           |
+| **Инфраструктура** | Docker / Docker Compose                                                                                                           |
 
 ## 🚀 Установка и запуск
 
@@ -104,11 +104,6 @@ docker compose exec php php artisan migrate --seed
 docker compose exec php php artisan jwt:secret
 ```
 
-**9. Запустите Telegram-бот (polling)**
-
-```bash
-docker compose exec php php artisan telegram:poll
-```
 
 > Команда может отличаться в зависимости от конфигурации Telebot.
 
