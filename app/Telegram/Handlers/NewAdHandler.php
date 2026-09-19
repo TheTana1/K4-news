@@ -54,7 +54,7 @@ class NewAdHandler
                 return $this->askForFile($chatId);
             }
             if ($data['step'] == 3) {
-                return $this->askForAudience($chatId, $data);
+                return $this->askForAudience($chatId);
             }
             if ($data['step'] == 4) {
                 return $this->confirmAd($chatId, $data);

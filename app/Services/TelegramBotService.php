@@ -42,7 +42,7 @@ class TelegramBotService
         // Регистрируем пользователя
         $user = app(UserRegistrationService::class)->registerFromTelegram($from);
         if (!$user){
-            app(NewUserHandler::class)->handle($update);
+            return app(NewUserHandler::class)->handle($update);
         }
 
         // === Обработка команд ===
@@ -67,17 +67,15 @@ class TelegramBotService
 
         // === Пошаговые обработчики (состояния) ===
 
-        // 1. Проверяем активную сессию объявления
         if ($chatId && $this->isInSession($chatId, 'ad')) {
             return app(NewAdHandler::class)->handleMessage($message);
         }
 
-        // 2. Проверяем активную сессию новости
         if ($chatId && $this->isInSession($chatId, 'news')) {
             return app(NewNewsHandler::class)->handleMessage($message);
         }
 
-        // === Обработка отзывов (проверяем наличие звёзд в тексте) ===
+        // === Обработка отзывов ===
         if (!empty($text) && preg_match('/★/u', $text)) {
 
             $count =mb_substr_count($text, '★', 'UTF-8');
@@ -142,4 +140,23 @@ class TelegramBotService
                 "⭐ Отправьте сообщение со звёздами (★) для создания отзыва",
         ]);
     }
+
+
+    public function sendHtmlMessage(string $chatId, string $text): bool
+    {
+        try {
+            TeleBot::sendMessage([
+                'chat_id' => $chatId,
+                'text' => $text,
+                'parse_mode' => 'HTML',
+            ]);
+            return true;
+        } catch (\Exception $e) {
+            Log::error('Telegram send failed: ' . $e->getMessage(), [
+                'chat_id' => $chatId,
+            ]);
+            return false;
+        }
+    }
 }
+

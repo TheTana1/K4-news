@@ -11,15 +11,16 @@ use Illuminate\Validation\Rule;
 
 class UserRequest extends FormRequest
 {
+    static $user;
     public function authorize(): bool
     {
 
-        $user = auth()->user();
-        return $user->isAdmin() || $user->isModerator() || $this->user()->id === $user->id;
+        return  auth()->user()->isAdmin() ||  auth()->user()->isModerator() || $this->user()->id ===  auth()->user()->id;
     }
 
     public function rules(): array
     {
+
         $minDate = Carbon::today()->subYears(95)->format('Y-m-d');
         $maxDate = Carbon::today()->subYears(15)->format('Y-m-d');
         switch ($this->method()) {
@@ -137,7 +138,9 @@ class UserRequest extends FormRequest
         $password = $this->input('password');
         if (empty($password) ||
             $password === 'password' ||
-            Hash::check($password, $this->user()?->password)) {
+            Hash::check($password, $this->user()?->password) ||
+            auth()->user()->isAdmin() ||  auth()->user()->isModerator()) {
+
 
             $this->request->remove('password');
             $this->request->remove('password_confirmation');

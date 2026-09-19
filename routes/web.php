@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AdvertisementController;
+use App\Http\Controllers\Auth\TelegramResetPasswordController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\NewsController;
@@ -29,6 +30,10 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('reviews', ReviewController::class)->only(['index', 'show','destroy']);
     Route::resource('comments', CommentController::class);
 });
-Auth::routes(['register' => false]);
+Auth::routes(['register' => false, 'reset' => false]);
+Route::get('password/reset', [TelegramResetPasswordController::class, 'showLinkRequestForm'])
+    ->name('password.request');
+Route::post('password/email', [TelegramResetPasswordController::class, 'send'])
+    ->name('password.email');
 
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
