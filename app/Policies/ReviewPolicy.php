@@ -53,7 +53,7 @@ class ReviewPolicy
      */
     public function restore(User $user): bool
     {
-         return $user->isAdmin();
+        return $user->isAdmin() || $user->isModerator();
     }
 
     /**
@@ -61,6 +61,6 @@ class ReviewPolicy
      */
     public function forceDelete(User $user): bool
     {
-        return $user->isAdmin();
+        return $user->isAdmin() || $user->isModerator();
     }
 }

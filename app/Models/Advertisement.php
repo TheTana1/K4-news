@@ -35,7 +35,7 @@ class Advertisement extends Model
 {
     protected $fillable = [
         'content',
-        'telegram_author_name',
+        'user_id',
         'published_at',
         'file_path',
         'file_name',

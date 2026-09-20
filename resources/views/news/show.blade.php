@@ -27,7 +27,7 @@
                                 <span class="text-muted">
                                     <i class="bi bi-person me-1"></i> Автор
                                 </span>
-                                <span>{{ auth()->user()->name ?? 'Руководство' }}</span>
+                                <span>{{ $news->user->name ?? 'Руководство' }}</span>
                             </li>
                             <li class="list-group-item d-flex justify-content-between align-items-center">
                                 <span class="text-muted">

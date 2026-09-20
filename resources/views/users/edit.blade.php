@@ -119,7 +119,9 @@
                                 <label for="telegram_username" class="form-label">Telegram username</label>
                                 <div class="input-group">
                                     <span class="input-group-text">@</span>
-                                    <input type="text" name="telegram_username" id="telegram_username"
+                                    <input type="text"
+                                           name="telegram_username"
+                                           id="telegram_username"
                                            value="{{ old('telegram_username', $user->telegram_username) }}"
                                            class="form-control @error('telegram_username') is-invalid @enderror"
                                            disabled>

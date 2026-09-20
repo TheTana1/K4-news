@@ -38,7 +38,7 @@ class AdvertisementPolicy
      */
     public function update(User $user, Advertisement $advertisement): bool
     {
-        return $user->isAdmin()|| $user->isModerator() || $user->telegram_username===$advertisement->telegram_author_name;
+        return $user->isAdmin()|| $user->isModerator() || $user->id===$advertisement->user_id;
     }
 
     /**
@@ -46,7 +46,7 @@ class AdvertisementPolicy
      */
     public function delete(User $user, Advertisement $advertisement): bool
     {
-        return $user->isAdmin()|| $user->isModerator() || $user->telegram_username===$advertisement->telegram_author_name;
+        return $user->isAdmin()|| $user->isModerator() || $user->id===$advertisement->user_id;
     }
 
     /**
@@ -54,7 +54,7 @@ class AdvertisementPolicy
      */
     public function restore(User $user, Advertisement $advertisement): bool
     {
-        return $user->isAdmin();
+        return $user->isAdmin() || $user->isModerator();
     }
 
     /**
@@ -62,6 +62,6 @@ class AdvertisementPolicy
      */
     public function forceDelete(User $user, Advertisement $advertisement): bool
     {
-        return $user->isAdmin();
+        return $user->isAdmin() || $user->isModerator();
     }
 }

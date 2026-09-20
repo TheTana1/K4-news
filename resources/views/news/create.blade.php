@@ -62,6 +62,9 @@
                             @enderror
                         </div>
 
+                        <input type="hidden"
+                               name="user_id"
+                               value="{{ old('user_id', auth()->user()->id) }}">
 
                         <div class="d-flex justify-content-end gap-2">
                             <a href="{{ route('news.index') }}" class="btn btn-secondary">Отмена</a>
@@ -99,6 +102,8 @@
                             <small class="text-muted">Можно загрузить несколько файлов изображений (JPG, PNG, GIF, BMP, WEBP, SVG)</small>
                             <div id="fileList" class="mt-2"></div>
                         </div>
+
+
                     </form>
                 </div>
             </div>

@@ -37,7 +37,7 @@ class NewsPolicy
      */
     public function update(User $user, News $news): bool
     {
-        return $user->isAdmin()|| $user->isModerator() || $user->telegram_username===$news->telegram_author_name;
+        return $user->isAdmin()|| $user->isModerator() || $user->id===$news->user_id;
     }
 
     /**
@@ -45,7 +45,7 @@ class NewsPolicy
      */
     public function delete(User $user, News $news): bool
     {
-        return $user->isAdmin()|| $user->isModerator() || $user->telegram_username===$news->telegram_author_name;
+        return $user->isAdmin()|| $user->isModerator() || $user->id===$news->user_id;
     }
 
     /**
@@ -53,7 +53,7 @@ class NewsPolicy
      */
     public function restore(User $user, News $news): bool
     {
-        return $user->isAdmin();
+        return $user->isAdmin() || $user->isModerator();
     }
 
     /**
@@ -61,6 +61,6 @@ class NewsPolicy
      */
     public function forceDelete(User $user, News $news): bool
     {
-        return $user->isAdmin();
+        return $user->isAdmin() || $user->isModerator();
     }
 }

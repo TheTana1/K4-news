@@ -6,6 +6,7 @@ use App\Models\Phone;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 
 class UserSeeder extends Seeder
 {
@@ -14,9 +15,28 @@ class UserSeeder extends Seeder
      */
     public function run(): void
     {
-//        User::factory(5)
-//            ->has(Phone::factory()->count(rand(1,3)))
-//            ->create();
+        $user = User::withTrashed()->where(['email' => 'admin@mail.ru', 'role_id' => '1', 'gender' => '1']);
+        if($user) {
+            $user->update([
+                'name' => 'admin',
+                'email' => 'admin@mail.ru',
+                'password' => Hash::make('password'),
+                'telegram_username' => 'admin',
+                'role_id' => 1,
+                'gender' => 1,
+            ]);
+        }
+        else{
+            User::create([
+                'name' => 'admin',
+                'email' => 'admin@mail.ru',
+                'password' => Hash::make('password'),
+                'telegram_username' => 'admin',
+                'role_id' => 1,
+                'gender' => 1,
+            ]);
+        }
+
 
     }
 }

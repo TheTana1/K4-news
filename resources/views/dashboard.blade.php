@@ -15,7 +15,7 @@
             };
         @endphp
         <h1 class="h3 fw-bold mb-1">{{ $greeting }}, {{ Auth::user()->name ?? 'Гость' }}!</h1>
-        <p class="text-white-50 mb-0">Сегодня {{ now()->format('d.m.Y') }}</p>
+        <p class="text-white-50 mb-0">Сегодня {{local_date(now()) }}</p>
     </div>
 
     <div class="row g-3 mb-4">

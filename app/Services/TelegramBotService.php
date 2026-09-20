@@ -31,7 +31,7 @@ class TelegramBotService
         $chatId = $message->chat->id ?? null;
         $text = $message->text ?? '';
         $from = $message->from ?? null;
-        $published_at = $message->forward_origin->date ?? null;
+        $published_at = $message->forward_origin->date ?? now()->timestamp;
 
         if ($chatId && $this->isInSession($chatId, 'user')) {
             return app(NewUserHandler::class)->handleMessage($chatId, $from, $text);

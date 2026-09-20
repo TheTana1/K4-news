@@ -4,6 +4,7 @@ namespace App\Repositories;
 
 use App\Filters\ReviewFilter;
 use App\Models\Review;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -16,9 +17,10 @@ class  ReviewRepository
     private const PER_PAGE = 10;
     private const COMMENTS_PER_PAGE = 10;
     private const CACHE_TTL = 900;
-public function __construct(readonly ReviewFilter $reviewFilter)
-{
-}
+
+    public function __construct(readonly ReviewFilter $reviewFilter)
+    {
+    }
 
     final function index(Request $request, int $perPage = self::PER_PAGE)
     {
@@ -26,42 +28,63 @@ public function __construct(readonly ReviewFilter $reviewFilter)
                 $request->query(),
                 $perPage
             ]));
-        return Cache::tags(['reviews-index'])->remember($key, self::CACHE_TTL, fn()=>
-            $this->reviewFilter
-                ->apply($request, Review::query())
+        return Cache::tags(['reviews-index'])->remember($key, self::CACHE_TTL, fn() => $this->reviewFilter
+            ->apply($request, Review::query())
             ->latest()
             ->paginate($perPage)
             ->withQueryString()
         );
     }
-    final function show(Review $review, int $countPaginate =self::COMMENTS_PER_PAGE)
+
+    final function show(Review $review, int $countPaginate = self::COMMENTS_PER_PAGE)
     {
-        $review = Cache::tags(['review:'. $review->id])->remember(
-            'review:'. $review->id,
+        $review = Cache::tags(['review:' . $review->id])->remember(
+            'review:' . $review->id,
             self::CACHE_TTL,
-            fn() =>  $review
+            fn() => $review
         );
-        $comments = Cache::tags(['review:'. $review->id])->remember(
-            'review:' . $review->id . ':comments:page:'.request()->query('page'),
+        $comments = Cache::tags(['review:' . $review->id])->remember(
+            'review:' . $review->id . ':comments:page:' . request()->query('page'),
             self::CACHE_TTL,
-            fn () => $review->comments()
+            fn() => $review->comments()
                 ->with(['user.role', 'commentable'])
                 ->latest()
                 ->paginate($countPaginate)
                 ->withQueryString()
         );
-        return ['review'=>$review, 'comments'=>$comments];
+        return ['review' => $review, 'comments' => $comments];
     }
+
     public static function store($text, $count, $from, $publishedAt)
     {
         DB::beginTransaction();
         try {
+            $username = strtolower($from->username);
+            $user_id = User::where('telegram_username', $username)->value('id');
+            if (!$user_id) {
+                \Log::error('Пользователь не найден для отзыва', ['username' => $username]);
+                return false;
+            }
+            $validatedData = validator(
+                [
+                    'content' => $text,
+                    'rating' => $count,
+                    'published_at' => \Carbon\Carbon::createFromTimestamp($publishedAt),
+                    'user_id' => $user_id,
+                ],
+                [
+                    'content' => 'required|string|min:3|max:5000',
+                    'rating' => 'nullable|integer|min:1|max:5',
+                    'published_at' => 'nullable|date',
+                    'user_id' => 'nullable|integer|exists:users,id',
+                ])
+                ->validate();
 
             Review::create([
-                'content' => $text,
-                'rating' => $count,
-                'telegram_author_name' => $from->username,
-                'published_at' => \Carbon\Carbon::createFromTimestamp($publishedAt),
+                'content' => $validatedData['content'],
+                'rating' => $validatedData['rating'],
+                'user_id' => $validatedData['user_id'],
+                'published_at' => $validatedData['published_at'],
             ]);
             DB::commit();
 
@@ -76,6 +99,7 @@ public function __construct(readonly ReviewFilter $reviewFilter)
             return false;
         }
     }
+
     public function delete(Review $review)
     {
         DB::beginTransaction();
@@ -84,7 +108,7 @@ public function __construct(readonly ReviewFilter $reviewFilter)
             $result = $review->delete();
 
             DB::commit();
-            Cache::tags(['review:'. $review->id])->flush();
+            Cache::tags(['review:' . $review->id])->flush();
             Cache::tags(['reviews-index'])->flush();
 
             return $result;

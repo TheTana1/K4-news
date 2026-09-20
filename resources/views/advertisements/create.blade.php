@@ -61,11 +61,18 @@
                             <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
+                        <input type="hidden"
+                               name="user_id"
+                               value="{{ old('user_id', auth()->user()->id) }}">
+
 
                         <div class="d-flex justify-content-end gap-2">
                             <a href="{{ route('advertisements.index') }}" class="btn btn-secondary">Отмена</a>
                             <button type="submit" class="btn btn-primary">Создать</button>
                         </div>
+
+
+
                         <div class="mb-3">
                             <label for="files" class="form-label">Добавить файлы</label>
                             <input type="file"

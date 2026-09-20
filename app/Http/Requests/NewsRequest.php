@@ -14,25 +14,27 @@ class NewsRequest extends FormRequest
     }
     public function rules(): array
     {
+
+
         switch ($this->method()) {
             case 'POST':          return [
                 'content' => 'required|string|min:4|max:10000',
                 'status' => 'nullable|in:active,inactive',
-                'telegram_author_name' => 'nullable|string|max:255',
+                'user_id' => 'nullable|integer|exists:users,id',
                 'files' => 'nullable|array',
                 'files.*' => 'nullable|file|mimes:jpg,jpeg,png,gif,bmp,webp,svg|max:10240',
-                'role_id' => '|integer|exists:roles,id',
+                'role_id' => 'required|integer|exists:roles,id',
             ];
 
             case 'PUT': return [
                 'content' => 'sometimes|string|min:4|max:10000',
                 'status' => 'nullable|in:active,inactive',
-                'telegram_author_name' => 'nullable|string|max:255',
+                'user_id' => 'nullable|integer|exists:users,id',
                 'files' => 'nullable|array',
                 'files.*' => 'nullable|file|mimes:jpg,jpeg,png,gif,bmp,webp,svg|max:10240',
                 'delete_files' => 'nullable|array',
                 'delete_files.*' => 'exists:files,id',
-                'role_id' => '|integer|exists:roles,id',
+                'role_id' => 'required|integer|exists:roles,id',
             ];
         };
         return [];
@@ -55,7 +57,6 @@ class NewsRequest extends FormRequest
             'status.in' => 'Статус должен быть active или inactive',
         ];
     }
-
     public function after():array
     {
         return [

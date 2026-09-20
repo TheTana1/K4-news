@@ -27,7 +27,7 @@
             <div class="d-flex flex-wrap align-items-start mb-4">
                 <div class="flex-grow-1">
                     <h6 class="mb-0">
-                        {{ $review->user?->name ?? $review->telegram_author_name ?? 'Гость' }}
+                        {{ $review->user?->name ?? 'Гость' }}
                         <div class="d-flex flex-wrap align-items-center gap-2">
                             <small class="text-muted">
                                 Дата публикации: {{ local_date($review->published_at) }}

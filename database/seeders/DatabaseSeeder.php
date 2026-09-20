@@ -21,9 +21,10 @@ class DatabaseSeeder extends Seeder
             UserSeeder::class
         ]);
         User::factory()->create([
-            'name' => 'admin@mail.ru',
+            'name' => 'admin',
             'email' => 'admin@mail.ru',
             'password' => 'password',
+            'telegram_username' => 'admin',
             'role_id' =>1,
             'gender' =>1,
 

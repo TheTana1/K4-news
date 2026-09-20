@@ -21,13 +21,17 @@ class ReviewRequest extends FormRequest
                 return [
                     'content' => 'required|string|min:3|max:5000',
                     'rating' => 'nullable|integer|min:1|max:5',
+                    'published_at' => 'nullable|date',
+                    'user_id' => 'nullable|integer|exists:users,id',
                 ];
 
-            case 'PUT':
-                return [
-                    'content' => 'sometimes|string|min:3|max:5000',
-                    'rating' => 'nullable|integer|min:1|max:5',
-                ];
+//            case 'PUT':
+//                return [
+//                    'content' => 'sometimes|string|min:3|max:5000',
+//                    'rating' => 'nullable|integer|min:1|max:5',
+//                    'published_at' => 'nullable|date',
+//                    'user_id' => 'nullable|integer|exists:users,id',
+//                ];
         };
         return [];
     }

@@ -45,7 +45,7 @@ public function __construct(readonly NewsFilter $newsFilter)
         $news = Cache::tags(['news:'. $news->id])->remember(
             'news:'. $news->id,
             self::CACHE_TTL,
-            fn() =>  $news->load(['files', 'role'])
+            fn() =>  $news->load(['files', 'role','user'])
         );
         $comments = Cache::tags(['news:'. $news->id])->remember(
             'news:' . $news->id . ':comments:page:'.request()->query('page'),
@@ -103,9 +103,8 @@ public function __construct(readonly NewsFilter $newsFilter)
 
         try {
             $validatedData = $request->validated();
-            $validatedData['telegram_author_name'] = auth()->user()->telegram_username;
-            $validatedData['published_at'] = now();
 
+            $validatedData['published_at'] = now();
             $news = News::query()->create($validatedData);
 
             if ($request->hasFile('files')) {

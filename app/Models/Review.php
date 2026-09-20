@@ -37,7 +37,7 @@ class Review extends Model
     protected $fillable = [
         'content',
         'rating',
-        'telegram_author_name',
+        'user_id',
         'published_at',
     ];
 
