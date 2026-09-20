@@ -152,6 +152,8 @@ class UserRepository
                 $validatedData['password'] = Hash::make($validatedData['password']);
             }
 
+            $validatedData = array_filter($validatedData, fn ($value) => $value !== null);
+
             $user->update($validatedData);
 
             if ($request->has('phones') && is_array($request->phones)) {

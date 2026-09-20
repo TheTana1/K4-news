@@ -23,6 +23,12 @@ class UserRequest extends FormRequest
 
         $minDate = Carbon::today()->subYears(95)->format('Y-m-d');
         $maxDate = Carbon::today()->subYears(15)->format('Y-m-d');
+
+        \Log::info('Birthday rules', [
+            'min' => $minDate,
+            'max' => $maxDate,
+            'input' => $this->input('birthday'),
+        ]);
         switch ($this->method()) {
 
             case 'POST':
@@ -50,7 +56,7 @@ class UserRequest extends FormRequest
                     ],
                     'password' => 'nullable|string|min:8|confirmed',
                     'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-                    'birthday' => 'nullable|date|before:today|after:1960-01-01',
+                    'birthday' => 'nullable|date|before:' . $maxDate . '|after:' . $minDate,
                     'gender' => 'nullable|in:0,1',
                     'role_id' => 'nullable|exists:roles,id',
                     'telegram_id' => [
@@ -87,8 +93,8 @@ class UserRequest extends FormRequest
             'password.string' => 'Пароль должен быть строкой',
 
             'birthday.date' => 'Дата рождения должна быть корректной датой',
-            'birthday.before' => 'Возраст должен быть не более 95 лет',
-            'birthday.after' => 'Возраст должен быть не менее 15 лет',
+            'birthday.after' => 'Возраст должен быть не более 95 лет',
+            'birthday.before' => 'Возраст должен быть не менее 15 лет',
 
             'gender.in' => 'Выберите корректный пол',
 
