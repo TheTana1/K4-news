@@ -71,8 +71,6 @@ services:
     restart: unless-stopped
     volumes:
       - ./:/var/www/html
-      # Отдельный volume для vendor, чтобы не пересекался с хостом (опционально)
-      # - php_vendor:/var/www/html/vendor
     expose:
       - "9000"
     networks:
@@ -120,11 +118,9 @@ services:
     container_name: viteK4
     working_dir: /var/www/html
     ports:
-      - "5173:5173"[]
+      - "5173:5173"
     volumes:
       - ./:/var/www/html
-      # node_modules — в именованном volume, чтобы не мусорить в репо
-      # и не перетираться хостом
       - vite_node_modules:/var/www/html/node_modules
     command: sh -c "npm install && npm run build"
     networks:
@@ -154,7 +150,7 @@ volumes:
   redis_data:
   pgadmin_data:
   vite_node_modules:
-  # php_vendor:   # раскомментировать, если используете отдельный volume для vendor
+
 
 networks:
   backend:

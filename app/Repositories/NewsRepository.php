@@ -59,6 +59,13 @@ public function __construct(readonly NewsFilter $newsFilter)
         return ['news'=>$news, 'comments'=>$comments];
 
     }
+    public function edit(News $news)
+    {
+        if(Cache::tags(['news:' . $news->id])->has('news:' . $news->id)) {
+            return Cache::tags(['news:' . $news->id])->get('news:' . $news->id);
+        }
+        return $news->load(['files', 'role']);
+    }
     protected function uploadFiles(array $files, News $news): void
     {
         foreach ($files as $file) {
@@ -177,4 +184,6 @@ public function __construct(readonly NewsFilter $newsFilter)
             throw new BadRequestHttpException('Ошибка при удалении объявления: ' . $exception->getMessage());
         }
     }
+
+
 }

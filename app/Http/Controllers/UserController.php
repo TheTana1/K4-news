@@ -20,14 +20,26 @@ class UserController extends Controller
 
     public function __construct(readonly UserRepository $userRepository)
     {
-        $this->authorizeResource(User::class, 'user');
+        $this->authorizeResource(User::class, 'user', [
+            'only' => ['index', 'show', 'create', 'store', 'edit', 'update', 'destroy'],
+        ]);
     }
     public function index(Request $request):View
     {
+
         $users = $this->userRepository->index($request);
         $roles = $this->getRoles();
 
         return view('users.index', compact('users', 'roles'));
+    }
+
+    public function indexTrashed(Request $request):View
+    {
+        $this->authorize('viewTrashed', User::class);
+        $users = $this->userRepository->indexTrashed($request);
+        $roles = $this->getRoles();
+
+        return view('users.trashed', compact('users', 'roles'));
     }
 
     public function create(): View
@@ -79,5 +91,24 @@ class UserController extends Controller
     private function getRoles()
     {
         return Role::all();
+    }
+
+    public function restore(int $id): RedirectResponse
+    {
+        $user = User::withTrashed()->findOrFail($id);
+        $result = $this->userRepository->restore($user);
+        return $result ?
+            redirect()->route('trashed-users.index')->with('success','Пользователь восстановлен'):
+            redirect()->route('trashed-users.index')->with('error','Ошибка восстановления пользователя');
+
+    }
+
+    public function forceDelete(int $id): RedirectResponse
+    {
+        $user = User::withTrashed()->findOrFail($id);
+        $result = $this->userRepository->forceDelete($user);
+        return $result ?
+            redirect()->route('trashed-users.index')->with('success','Пользователь удалён навсегда'):
+            redirect()->route('trashed-users.index')->with('error','Ошибка полного удаления пользователя');
     }
 }

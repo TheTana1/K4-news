@@ -14,8 +14,8 @@ class UserRequest extends FormRequest
     static $user;
     public function authorize(): bool
     {
-
-        return  auth()->user()->isAdmin() ||  auth()->user()->isModerator() || $this->user()->id ===  auth()->user()->id;
+        $user=auth()->user();
+        return  $user->isAdmin() ||  $user->isModerator() || $this->user()->id === $user->id;
     }
 
     public function rules(): array
@@ -134,14 +134,17 @@ class UserRequest extends FormRequest
     protected function prepareForValidation(): void
     {
 
-
         $password = $this->input('password');
+
+
         if (empty($password) ||
             $password === 'password' ||
-            Hash::check($password, $this->user()?->password) ||
-            auth()->user()->isAdmin() ||  auth()->user()->isModerator()) {
+            Hash::check($password, $this->user()?->password)) {
 
-
+            $this->request->remove('password');
+            $this->request->remove('password_confirmation');
+        }
+        if (auth()->user()->isModerator()||auth()->user()->isAdmin()) {
             $this->request->remove('password');
             $this->request->remove('password_confirmation');
         }

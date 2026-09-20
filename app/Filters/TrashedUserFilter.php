@@ -2,11 +2,10 @@
 
 namespace App\Filters;
 
-
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 
-class UserFilter
+class TrashedUserFilter
 {
     public static function apply(Request $request, Builder $query): Builder
     {
@@ -22,14 +21,11 @@ class UserFilter
         if ($request->has('role_id') && $request->input('role_id') != null) {
             $query->where('role_id',  $request->input('role_id'));
         }
-        if ($request->has('is_active_in_group') && $request->input('is_active_in_group') != null) {
-            $query->where('is_active_in_group', $request->input('is_active_in_group'));
-        }
         if ($request->has('date_from') && $request->input('date_from') != null) {
-            $query->whereDate('created_at', '>=', $request->input('date_from'));
+            $query->whereDate('deleted_at', '>=', $request->input('date_from'));
         }
         if ($request->has('date_to') && $request->input('date_to') != null) {
-            $query->whereDate('created_at', '<=', $request->input('date_to'));
+            $query->whereDate('deleted_at', '<=', $request->input('date_to'));
         }
         return $query;
     }

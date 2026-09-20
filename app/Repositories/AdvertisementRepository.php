@@ -57,7 +57,14 @@ public function __construct(readonly AdvertisementFilter $advertisementFilter)
                 ->withQueryString()
         );
         return ['advertisement'=>$advertisement, 'comments'=>$comments];
+    }
 
+    public function edit(Advertisement $advertisement)
+    {
+        if(Cache::tags(['advertisement:' . $advertisement->id])->has('advertisement:' . $advertisement->id)) {
+            return Cache::tags(['advertisement:' . $advertisement->id])->get('advertisement:' . $advertisement->id);
+        }
+        return $advertisement->load(['files', 'role']);
     }
 
     final public function store(AdvertisementRequest $request): Advertisement

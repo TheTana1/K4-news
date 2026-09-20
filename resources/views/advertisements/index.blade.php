@@ -186,11 +186,13 @@
                                             <small class="text-muted d-block">Роль</small>
                                             @php
                                                 $spanLabel = match($ad->role?->slug){
+                                                    'admin'=> 'Администратор',
                                                     'moderator'=> 'Всем',
                                                     'Kitchen_Worker' => 'Сотрудникам Кухни',
                                                     'Service Staff'=>'Сотрудникам Зала'
                                                 };
                                                  $spanColor = match($ad->role?->slug){
+                                                    'admin' => "#8a008c",
                                                     'moderator'=> "#0D6EFD",
                                                     'Kitchen_Worker' => "#a40e13",
                                                     'Service Staff'=> "#ff661b"

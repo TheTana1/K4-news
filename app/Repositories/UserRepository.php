@@ -2,6 +2,7 @@
 
 namespace App\Repositories;
 
+use App\Filters\TrashedUserFilter;
 use App\Filters\UserFilter;
 use App\Http\Requests\UserRequest;
 use App\Models\User;
@@ -20,8 +21,10 @@ class UserRepository
     private const COMMENTS_PER_PAGE = 10;
     private const CACHE_TTL = 900; //15минут
 
-    public function __construct(readonly UserFilter $userFilter)
-    {
+    public function __construct(
+        readonly UserFilter $userFilter,
+        readonly TrashedUserFilter $trashedUserFilter,
+    ) {
     }
 
     final public function index(Request $request, int $perPage = self::USER_PER_PAGE)
@@ -35,6 +38,21 @@ class UserRepository
         return Cache::tags(['users-index'])->remember($key, self::CACHE_TTL, function () use ($request, $perPage) {
             return $this->userFilter
                 ->apply($request, User::query())
+                ->with(['role'])
+                ->paginate($perPage)
+                ->withQueryString();
+        });
+    }
+    public function indexTrashed(Request $request, int $perPage = self::USER_PER_PAGE)
+    {
+        $key = 'users-indexTrashed:' . md5(serialize([
+                $request->query(),
+                $perPage
+            ]));
+
+        return Cache::tags(['users-indexTrashed'])->remember($key, self::CACHE_TTL, function () use ($request, $perPage) {
+            return $this->trashedUserFilter
+                ->apply($request, User::onlyTrashed())
                 ->with(['role'])
                 ->paginate($perPage)
                 ->withQueryString();
@@ -175,22 +193,19 @@ class UserRepository
         DB::beginTransaction();
 
         try {
-            if ($user->avatar_path && file_exists(public_path($user->avatar_path))) {
-                unlink(public_path($user->avatar_path));
-            }
 
-            $resultPhone = $user->phones()->delete();
-            $resultUser = $user->delete();
-            $result = false;
-            if ($resultUser && $resultPhone) $result = true;
+
+            $user->phones()->delete();
+            $user->delete();
 
             DB::commit();
 
             Cache::tags(['users-index'])->flush();
             Cache::tags(['user:' . $user->id])->flush();
             Cache::tags(['dashboard'])->flush();
+            Cache::tags(['users-indexTrashed'])->flush();
 
-            return $result;
+            return true;
 
         } catch (\Exception $exception) {
             DB::rollBack();
@@ -211,4 +226,52 @@ class UserRepository
         }
         return $user->load(['role', 'phones']);
     }
+
+    public function forceDelete($user): bool
+    {
+        DB::beginTransaction();
+        try {
+            if ($user->avatar_path && file_exists(public_path($user->avatar_path))) {
+                unlink(public_path($user->avatar_path));
+            }
+            $user->phones()->forceDelete();
+            $user->forceDelete();
+
+            DB::commit();
+            Cache::tags(['users-indexTrashed'])->flush();
+
+            return true;
+        }catch (\Exception $exception){
+            DB::rollBack();
+            Log::critical('Ошибка при forceDelete пользователя: ' . $exception->getMessage(), [
+                'user_id' => $user->id,
+                'trace' => $exception->getTraceAsString()
+            ]);
+            return false;
+        }
+    }
+
+    public function restore($user): bool
+    {
+
+        DB::beginTransaction();
+        try {
+            $user->phones()->restore();
+            $user->restore();
+            DB::commit();
+            Cache::tags(['users-indexTrashed'])->flush();
+            Cache::tags(['users-index'])->flush();
+            return true;
+        }catch (\Exception $exception){
+            DB::rollBack();
+            Log::critical('Ошибка при восстановлении пользователя: ' . $exception->getMessage(), [
+                'user_id' => $user->id,
+                'trace' => $exception->getTraceAsString()
+            ]);
+            return false;
+        }
+
+    }
+
+
 }

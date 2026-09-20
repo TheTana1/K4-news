@@ -1,28 +1,22 @@
 @extends('layouts.app')
 
-@section('title', 'Пользователи')
+@section('title', 'Корзина')
 
 @section('content')
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="h3 mb-0">Пользователи</h1>
+        <h1 class="h3 mb-0">Корзина</h1>
         <div class="d-flex gap-2">
-            @can('create', App\Models\User::class)
-                <a href="{{ route('users.create') }}" class="btn btn-sm btn-primary">
-                    <i class="bi bi-plus-lg me-1"></i> Добавить пользователя
-                </a>
-            @endcan
 
-            @can('viewTrashed', App\Models\User::class)
-                <a href="{{ route('trashed-users.index') }}" class="btn btn-sm btn-outline-secondary">
-                    <i class="bi bi-trash me-1"></i> Корзина
-                </a>
-            @endcan
+            <a href="{{ route('users.index') }}" class="btn btn-sm btn-outline-secondary">
+                <i class="bi bi-trash me-1"></i> Назад
+            </a>
+
         </div>
     </div>
     <!-- Фильтр -->
     <div class="card mb-4">
         <div class="card-body">
-            <form method="GET" action="{{ route('users.index') }}" id="filterForm">
+            <form method="GET" action="{{ route('trashed-users.index') }}" id="filterForm">
                 <div class="row g-3">
                     <!-- Имя -->
                     <div class="col-12 col-md-6 col-lg-2">
@@ -34,15 +28,6 @@
                                value="{{ request('name') }}">
                     </div>
 
-                    <div class="col-12 col-md-6 col-lg-2">
-                        <label class="form-label small text-muted">TG Никнейм</label>
-                        <input type="text"
-                               name="username"
-                               class="form-control form-control-sm"
-                               placeholder="Поиск по никнейму"
-                               value="{{ request('username') }}">
-                    </div>
-
                     <!-- Email -->
                     <div class="col-12 col-md-6 col-lg-2">
                         <label class="form-label small text-muted">Email</label>
@@ -51,6 +36,16 @@
                                class="form-control form-control-sm"
                                placeholder="Поиск по email"
                                value="{{ request('email') }}">
+                    </div>
+
+                    <!-- Username -->
+                    <div class="col-12 col-md-6 col-lg-2">
+                        <label class="form-label small text-muted">TG Никнейм</label>
+                        <input type="text"
+                               name="username"
+                               class="form-control form-control-sm"
+                               placeholder="Поиск по никнейму"
+                               value="{{ request('username') }}">
                     </div>
 
                     <!-- Роль -->
@@ -66,23 +61,9 @@
                         </select>
                     </div>
 
-                    <!-- Статус -->
-                    <div class="col-12 col-md-6 col-lg-2">
-                        <label class="form-label small text-muted">Статус</label>
-                        <select name="is_active_in_group" class="form-select form-select-sm">
-                            <option value="">Все статусы</option>
-                            <option value="1" {{ request('is_active_in_group') === '1' ? 'selected' : '' }}>
-                                В группе
-                            </option>
-                            <option value="0" {{ request('is_active_in_group') === '0' ? 'selected' : '' }}>
-                                Не в группе
-                            </option>
-                        </select>
-                    </div>
-
                     <!-- Дата от -->
                     <div class="col-12 col-md-6 col-lg-2">
-                        <label class="form-label small text-muted">Дата от</label>
+                        <label class="form-label small text-muted">Дата удаления от</label>
                         <input type="date"
                                name="date_from"
                                class="form-control form-control-sm"
@@ -91,7 +72,7 @@
 
                     <!-- Дата до -->
                     <div class="col-12 col-md-6 col-lg-2">
-                        <label class="form-label small text-muted">Дата до</label>
+                        <label class="form-label small text-muted">Дата удаления до</label>
                         <input type="date"
                                name="date_to"
                                class="form-control form-control-sm"
@@ -104,7 +85,7 @@
                             <button type="submit" class="btn btn-primary btn-sm">
                                 <i class="bi bi-search me-1"></i> Применить
                             </button>
-                            <a href="{{ route('users.index') }}" class="btn btn-secondary btn-sm">
+                            <a href="{{ route('trashed-users.index') }}" class="btn btn-secondary btn-sm">
                                 <i class="bi bi-arrow-counterclockwise me-1"></i> Сбросить
                             </a>
                         </div>
@@ -113,61 +94,7 @@
             </form>
         </div>
     </div>
-    <!-- Статистика -->
-    <div class="row g-3 mb-4">
-        <div class="col-6 col-lg-3">
-            <div class="card h-100">
-                <div class="card-body d-flex align-items-center">
-                    <div class="bg-primary bg-opacity-10 rounded p-3 me-3">
-                        <i class="bi bi-people fs-4 text-primary"></i>
-                    </div>
-                    <div>
-                        <div class="text-muted small text-uppercase">Всего</div>
-                        <div class="h4 mb-0">{{ $users->total() }}</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-6 col-lg-3">
-            <div class="card h-100">
-                <div class="card-body d-flex align-items-center">
-                    <div class="bg-success bg-opacity-10 rounded p-3 me-3">
-                        <i class="bi bi-check-circle fs-4 text-success"></i>
-                    </div>
-                    <div>
-                        <div class="text-muted small text-uppercase">В группе</div>
-                        <div class="h4 mb-0">{{ $users->where('is_active_in_group', true)->count() }}</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-6 col-lg-3">
-            <div class="card h-100">
-                <div class="card-body d-flex align-items-center">
-                    <div class="bg-info bg-opacity-10 rounded p-3 me-3">
-                        <i class="bi bi-gender-male fs-4 text-info"></i>
-                    </div>
-                    <div>
-                        <div class="text-muted small text-uppercase">Мужчины</div>
-                        <div class="h4 mb-0">{{ $users->where('gender', 0)->count() }}</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-6 col-lg-3">
-            <div class="card h-100">
-                <div class="card-body d-flex align-items-center">
-                    <div class="bg-danger bg-opacity-10 rounded p-3 me-3">
-                        <i class="bi bi-gender-female fs-4 text-danger"></i>
-                    </div>
-                    <div>
-                        <div class="text-muted small text-uppercase">Женщины</div>
-                        <div class="h4 mb-0">{{ $users->where('gender', 1)->count() }}</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+
 
     <!-- Список пользователей -->
     <div class="card">
@@ -217,15 +144,16 @@
                                         <div class="info-item">
                                             <small class="text-muted d-block">Роль</small>
                                             @php
-                                                 $spanColor = match($user->role?->slug){
-                                                    'admin' => "#8a008c",
-                                                    'moderator'=> "#0D6EFD",
-                                                    'Kitchen_Worker' => "#a40e13",
-                                                    'Service Staff'=> "#ff661b"
-                                                };
+                                                $roleColors = [
+                                                    'admin' => 'text-purple',
+                                                    'moderator' => 'text-info',
+                                                    'user' => 'text-secondary',
+                                                ];
+                                                $roleSlug = $user->role?->slug ?? 'user';
                                             @endphp
-                                            <span style="color: {{ $spanColor }}">{{ $user->role?->label }}</span>
-
+                                            <span class="{{ $roleColors[$roleSlug] ?? $roleColors['user'] }}">
+                                {{ $user->role?->label ?? 'Пользователь' }}
+                            </span>
                                         </div>
                                     </div>
                                     <div class="col-6 col-sm-4">
@@ -256,21 +184,23 @@
                                            class="btn btn-sm btn-outline-primary flex-fill">
                                             <i class="bi bi-eye me-1"></i> Просмотр
                                         </a>
-                                        @can('update', $user)
-                                            <a href="{{ route('users.edit', $user) }}"
-                                               class="btn btn-sm btn-outline-success">
-                                                <i class="bi bi-pencil"></i>
-                                            </a>
+                                        @can('restore', $user)
+                                            <form action="{{ route('users.restore', $user->id) }}" method="POST" class="d-inline">
+                                                @csrf
+                                                @method('PATCH')
+                                                <button class="btn btn-sm btn-outline-success" title="Восстановить">
+                                                    <i class="bi bi-arrow-counterclockwise"></i>
+                                                </button>
+                                            </form>
                                         @endcan
-                                        @can('delete', $user)
-                                            <form action="{{ route('users.destroy', $user) }}"
-                                                  method="POST"
-                                                  class="d-inline">
+
+                                        @can('forceDelete', $user)
+
+                                            <form action="{{ route('users.forceDelete', $user->id) }}" method="POST" class="d-inline"
+                                                  onsubmit="return confirm('Удалить пользователя {{ $user->name }} навсегда?');">
                                                 @csrf
                                                 @method('DELETE')
-                                                <button type="submit"
-                                                        class="btn btn-sm btn-outline-danger"
-                                                        onclick="return confirm('Вы уверены, что хотите удалить пользователя {{ $user->name }}?')">
+                                                <button class="btn btn-sm btn-outline-danger" title="Удалить навсегда">
                                                     <i class="bi bi-trash"></i>
                                                 </button>
                                             </form>
@@ -284,9 +214,6 @@
                     <div class="text-center text-muted py-5">
                         <i class="bi bi-people fs-1 d-block mb-3"></i>
                         <p class="mb-0">Пользователей пока нет</p>
-                        <a href="{{ route('users.create') }}" class="btn btn-primary mt-3">
-                            <i class="bi bi-plus-lg me-1"></i> Добавить первого пользователя
-                        </a>
                     </div>
                 @endforelse
                 @if($users->hasPages())

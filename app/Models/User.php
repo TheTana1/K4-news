@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -61,7 +62,7 @@ use Tymon\JWTAuth\Contracts\JWTSubject;
  */
 class User extends Authenticatable implements JWTSubject
 {
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, SoftDeletes;
 
     protected $fillable = [
         'avatar_path',
@@ -133,18 +134,18 @@ class User extends Authenticatable implements JWTSubject
             }
             return $query->whereIn('role_id',[ $roleId ?? 2, 1,2]);
         }
-        return $query->where('role_id', 2);
+        return $query;
     }
 
     // Хелперы для проверки ролей
     public function isAdmin(): bool
     {
-        return $this->role?->slug === 'admin';
+        return  $this->role_id === 1;
     }
 
     public function isModerator(): bool
     {
-        return $this->role?->slug === 'moderator';
+        return $this->role_id === 2;
     }
 
     public function getJWTIdentifier()

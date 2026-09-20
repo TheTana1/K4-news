@@ -19,9 +19,9 @@ class UserRegistrationService
             return null;
         }
 
-        $userDb = User::where('telegram_username', $from->username)->first();
+        $userDb = User::withTrashed()->where('telegram_username', $from->username)->first();
         if (!$userDb) {
-            $userDb = User::where('telegram_id', $from->id)->first();
+            $userDb = User::withTrashed()->where('telegram_id', $from->id)->first();
             if (!$userDb) {
                 return null;
             }

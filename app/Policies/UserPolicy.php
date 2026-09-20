@@ -14,7 +14,10 @@ class UserPolicy
     {
         return true;
     }
-
+    public function viewTrashed(User $user): bool
+    {
+        return $user->isAdmin() || $user->isModerator();
+    }
     /**
      * Determine whether the user can view the model.
      */
@@ -28,7 +31,7 @@ class UserPolicy
      */
     public function create(User $user): bool
     {
-        return true;
+        return $user->isAdmin() || $user->isModerator();
     }
 
     /**

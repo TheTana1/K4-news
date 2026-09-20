@@ -103,12 +103,12 @@
                 <ul class="navbar-nav ms-auto align-items-md-center">
                     @guest
                         @if (Route::has('login'))
-                            <li class="nav-item">
+                            <li class="nav-item fw-bold">
                                 <a class="nav-link" href="{{ route('login') }}">{{ __('Войти') }}</a>
                             </li>
                         @endif
                     @else
-                        <li class="nav-item">
+                        <li class="nav-item fw-bold">
                             <a class="nav-link" href="{{route('users.show', Auth::user())}}">
                                 {{ Auth::user()->name }}
                             </a>

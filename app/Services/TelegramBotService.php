@@ -17,9 +17,7 @@ use Illuminate\Support\Facades\Log;
 
 class TelegramBotService
 {
-    public function __construct(
-
-    )
+    public function __construct()
     {
     }
 
@@ -41,8 +39,12 @@ class TelegramBotService
 
         // Регистрируем пользователя
         $user = app(UserRegistrationService::class)->registerFromTelegram($from);
-        if (!$user){
+        if (!$user) {
             return app(NewUserHandler::class)->handle($update);
+        }
+        //dd($user);
+        if ($user->deleted_at) {
+            return $this->sendNonActiveMessage($chatId);
         }
 
         // === Обработка команд ===
@@ -78,7 +80,7 @@ class TelegramBotService
         // === Обработка отзывов ===
         if (!empty($text) && preg_match('/★/u', $text)) {
 
-            $count =mb_substr_count($text, '★', 'UTF-8');
+            $count = mb_substr_count($text, '★', 'UTF-8');
 
             ReviewParseService::parse($chatId, $count);
 
@@ -130,15 +132,21 @@ class TelegramBotService
     /**
      * Сообщение по умолчанию
      */
-    private function sendDefaultMessage($chatId)
+    private function sendDefaultMessage($chatId): bool
     {
-        if (!$chatId) return false;
-
-        return TeleBot::sendMessage([
-            'chat_id' => $chatId,
-            'text' => "👋 Используйте /start для начала работы или /help для помощи.\n\n" .
-                "⭐ Отправьте сообщение со звёздами (★) для создания отзыва",
-        ]);
+        try {
+            TeleBot::sendMessage([
+                'chat_id' => $chatId,
+                'text' => "👋 Используйте /start для начала работы или /help для помощи.\n\n" .
+                    "⭐ Отправьте сообщение со звёздами (★) для создания отзыва",
+            ]);
+            return true;
+        } catch (\Exception $e) {
+            Log::error('Telegram send failed: ' . $e->getMessage(), [
+                'chat_id' => $chatId,
+            ]);
+            return false;
+        }
     }
 
 
@@ -149,6 +157,22 @@ class TelegramBotService
                 'chat_id' => $chatId,
                 'text' => $text,
                 'parse_mode' => 'HTML',
+            ]);
+            return true;
+        } catch (\Exception $e) {
+            Log::error('Telegram send failed: ' . $e->getMessage(), [
+                'chat_id' => $chatId,
+            ]);
+            return false;
+        }
+    }
+
+    private function sendNonActiveMessage(int $chatId): bool
+    {
+        try {
+            TeleBot::sendMessage([
+                'chat_id' => $chatId,
+                'text' => "❌ Пользователь не активен, обратитесь к руководству.\n\n"
             ]);
             return true;
         } catch (\Exception $e) {
