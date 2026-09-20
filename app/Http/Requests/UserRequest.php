@@ -136,13 +136,12 @@ class UserRequest extends FormRequest
 
         $password = $this->input('password');
 
-
         if (empty($password) ||
             $password === 'password' ||
             Hash::check($password, $this->user()?->password)) {
-
             $this->request->remove('password');
             $this->request->remove('password_confirmation');
+            return;
         }
         if (auth()->user()->isModerator()||auth()->user()->isAdmin()) {
             $this->request->remove('password');
