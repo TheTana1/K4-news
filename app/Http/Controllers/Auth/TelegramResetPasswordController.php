@@ -17,15 +17,15 @@ class TelegramResetPasswordController extends Controller
     }
     public function send(Request $request, TelegramBotService $telegram)
     {
-        $request->validate(['email' => 'required|email|max:255|exists:users,email']);
+        $request->validate(['telegram_username' => 'required|string|max:255|exists:users,telegram_username']);
 
-        $user = User::where('email', $request->email)->first();
+        $user = User::where('telegram_username', $request->telegram_username)->first();
 
         if (!$user || !$user->telegram_id) {
-            return back()->withErrors(['email' => 'Пользователь не найден или Telegram не привязан.']);
+            return back()->withErrors(['telegram_username' => 'Пользователь не найден или Telegram не привязан.']);
         }
         if (!$user->is_active_in_group){
-            return back()->withErrors(['email' => 'Пользователь не активен, обратитесь к руководству']);
+            return back()->withErrors(['telegram_username' => 'Пользователь не активен, обратитесь к руководству']);
         }
 
         $newPassword = Str::random(12);
@@ -40,7 +40,7 @@ class TelegramResetPasswordController extends Controller
         $sent = $telegram->sendHtmlMessage($user->telegram_id, $text);
 
         if (!$sent) {
-            return back()->withErrors(['email' => 'Не удалось отправить сообщение в Telegram.']);
+            return back()->withErrors(['telegram_username' => 'Не удалось отправить сообщение в Telegram.']);
         }
 
         return back()->with('status ', 'Новый пароль отправлен в Telegram!');

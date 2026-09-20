@@ -43,11 +43,16 @@ class LoginController extends Controller
     {
         $credentials = $request->only($this->username(), 'password');
 
-
         if (isset($credentials[$this->username()])) {
             $credentials[$this->username()] = strtolower($credentials[$this->username()]);
         }
 
         return $credentials;
     }
+
+    protected function username()
+    {
+        return 'telegram_username';
+    }
+
 }

@@ -123,6 +123,10 @@ class User extends Authenticatable implements JWTSubject
     {
         $this->attributes['email'] = strtolower($email);
     }
+    public function setTelegramUsernameAttribute(string $telegram_username): void
+    {
+        $this->attributes['telegram_username'] = strtolower($telegram_username);
+    }
 
     // Скоупы
     public function scopeForCurrentUser($query)

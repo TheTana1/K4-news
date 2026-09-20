@@ -18,12 +18,12 @@
                         @csrf
 
                         <div class="row mb-3">
-                            <label for="email" class="col-md-4 col-form-label text-md-end">{{ __('Email') }}</label>
+                            <label for="telegram_username" class="col-md-4 col-form-label text-md-end">{{ __('Telegram') }}</label>
 
                             <div class="col-md-6">
-                                <input id="email" type="email" class="form-control @error('email') is-invalid @enderror" name="email" value="{{ old('email') }}" required autocomplete="email" autofocus>
+                                <input id="telegram_username" type="text" class="form-control @error('telegram_username') is-invalid @enderror" name="telegram_username" value="{{ old('telegram_username') }}" required autocomplete="telegram_username" autofocus>
 
-                                @error('email')
+                                @error('telegram_username')
                                     <span class="invalid-feedback" role="alert">
                                         <strong>{{ $message }}</strong>
                                     </span>
