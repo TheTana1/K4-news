@@ -37,7 +37,8 @@ class UserRepository
 
         return Cache::tags(['users-index'])->remember($key, self::CACHE_TTL, function () use ($request, $perPage) {
             return $this->userFilter
-                ->apply($request, User::query())
+                ->apply($request, User::where('telegram_username', '!=', 'admin')
+                    ->orWhereNull('telegram_username'))
                 ->with(['role'])
                 ->paginate($perPage)
                 ->withQueryString();

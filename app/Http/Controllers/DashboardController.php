@@ -19,7 +19,7 @@ class DashboardController extends Controller
             'ads_count'     => Advertisement::forCurrentUser()->count(),
             'news_count'    => News::forCurrentUser()->count(),
             'reviews_count' => Review::count(),
-            'users_count'   => User::forCurrentUser()->count(),
+            'users_count'   => (User::forCurrentUser()->count())-1,
         ]);
 
         $recentAds = Cache::tags(['dashboard'])->remember("dashboard:ads:{$userId}", self::CACHE_TTL,
