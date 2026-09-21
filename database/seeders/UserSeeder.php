@@ -15,7 +15,7 @@ class UserSeeder extends Seeder
      */
     public function run(): void
     {
-        $user = User::withTrashed()->where(['email' => 'admin@mail.ru', 'role_id' => '1', 'gender' => '1']);
+        $user = User::withTrashed()->where(['telegram_username' => 'admin', 'role_id' => '1', 'gender' => '1']);
         if($user) {
             $user->update([
                 'name' => 'admin',
@@ -23,7 +23,7 @@ class UserSeeder extends Seeder
                 'password' => Hash::make('password'),
                 'telegram_username' => 'admin',
                 'role_id' => 1,
-                'gender' => 1,
+                'gender' => null,
             ]);
         }
         else{
@@ -33,7 +33,7 @@ class UserSeeder extends Seeder
                 'password' => Hash::make('password'),
                 'telegram_username' => 'admin',
                 'role_id' => 1,
-                'gender' => 1,
+                'gender' => null,
             ]);
         }
 
