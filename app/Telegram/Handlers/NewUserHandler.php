@@ -2,12 +2,14 @@
 
 namespace App\Telegram\Handlers;
 
+use App\Services\TelegramService;
 use App\Services\UserRegistrationService;
+use Illuminate\Support\Str;
 use WeStacks\TeleBot\Objects\Message;
 
 class NewUserHandler
 {
-    public function __construct(readonly UserRegistrationService $userRegistrationService)
+    public function __construct(readonly TelegramService $telegramService)
     {
     }
 
@@ -18,20 +20,17 @@ class NewUserHandler
 
         $sessionKey = "user_{$chatId}";
 
-        // Проверяем, есть ли активная сессия
         if (session()->has($sessionKey)) {
             $data = session($sessionKey);
-            // Если есть сессия, показываем текущий шаг
             return $this->showCurrentStep($chatId, $data);
         }
 
-        // Начинаем новую регистрацию
         session([$sessionKey => ['step' => 1]]);
 
-        return \TeleBot::sendMessage([
-            'chat_id' => $chatId,
-            'text' => "📱 Давайте зарегистрируемся.\n\nНапишите ваш телефон",
-        ]);
+        return $this->telegramService->sendMessage(
+            $chatId,
+            "📱 Давайте зарегистрируемся.\n\nНапишите ваш телефон"
+        );
     }
 
     public function handleMessage($chatId, $from, $text)
@@ -40,29 +39,36 @@ class NewUserHandler
         $sessionKey = "user_{$chatId}";
         $data = session($sessionKey, ['step' => 1]);
 
-
+        $newPassword = Str::random(12);
         if ($text === '✅ Отправить') {
             $data = array_merge($data, [
                 'id' => $from->id,
                 'first_name' => $from->first_name ?? null,
                 'last_name' => $from->last_name ?? null,
                 'username' => $from->username ?? null,
-
+                'password' => $newPassword
             ]);
 
-            $this->userRegistrationService->createUser($data);
+            app(UserRegistrationService::class)->createUser($data);
             session()->forget($sessionKey);
 
-            return \TeleBot::sendMessage([
-                'chat_id' => $chatId,
-                'text' => "✅ Регистрация завершена!",
-                'reply_markup' => [
-                    'keyboard' => [
-                        [['text' => '🏠 На главную']],
-                    ],
-                    'remove_keyboard' => true
-                ],
-            ]);
+            $text = "✅ <b>Регистрация завершена!</b>\n\n";
+            $text .= "Вам выдан пароль <code>{$newPassword}</code>\n";
+            $text .= "Рекомендуем сменить его после входа.";
+            return $this->telegramService->sendHtmlMessage(
+                $chatId,
+                $text,
+                [
+                    'reply_markup' =>
+                        [
+                            'keyboard' =>
+                                [
+                                    [['text' => '🏠 На главную']],
+                                ],
+                            'resize_keyboard' => true,
+                        ]
+                ]
+            );
         }
 
         if ($text === '⏮ Назад') {
@@ -78,64 +84,40 @@ class NewUserHandler
         if ($text === '❌ Сначала' || $text === '/cancel') {
             session()->forget($sessionKey);
 
-            return \TeleBot::sendMessage([
-                'chat_id' => $chatId,
-                'text' => '❌ Регистрация отменена.',
-                'reply_markup' => ['remove_keyboard' => true],
-            ]);
+            return $this->telegramService->sendWithRemoveKeyboard(
+                $chatId,
+                '❌ Регистрация отменена.'
+            );
         }
-
-        // ==========================================
-        // 2. ОБРАБОТКА ШАГОВ
-        // ==========================================
 
         $step = $data['step'] ?? 1;
 
-        switch ($step) {
-            case 1:
-                return $this->processPhone($chatId, $text, $data);
-            case 2:
-                return $this->processEmail($chatId, $text, $data);
-            case 3:
-                return $this->processPassword($chatId, $text, $data);
-            case 4:
-                return $this->processPasswordConfirm($chatId, $text, $data);
-            case 5:
-                return $this->processRole($chatId, $text, $data);
-            default:
-                return $this->handleCancel($chatId);
-        }
+        return match ($step) {
+            1 => $this->processPhone($chatId, $text, $data),
+            2 => $this->processEmail($chatId, $text, $data),
+//            3 => $this->processPassword($chatId, $text, $data),
+//            4 => $this->processPasswordConfirm($chatId, $text, $data),
+            5 => $this->processRole($chatId, $text, $data),
+            default => $this->handleCancel($chatId),
+        };
     }
-
-    // ==========================================
-    // 3. МЕТОДЫ ОБРАБОТКИ ШАГОВ
-    // ==========================================
 
     private function processPhone($chatId, $text, $data)
     {
-        // Валидация
         if (empty($text)) {
-            return \TeleBot::sendMessage([
-                'chat_id' => $chatId,
-                'text' => '❌ Номер не может быть пустым. Попробуйте снова.',
-            ]);
+            return $this->telegramService->sendMessage($chatId, '❌ Номер не может быть пустым. Попробуйте снова.');
         }
 
         if (!$this->checkNumber($text)) {
-            return \TeleBot::sendMessage([
-                'chat_id' => $chatId,
-                'text' => '❌ Некорректный номер. Попробуйте снова.',
-            ]);
+            return $this->telegramService->sendMessage($chatId, '❌ Некорректный номер. Попробуйте снова.');
         }
 
-        // Сохраняем и переходим на следующий шаг
         $formatNumber = $this->normalizePhone($text);
         if ($formatNumber) {
             $data['phone'] = $formatNumber;
             $data['step'] = 2;
             session(["user_{$chatId}" => $data]);
 
-            // ПОСЛЕ СОХРАНЕНИЯ ВЫХОДИМ И ЖДЕМ СЛЕДУЮЩЕЕ СООБЩЕНИЕ
             return $this->askForEmail($chatId);
         }
         return false;
@@ -143,218 +125,162 @@ class NewUserHandler
 
     private function processEmail($chatId, $text, $data)
     {
-        // Валидация
         if (empty($text)) {
-            return \TeleBot::sendMessage([
-                'chat_id' => $chatId,
-                'text' => '❌ Email не может быть пустым. Попробуйте снова.',
-            ]);
+            return $this->telegramService->sendMessage($chatId, '❌ Email не может быть пустым. Попробуйте снова.');
         }
 
         if (!$this->checkEmail($text)) {
-            return \TeleBot::sendMessage([
-                'chat_id' => $chatId,
-                'text' => '❌ Некорректный email. Попробуйте снова.',
-            ]);
+            return $this->telegramService->sendMessage($chatId, '❌ Некорректный email. Попробуйте снова.');
         }
 
-        // Сохраняем и переходим на следующий шаг
         $data['email'] = $text;
-        $data['step'] = 3;
-        session(["user_{$chatId}" => $data]);
-
-        // ПОСЛЕ СОХРАНЕНИЯ ВЫХОДИМ И ЖДЕМ СЛЕДУЮЩЕЕ СООБЩЕНИЕ
-        return $this->askForPassword($chatId);
-    }
-
-    private function processPassword($chatId, $text, $data)
-    {
-        // Валидация
-        if (empty($text)) {
-            return \TeleBot::sendMessage([
-                'chat_id' => $chatId,
-                'text' => '❌ Пароль не может быть пустым. Попробуйте снова.',
-            ]);
-        }
-
-        if (!$this->checkPassword($text)) {
-            return \TeleBot::sendMessage([
-                'chat_id' => $chatId,
-                'text' => "❌ Некорректный пароль. Попробуйте снова.\n" .
-                    "Минимум 8 символов, хотя бы одна буква и одна цифра.",
-            ]);
-        }
-
-        // Сохраняем и переходим на следующий шаг
-        $data['password'] = $text;
-        $data['step'] = 4;
-        session(["user_{$chatId}" => $data]);
-
-        // ПОСЛЕ СОХРАНЕНИЯ ВЫХОДИМ И ЖДЕМ СЛЕДУЮЩЕЕ СООБЩЕНИЕ
-        return $this->askForPasswordConfirm($chatId);
-    }
-
-    private function processPasswordConfirm($chatId, $text, $data)
-    {
-        // Проверяем, совпадает ли пароль
-        if ($text !== ($data['password'] ?? null)) {
-            return \TeleBot::sendMessage([
-                'chat_id' => $chatId,
-                'text' => '❌ Пароли не совпадают. Попробуйте снова.',
-            ]);
-        }
-
-        // Переходим на следующий шаг
+//      $data['step'] = 3;
         $data['step'] = 5;
         session(["user_{$chatId}" => $data]);
 
-        // ПОСЛЕ СОХРАНЕНИЯ ВЫХОДИМ И ЖДЕМ СЛЕДУЮЩЕЕ СООБЩЕНИЕ
+//        return $this->askForPassword($chatId);
         return $this->askForRole($chatId);
     }
 
+
+//    private function processPassword($chatId, $text, $data)
+//    {
+//        // Валидация
+//        if (empty($text)) {
+//            return \TeleBot::sendMessage([
+//                'chat_id' => $chatId,
+//                'text' => '❌ Пароль не может быть пустым. Попробуйте снова.',
+//            ]);
+//        }
+//
+//        if (!$this->checkPassword($text)) {
+//            return \TeleBot::sendMessage([
+//                'chat_id' => $chatId,
+//                'text' => "❌ Некорректный пароль. Попробуйте снова.\n" .
+//                    "Минимум 8 символов, хотя бы одна буква и одна цифра.",
+//            ]);
+//        }
+//
+//        // Сохраняем и переходим на следующий шаг
+//        $data['password'] = $text;
+//        $data['step'] = 4;
+//        session(["user_{$chatId}" => $data]);
+//
+//        // ПОСЛЕ СОХРАНЕНИЯ ВЫХОДИМ И ЖДЕМ СЛЕДУЮЩЕЕ СООБЩЕНИЕ
+//        return $this->askForPasswordConfirm($chatId);
+//    }
+//
+//    private function processPasswordConfirm($chatId, $text, $data)
+//    {
+//        // Проверяем, совпадает ли пароль
+//        if ($text !== ($data['password'] ?? null)) {
+//            return \TeleBot::sendMessage([
+//                'chat_id' => $chatId,
+//                'text' => '❌ Пароли не совпадают. Попробуйте снова.',
+//            ]);
+//        }
+//
+//        // Переходим на следующий шаг
+//        $data['step'] = 5;
+//        session(["user_{$chatId}" => $data]);
+//
+//        // ПОСЛЕ СОХРАНЕНИЯ ВЫХОДИМ И ЖДЕМ СЛЕДУЮЩЕЕ СООБЩЕНИЕ
+//        return $this->askForRole($chatId);
+//    }
+
     private function processRole($chatId, $text, $data)
     {
-        // Проверяем роль
         $role = $this->checkRole($text);
         if (!$role) {
-            return \TeleBot::sendMessage([
-                'chat_id' => $chatId,
-                'text' => '❌ Пожалуйста, выберите роль из кнопок ниже.',
-                'reply_markup' => [
-                    'keyboard' => [
-                        [['text' => '👨‍🍳 Сотрудник кухни']],
-                        [['text' => '🤵 Сотрудник зала']],
-                        [['text' => '⏮ Назад']],
-                    ],
-                    'resize_keyboard' => true,
+            return $this->telegramService->sendWithKeyboard(
+                $chatId,
+                '❌ Пожалуйста, выберите роль из кнопок ниже.',
+                [
+                    [['text' => '👨‍🍳 Сотрудник кухни']],
+                    [['text' => '🤵 Сотрудник зала']],
+                    [['text' => '⏮ Назад']],
                 ]
-            ]);
+            );
         }
 
-        // Сохраняем и показываем подтверждение
         $data['role'] = $role;
-        $data['step'] = 6; // финальный шаг
+        $data['step'] = 6;
         session(["user_{$chatId}" => $data]);
 
-        // Показываем подтверждение
         return $this->confirmUser($chatId, $data);
     }
-
-    // ==========================================
-    // 4. МЕТОДЫ ДЛЯ ПОКАЗА ШАГОВ
-    // ==========================================
 
     private function showCurrentStep($chatId, $data)
     {
         $step = $data['step'] ?? 1;
 
-        switch ($step) {
-            case 1:
-                return \TeleBot::sendMessage([
-                    'chat_id' => $chatId,
-                    'text' => "📱 Напишите ваш телефон",
-                ]);
-            case 2:
-                return $this->askForEmail($chatId);
-            case 3:
-                return $this->askForPassword($chatId);
-            case 4:
-                return $this->askForPasswordConfirm($chatId);
-            case 5:
-                return $this->askForRole($chatId);
-            case 6:
-                return $this->confirmUser($chatId, $data);
-            default:
-                return \TeleBot::sendMessage([
-                    'chat_id' => $chatId,
-                    'text' => 'Продолжите регистрацию',
-                ]);
-        }
+        return match ($step) {
+            1 => $this->telegramService->sendMessage($chatId, "📱 Напишите ваш телефон"),
+            2 => $this->askForEmail($chatId),
+//            3 => $this->askForPassword($chatId),
+//            4 => $this->askForPasswordConfirm($chatId),
+            5 => $this->askForRole($chatId),
+            6 => $this->confirmUser($chatId, $data),
+            default => $this->telegramService->sendMessage($chatId, 'Продолжите регистрацию'),
+        };
     }
 
-    private function askForEmail($chatId):Message
+    private function askForEmail($chatId): bool
     {
-        return \TeleBot::sendMessage([
-            'chat_id' => $chatId,
-            'text' => "🗄 Отлично!\n\nНапишите ваш email",
-            'reply_markup' => [
-                'keyboard' => [
-                    [['text' => '⏮ Назад']],
-                ],
-                'resize_keyboard' => true,
-            ]
-        ]);
+        return $this->telegramService->sendWithKeyboard(
+            $chatId,
+            "🗄 Отлично!\n\nНапишите ваш email",
+            [[['text' => '⏮ Назад']]]
+        );
     }
 
-    private function askForPassword($chatId):Message
+//    private function askForPassword($chatId): bool
+//    {
+//        return $this->telegramService->sendWithKeyboard(
+//            $chatId,
+//            "😉 Мы на полпути!\n\nПридумайте пароль",
+//            [[['text' => '⏮ Назад']]]
+//        );
+//    }
+
+    private function askForPasswordConfirm($chatId): bool
     {
-        return \TeleBot::sendMessage([
-            'chat_id' => $chatId,
-            'text' => "😉 Мы на полпути!\n\nПридумайте пароль",
-            'reply_markup' => [
-                'keyboard' => [
-                    [['text' => '⏮ Назад']],
-                ],
-                'resize_keyboard' => true,
-            ]
-        ]);
+        return $this->telegramService->sendWithKeyboard(
+            $chatId,
+            "🔑 Повторите пароль\n\n",
+            [[['text' => '⏮ Назад']]]
+        );
     }
 
-    private function askForPasswordConfirm($chatId):Message
+    private function askForRole($chatId): bool
     {
-        return \TeleBot::sendMessage([
-            'chat_id' => $chatId,
-            'text' => "🔑 Повторите пароль\n\n",
-            'reply_markup' => [
-                'keyboard' => [
-                    [['text' => '⏮ Назад']],
-                ],
-                'resize_keyboard' => true,
+        return $this->telegramService->sendWithKeyboard(
+            $chatId,
+            "😁 Почти у цели.\n\nСкажите, вы сотрудник какого отдела.",
+            [
+                [['text' => '👨‍🍳 Сотрудник кухни']],
+                [['text' => '🤵 Сотрудник зала']],
+                [['text' => '⏮ Назад']],
             ]
-        ]);
+        );
     }
 
-    private function askForRole($chatId):Message
-    {
-        return \TeleBot::sendMessage([
-            'chat_id' => $chatId,
-            'text' => "😁 Почти у цели.\n\nСкажите, вы сотрудник какого отдела.",
-            'reply_markup' => [
-                'keyboard' => [
-                    [['text' => '👨‍🍳 Сотрудник кухни']],
-                    [['text' => '🤵 Сотрудник зала']],
-                    [['text' => '⏮ Назад']],
-                ],
-                'resize_keyboard' => true,
-            ]
-        ]);
-    }
-
-    private function confirmUser($chatId, $data):Message
+    private function confirmUser($chatId, $data): bool
     {
         $text = "✅ Проверьте данные:\n" .
             "Номер: {$data['phone']}\n" .
             "Email: {$data['email']}\n" .
-            "Пароль: {$data['password']}\n" .
             "Вы: {$this->formatRole($data['role'])}\n\n" .
             "Все верно?";
 
-        return \TeleBot::sendMessage([
-            'chat_id' => $chatId,
-            'text' => $text,
-            'reply_markup' => [
-                'keyboard' => [
-                    [
-                        ['text' => '✅ Отправить']
-                    ],
-                    [
-                        ['text' => '⏮ Назад'],
-                        ['text' => '❌ Сначала']
-                    ]
-                ],
-                'resize_keyboard' => true,
-            ],
-        ]);
+        return $this->telegramService->sendWithKeyboard(
+            $chatId,
+            $text,
+            [
+                [['text' => '✅ Отправить']],
+                [['text' => '⏮ Назад'], ['text' => '❌ Сначала']],
+            ]
+        );
     }
 
     // ==========================================
@@ -404,11 +330,11 @@ class NewUserHandler
         return preg_match($pattern, $text) === 1;
     }
 
-    private function checkPassword(string $text): bool
-    {
-        $pattern = '/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d!@#$%^&*()\-_=+{};:,<.>]{8,20}$/';
-        return preg_match($pattern, $text) === 1;
-    }
+//    private function checkPassword(string $text): bool
+//    {
+//        $pattern = '/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d!@#$%^&*()\-_=+{};:,<.>]{8,20}$/';
+//        return preg_match($pattern, $text) === 1;
+//    }
 
     private function checkRole(string $text): int|null
     {
@@ -429,14 +355,13 @@ class NewUserHandler
         }
     }
 
-    private function handleCancel($chatId):Message
+    private function handleCancel($chatId): bool
     {
         session()->forget("user_{$chatId}");
 
-        return \TeleBot::sendMessage([
-            'chat_id' => $chatId,
-            'text' => '❌ Регистрация отменена.',
-            'reply_markup' => ['remove_keyboard' => true],
-        ]);
+        return $this->telegramService->sendWithRemoveKeyboard(
+            $chatId,
+            '❌ Регистрация отменена.'
+        );
     }
 }
