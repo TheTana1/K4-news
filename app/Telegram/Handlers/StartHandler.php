@@ -2,30 +2,20 @@
 
 namespace App\Telegram\Handlers;
 
-use App\Services\UserRegistrationService;
-use WeStacks\TeleBot\Laravel\TeleBot;
-use App\Models\User;
-use WeStacks\TeleBot\Objects\Message;
+use App\Services\TelegramService;
 
 class StartHandler
 {
-    public function __construct()
-    {
+    public function __construct(
+        readonly TelegramService $telegramService,
+    ) {
     }
 
-    public function handle($chatId):Message|bool
+    public function handle($chatId): bool
     {
-
         if (!$chatId) {
-            return TeleBot::sendMessage([
-                'chat_id' => $chatId,
-                'text' => '❌ Ошибка чата',
-                'reply_markup' => [
-                    'resize_keyboard' => true,
-                ],
-            ]);
+            return $this->telegramService->sendMessage($chatId, '❌ Ошибка чата');
         }
-
 
         $text = "👋 Привет!\n\n";
         $text .= "Я бот для публикации объявлений и отзывов.\n\n";
@@ -34,17 +24,14 @@ class StartHandler
         $text .= "/new_news - Создать новость\n";
         $text .= "/help - Помощь\n";
 
-        return TeleBot::sendMessage([
-            'chat_id' => $chatId,
-            'text' => $text,
-            'reply_markup' => [
-                'keyboard' => [
-                    [['text' => '📝 Новое объявление']],
-                    [['text' => '📝 Новая новость']],
-                    [['text' => '❓ Помощь']],
-                ],
-                'resize_keyboard' => true,
-            ],
-        ]);
+        return $this->telegramService->sendWithKeyboard(
+            $chatId,
+            $text,
+            [
+                [['text' => '📝 Новое объявление']],
+                [['text' => '📝 Новая новость']],
+                [['text' => '❓ Помощь']],
+            ]
+        );
     }
 }

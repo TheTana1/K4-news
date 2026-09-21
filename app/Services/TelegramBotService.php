@@ -2,57 +2,58 @@
 
 namespace App\Services;
 
-use App\Models\Review;
 use App\Repositories\ReviewRepository;
+use App\Telegram\Handlers\NewAdHandler;
 use App\Telegram\Handlers\NewNewsHandler;
 use App\Telegram\Handlers\NewUserHandler;
-use http\Message;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Hash;
-use WeStacks\TeleBot\Laravel\TeleBot;
 use App\Telegram\Handlers\StartHandler;
-use App\Telegram\Handlers\NewAdHandler;
-use App\Models\User;
 use Illuminate\Support\Facades\Log;
 
 class TelegramBotService
 {
-    public function __construct()
-    {
+
+    public function __construct(
+        readonly ReviewParseService $reviewParseService,
+        readonly TelegramService $telegramService,
+        readonly UserRegistrationService $userRegistrationService,
+    ) {
     }
 
-    public function handleUpdate($update)
+    public function handleUpdate($update): bool
     {
         $message = $update->message ?? null;
         if (!$message) {
             Log::debug('Сообщение не имеет значения');
             return false;
         }
+
         $chatId = $message->chat->id ?? null;
+        if (empty($chatId)) {
+            return false;
+        }
+
         $text = $message->text ?? '';
         $from = $message->from ?? null;
         $published_at = $message->forward_origin->date ?? now()->timestamp;
 
-        if ($chatId && $this->isInSession($chatId, 'user')) {
+        if ($this->isInSession($chatId, 'user')) {
             return app(NewUserHandler::class)->handleMessage($chatId, $from, $text);
         }
 
-        // Регистрируем пользователя
-        $user = app(UserRegistrationService::class)->registerFromTelegram($from);
+        $user = $this->userRegistrationService->registerFromTelegram($from);
         if (!$user) {
             return app(NewUserHandler::class)->handle($update);
         }
-        //dd($user);
+
         if ($user->deleted_at) {
-            return $this->sendNonActiveMessage($chatId);
+            return $this->telegramService->sendMessage(
+                (string) $chatId,
+                "❌ Пользователь не активен, обратитесь к руководству.\n\n"
+            );
         }
 
-        // === Обработка команд ===
-        if ($text === '/start' || $text === '❌ Отмена' || $text === '🏠 На главную' || $text === '❌ Сначала') {
-            if ($user) {
-                return app(StartHandler::class)->handle($chatId);
-            }
-
+        if (in_array($text, ['/start', '❌ Отмена', '🏠 На главную', '❌ Сначала'], true)) {
+            return app(StartHandler::class)->handle($chatId);
         }
 
         if ($text === '/new_ad' || $text === '📝 Новое объявление') {
@@ -67,44 +68,52 @@ class TelegramBotService
             return $this->sendHelp($chatId);
         }
 
-        // === Пошаговые обработчики (состояния) ===
-
-        if ($chatId && $this->isInSession($chatId, 'ad')) {
+        if ($this->isInSession($chatId, 'ad')) {
             return app(NewAdHandler::class)->handleMessage($message);
         }
 
-        if ($chatId && $this->isInSession($chatId, 'news')) {
+        if ($this->isInSession($chatId, 'news')) {
             return app(NewNewsHandler::class)->handleMessage($message);
         }
 
-        // === Обработка отзывов ===
         if (!empty($text) && preg_match('/★/u', $text)) {
+            $count = $this->reviewParseService->parseRating($text);
 
-            $count = mb_substr_count($text, '★', 'UTF-8');
+            if ($count === null) {
+                return $this->telegramService->sendMessage(
+                    (string) $chatId,
+                    '❌ Не удалось определить рейтинг. Отправьте сообщение со звёздами (★).'
+                );
+            }
 
-            ReviewParseService::parse($chatId, $count);
+            $result = app(ReviewRepository::class)->store($text, $count, $from, $published_at);
 
-            return app(ReviewRepository::class)->store($text, $count, $from, $published_at);
+            if ($result) {
+                $stars = str_repeat('★', $count);
+                $this->telegramService->sendMessage(
+                    (string) $chatId,
+                    "✅ Отзыв сохранён!\n\n" .
+                    "⭐ Рейтинг: {$stars} ({$count}/5)\n" .
+                    "📅 Дата: " . now()->format('d.m.Y H:i')
+                );
+            }
 
+            return $result;
         }
 
-        // === Ответ по умолчанию ===
-        return $this->sendDefaultMessage($chatId);
+        return $this->telegramService->sendMessage(
+            (string) $chatId,
+            "👋 Используйте /start для начала работы или /help для помощи.\n\n" .
+            "⭐ Отправьте сообщение со звёздами (★) для создания отзыва"
+        );
     }
 
-
-    /**
-     * Проверка наличия активной сессии
-     */
-    private function isInSession($chatId, $type): bool
+    private function isInSession($chatId, string $type): bool
     {
         return session()->has("{$type}_{$chatId}");
     }
 
-    /**
-     * Отправка справки
-     */
-    private function sendHelp($chatId)
+    private function sendHelp($chatId): bool
     {
         if (!$chatId) return false;
 
@@ -115,72 +124,14 @@ class TelegramBotService
         $text .= "⭐ Отправьте сообщение со звёздами (★) для создания отзыва\n\n";
         $text .= "Также вы можете использовать кнопки в меню.";
 
-        return TeleBot::sendMessage([
-            'chat_id' => $chatId,
-            'text' => $text,
-            'reply_markup' => [
-                'keyboard' => [
-                    [['text' => '📝 Новое объявление']],
-                    [['text' => '📝 Новая новость']],
-                    [['text' => '❓ Помощь']],
-                ],
-                'resize_keyboard' => true,
-            ],
-        ]);
-    }
-
-    /**
-     * Сообщение по умолчанию
-     */
-    private function sendDefaultMessage($chatId): bool
-    {
-        try {
-            TeleBot::sendMessage([
-                'chat_id' => $chatId,
-                'text' => "👋 Используйте /start для начала работы или /help для помощи.\n\n" .
-                    "⭐ Отправьте сообщение со звёздами (★) для создания отзыва",
-            ]);
-            return true;
-        } catch (\Exception $e) {
-            Log::error('Telegram send failed: ' . $e->getMessage(), [
-                'chat_id' => $chatId,
-            ]);
-            return false;
-        }
-    }
-
-
-    public function sendHtmlMessage(string $chatId, string $text): bool
-    {
-        try {
-            TeleBot::sendMessage([
-                'chat_id' => $chatId,
-                'text' => $text,
-                'parse_mode' => 'HTML',
-            ]);
-            return true;
-        } catch (\Exception $e) {
-            Log::error('Telegram send failed: ' . $e->getMessage(), [
-                'chat_id' => $chatId,
-            ]);
-            return false;
-        }
-    }
-
-    private function sendNonActiveMessage(int $chatId): bool
-    {
-        try {
-            TeleBot::sendMessage([
-                'chat_id' => $chatId,
-                'text' => "❌ Пользователь не активен, обратитесь к руководству.\n\n"
-            ]);
-            return true;
-        } catch (\Exception $e) {
-            Log::error('Telegram send failed: ' . $e->getMessage(), [
-                'chat_id' => $chatId,
-            ]);
-            return false;
-        }
+        return $this->telegramService->sendWithKeyboard(
+            $chatId,
+            $text,
+            [
+                [['text' => '📝 Новое объявление']],
+                [['text' => '📝 Новая новость']],
+                [['text' => '❓ Помощь']],
+            ]
+        );
     }
 }
-

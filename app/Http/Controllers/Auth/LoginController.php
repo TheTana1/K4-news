@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 
 class LoginController extends Controller
 {
@@ -39,15 +41,19 @@ class LoginController extends Controller
         $this->middleware('auth')->only('logout');
     }
 
-    protected function credentials(Request $request)
+    protected function attemptLogin(Request $request)
     {
-        $credentials = $request->only($this->username(), 'password');
+        $username = strtolower(ltrim((string) $request->input('telegram_username'), '@'));
+        $password = $request->input('password');
 
-        if (isset($credentials[$this->username()])) {
-            $credentials[$this->username()] = strtolower($credentials[$this->username()]);
+        $user = User::whereRaw('LOWER(telegram_username) = ?', [$username])->first();
+
+        if ($user && Hash::check($password, $user->password)) {
+            $this->guard()->login($user, $request->filled('remember'));
+            return true;
         }
 
-        return $credentials;
+        return false;
     }
 
     protected function username()

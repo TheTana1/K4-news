@@ -39,6 +39,7 @@ class UserRegistrationService
         DB::beginTransaction();
 
         try {
+
             $userDb = User::create([
                 'telegram_id' => $user['id'],
                 'name' => trim(($user['first_name'] ?? '') . ' ' . ($user['last_name'] ?? '')),

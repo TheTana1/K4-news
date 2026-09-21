@@ -2,31 +2,16 @@
 
 namespace App\Services;
 
-use App\Models\Review;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\DB;
-use WeStacks\TeleBot\Laravel\TeleBot;
-
 class ReviewParseService
 {
-    public function __construct()
+    public function parseRating(string $text): ?int
     {
+        $count = mb_substr_count($text, '★', 'UTF-8');
+
+        if ($count === 0) {
+            return null;
+        }
+        return min($count, 5);
     }
-    public static function parse($chatId, $count){
-
-        $stars = str_repeat('★', $count);
-        return TeleBot::sendMessage([
-            'chat_id' => $chatId,
-            'text' => "✅ Отзыв сохранён!\n\n" .
-                "⭐ Рейтинг: {$stars} ({$count}/5)\n" .
-                "📅 Дата: " . now()->format('d.m.Y H:i'),
-        ]);
-
-
-
-    }
-
-
-
 
 }

@@ -59,7 +59,7 @@ class  ReviewRepository
     {
         DB::beginTransaction();
         try {
-            $username = strtolower($from->username);
+            $username = $from->username;
             $user_id = User::where('telegram_username', $username)->value('id');
             if (!$user_id) {
                 \Log::error('Пользователь не найден для отзыва', ['username' => $username]);
