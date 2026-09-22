@@ -3,6 +3,7 @@
 namespace App\Telegram\Handlers;
 
 use App\Models\User;
+use App\Services\AdvertisementService;
 use App\Services\TelegramService;
 use App\Services\UserRegistrationService;
 use Illuminate\Support\Facades\Cache;
@@ -16,7 +17,7 @@ class NewAdHandler
 {
     public function __construct(
         readonly UserRegistrationService $userRegistrationService,
-        readonly TelegramService         $telegramService,
+        readonly TelegramService         $telegramService
     )
     {
     }
@@ -393,11 +394,12 @@ class NewAdHandler
                 default => 'всем'
             };
 
+            app(AdvertisementService::class)->sendAdvertisementMessageTG($chatId,$ad);
+
             $text = "✅ <b>Объявление успешно опубликовано!</b>\n\n" .
                 "🆔 ID: {$ad->id}\n" .
                 "👥 Отправлено: " . $roleLabels . "\n" .
                 "📅 Дата: " . now()->format('d.m.Y H:i');
-
             return $this->telegramService->sendHtmlWithKeyboard(
                 $chatId,
                 $text,

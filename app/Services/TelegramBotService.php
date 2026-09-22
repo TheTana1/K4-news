@@ -13,7 +13,7 @@ readonly class TelegramBotService
 {
 
     public function __construct(
-        public ReviewParseService      $reviewParseService,
+        public ReviewService           $reviewService,
         public TelegramService         $telegramService,
         public UserRegistrationService $userRegistrationService,
     ) {
@@ -77,7 +77,7 @@ readonly class TelegramBotService
         }
 
         if (!empty($text) && preg_match('/★/u', $text)) {
-            $count = $this->reviewParseService->parseRating($text);
+            $count = $this->reviewService->parseRating($text);
 
             if ($count === null) {
                 return $this->telegramService->sendMessage(
@@ -89,13 +89,7 @@ readonly class TelegramBotService
             $result = app(ReviewRepository::class)->store($text, $count, $from, $published_at);
 
             if ($result) {
-                $stars = str_repeat('★', $count);
-                $this->telegramService->sendMessage(
-                    (string) $chatId,
-                    "✅ Отзыв сохранён!\n\n" .
-                    "⭐ Рейтинг: {$stars} ({$count}/5)\n" .
-                    "📅 Дата: " . local_date(now())
-                );
+                return $this->reviewService->sendMessage($count);
             }
 
             return $result;

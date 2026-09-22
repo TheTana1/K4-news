@@ -6,9 +6,6 @@ use App\Models\Advertisement;
 use App\Models\User;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
-use mysql_xdevapi\Exception;
-use WeStacks\TeleBot\Laravel\TeleBot;
-use WeStacks\TeleBot\Objects\InputFile;
 
 readonly class AdvertisementService
 {
@@ -16,14 +13,43 @@ readonly class AdvertisementService
     {
     }
 
-    public final function sendAdvertisementMessage(Advertisement $advertisement, string $header): bool
+    public final function sendAdvertisementMessageTG(?string $chatId, Advertisement $advertisement): bool
     {
+
+
+        if ($advertisement->role_id == 2) {
+            $users = User::where('telegram_id', '!=', $chatId)->
+            whereNotNull('telegram_id')->get();
+        } else {
+            $users = User::where('role_id', '=', $advertisement->role_id)->
+            where('telegram_id', '!=', $chatId)->
+            whereNotNull('telegram_id')->get();
+        }
+        if ($users->isEmpty()) {
+            Log::info('Рассылка объявления прервана: нет пользователей с telegram_id', [
+                'advertisement_id' => $advertisement->id,
+            ]);
+            return false;
+        }
         $roleLabels = match ($advertisement->role_id) {
             3 => 'сотрудникам кухни',
             4 => 'сотрудникам зала',
             default => 'всем'
         };
         $date = local_date(now());
+        $text =
+            "‼ <b>Новое объявление</b>" .
+            "🆔 ID: {$advertisement->id}\n" .
+            "👥 Отправлено: " . ($roleLabels) . "\n" .
+            "📅 Дата: " . $date . "\n" .
+            "✏️ Текст: " . $advertisement->content;
+
+        return $this->resendToUsers($users, $text, $advertisement);
+    }
+
+    public final function sendAdvertisementMessage(Advertisement $advertisement, string $header): bool
+    {
+
 
         if ($advertisement->role_id == 2) {
             $users = User::whereNotNull('telegram_id')->get();
@@ -39,6 +65,12 @@ readonly class AdvertisementService
             ]);
             return false;
         }
+        $roleLabels = match ($advertisement->role_id) {
+            3 => 'сотрудникам кухни',
+            4 => 'сотрудникам зала',
+            default => 'всем'
+        };
+        $date = local_date(now());
         $text =
             "$header\n\n" .
             "🆔 ID: {$advertisement->id}\n" .
@@ -46,6 +78,17 @@ readonly class AdvertisementService
             "📅 Дата: " . $date . "\n" .
             "✏️ Текст: " . $advertisement->content;
 
+        return $this->resendToUsers($users, $text, $advertisement);
+    }
+
+    /**
+     * @param \Illuminate\Database\Eloquent\Collection $users
+     * @param string $text
+     * @param Advertisement $advertisement
+     * @return bool
+     */
+    private function resendToUsers(\Illuminate\Database\Eloquent\Collection $users, string $text, Advertisement $advertisement): bool
+    {
         foreach ($users as $user) {
 
             if (!$this->telegramService->sendHtmlWithRemoveKeyboard($user->telegram_id, $text)) {
@@ -68,9 +111,8 @@ readonly class AdvertisementService
                     }
                     if (str_starts_with($file->mime_type, 'image/')) {
                         $this->telegramService->sendPhoto($file->file_path, $user->telegram_id);
-                    }
-                    else{
-                       $this->telegramService->sendDocument($file->file_path, $user->telegram_id);
+                    } else {
+                        $this->telegramService->sendDocument($file->file_path, $user->telegram_id);
                     }
 
                 }

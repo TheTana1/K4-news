@@ -3,6 +3,7 @@
 namespace App\Telegram\Handlers;
 
 use App\Models\User;
+use App\Services\NewsService;
 use App\Services\TelegramService;
 use App\Services\UserRegistrationService;
 use Illuminate\Support\Facades\Cache;
@@ -366,6 +367,7 @@ class NewNewsHandler
                 3 => 'сотрудникам кухни',
                 4 => 'сотрудникам зала'
             ];
+            app(NewsService::class)->sendNewsMessageTG($chatId,$news);
 
             $text = "✅ <b>Новость успешно опубликована!</b>\n\n" .
                 "🆔 ID: {$news->id}\n" .
