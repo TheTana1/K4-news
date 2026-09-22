@@ -12,7 +12,7 @@
             <form method="GET" action="{{ route('reviews.index') }}" id="filterForm">
                 <div class="row g-3">
                     <!-- Content -->
-                    <div class="col-12 col-md-6 col-lg-2">
+                    <div class="col-12 col-md-6 col-lg-3">
                         <label class="form-label small text-muted">Содержимое</label>
                         <input type="text"
                                name="content"
@@ -32,21 +32,21 @@
 {{--                    </div>--}}
 
                     <!-- Rating -->
-                    <div class="col-12 col-md-6 col-lg-2">
+                    <div class="col-12 col-md-6 col-lg-3">
                         <label class="form-label small text-muted">Рейтинг</label>
                         <select name="rating" class="form-select form-select-sm">
                             <option value="">Все отзывы</option>
-                            <option value="1">★</option>
-                            <option value="2">★★</option>
-                            <option value="3">★★★</option>
-                            <option value="4">★★★★</option>
-                            <option value="5">★★★★★</option>
+                            @for($i = 1; $i <= 5; $i++)
+                                <option value="{{ $i }}" @selected(request('rating') == $i)>
+                                    {{ str_repeat('★', $i) }}
+                                </option>
+                            @endfor
                         </select>
                     </div>
 
                     <!-- Дата от -->
-                    <div class="col-12 col-md-6 col-lg-2">
-                        <label class="form-label small text-muted">Дата от</label>
+                    <div class="col-12 col-md-6 col-lg-3">
+                        <label class="form-label small text-muted">Дата публикации от</label>
                         <input type="date"
                                name="date_from"
                                class="form-control form-control-sm"
@@ -54,8 +54,8 @@
                     </div>
 
                     <!-- Дата до -->
-                    <div class="col-12 col-md-6 col-lg-2">
-                        <label class="form-label small text-muted">Дата до</label>
+                    <div class="col-12 col-md-6 col-lg-3">
+                        <label class="form-label small text-muted">Дата публикации до</label>
                         <input type="date"
                                name="date_to"
                                class="form-control form-control-sm"

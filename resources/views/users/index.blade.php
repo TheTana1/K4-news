@@ -25,7 +25,7 @@
             <form method="GET" action="{{ route('users.index') }}" id="filterForm">
                 <div class="row g-3">
                     <!-- Имя -->
-                    <div class="col-12 col-md-6 col-lg-2">
+                    <div class="col-12 col-md-6 col-lg-3">
                         <label class="form-label small text-muted">Имя</label>
                         <input type="text"
                                name="name"
@@ -34,7 +34,7 @@
                                value="{{ request('name') }}">
                     </div>
 
-                    <div class="col-12 col-md-6 col-lg-2">
+                    <div class="col-12 col-md-6 col-lg-3">
                         <label class="form-label small text-muted">TG Никнейм</label>
                         <input type="text"
                                name="username"
@@ -44,7 +44,7 @@
                     </div>
 
                     <!-- Email -->
-                    <div class="col-12 col-md-6 col-lg-2">
+                    <div class="col-12 col-md-6 col-lg-3">
                         <label class="form-label small text-muted">Email</label>
                         <input type="text"
                                name="email"
@@ -54,7 +54,7 @@
                     </div>
 
                     <!-- Роль -->
-                    <div class="col-12 col-md-6 col-lg-2">
+                    <div class="col-12 col-md-6 col-lg-3">
                         <label class="form-label small text-muted">Роль</label>
                         <select name="role_id" class="form-select form-select-sm">
                             <option value="">Все роли</option>
@@ -67,7 +67,7 @@
                     </div>
 
                     <!-- Статус -->
-                    <div class="col-12 col-md-6 col-lg-2">
+                    <div class="col-12 col-md-6 col-lg-3">
                         <label class="form-label small text-muted">Статус</label>
                         <select name="is_active_in_group" class="form-select form-select-sm">
                             <option value="">Все статусы</option>
@@ -81,7 +81,7 @@
                     </div>
 
                     <!-- Дата от -->
-                    <div class="col-12 col-md-6 col-lg-2">
+                    <div class="col-12 col-md-6 col-lg-3">
                         <label class="form-label small text-muted">Дата от</label>
                         <input type="date"
                                name="date_from"
@@ -90,7 +90,7 @@
                     </div>
 
                     <!-- Дата до -->
-                    <div class="col-12 col-md-6 col-lg-2">
+                    <div class="col-12 col-md-6 col-lg-3">
                         <label class="form-label small text-muted">Дата до</label>
                         <input type="date"
                                name="date_to"

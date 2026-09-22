@@ -31,7 +31,6 @@ class UserController extends Controller
 
     public function index(Request $request): View
     {
-
         $users = $this->userRepository->index($request);
         $roles = $this->getRoles();
 

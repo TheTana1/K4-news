@@ -10,10 +10,13 @@ class AdvertisementFilter
     public static function apply(Request $request, Builder $query): Builder
     {
         if ($request->has('content') && $request->input('content') != null) {
-            $query->where('content', 'like', '%' . $request->input('content') . '%');
+            $query->whereRaw('LOWER(content) LIKE ?', ['%' . strtolower($request->input('content')) . '%']);
         }
         if ($request->has('author') && $request->input('author') != null) {
-            $query->where('telegram_author_name', 'like', '%' . $request->input('author') . '%');
+            $author = mb_strtolower($request->input('author'));
+            $query->whereHas('user', function ($q) use ($author) {
+                $q->whereRaw('LOWER(name) LIKE ?', ['%' . $author . '%']);
+            });
         }
         if ($request->has('role_id') && $request->input('role_id') != null) {
             $query->where('role_id',  $request->input('role_id'));

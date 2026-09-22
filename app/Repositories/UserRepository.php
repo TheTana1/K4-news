@@ -21,9 +21,10 @@ class UserRepository
     private const CACHE_TTL = 900; //15минут
 
     public function __construct(
-        readonly UserFilter $userFilter,
+        readonly UserFilter        $userFilter,
         readonly TrashedUserFilter $trashedUserFilter,
-    ) {
+    )
+    {
     }
 
     final public function index(Request $request, int $perPage = self::USER_PER_PAGE)
@@ -36,13 +37,16 @@ class UserRepository
 
         return Cache::tags(['users-index'])->remember($key, self::CACHE_TTL, function () use ($request, $perPage) {
             return $this->userFilter
-                ->apply($request, User::where('telegram_username', '!=', 'admin')
-                    ->orWhereNull('telegram_username'))
+                ->apply($request, User::where(function ($query) {
+                    $query->where('telegram_username', '!=', 'admin')
+                        ->orWhereNull('telegram_username');
+                }))
                 ->with(['role'])
                 ->paginate($perPage)
                 ->withQueryString();
         });
     }
+
     public function indexTrashed(Request $request, int $perPage = self::USER_PER_PAGE)
     {
         $key = 'users-indexTrashed:' . md5(serialize([
@@ -90,7 +94,7 @@ class UserRepository
 
             if ($request->hasFile('avatar')) {
                 $path = '/storage/' . $request->file('avatar')->store('avatars', 'public');
-                $validatedData['avatar_path'] =  $path;
+                $validatedData['avatar_path'] = $path;
             }
 
             if (isset($validatedData['password'])) {
@@ -152,7 +156,7 @@ class UserRepository
                 $validatedData['password'] = Hash::make($validatedData['password']);
             }
 
-            $validatedData = array_filter($validatedData, fn ($value) => $value !== null);
+            $validatedData = array_filter($validatedData, fn($value) => $value !== null);
             $user->update($validatedData);
 
             if ($request->has('phones') && is_array($request->phones)) {
@@ -222,7 +226,7 @@ class UserRepository
 
     public function edit(User $user)
     {
-        if(Cache::tags(['user:' . $user->id])->has('user:' . $user->id)) {
+        if (Cache::tags(['user:' . $user->id])->has('user:' . $user->id)) {
             return Cache::tags(['user:' . $user->id])->get('user:' . $user->id);
         }
         return $user->load(['role', 'phones']);
@@ -242,7 +246,7 @@ class UserRepository
             Cache::tags(['users-indexTrashed'])->flush();
 
             return true;
-        }catch (\Exception $exception){
+        } catch (\Exception $exception) {
             DB::rollBack();
             Log::critical('Ошибка при forceDelete пользователя: ' . $exception->getMessage(), [
                 'user_id' => $user->id,
@@ -263,7 +267,7 @@ class UserRepository
             Cache::tags(['users-indexTrashed'])->flush();
             Cache::tags(['users-index'])->flush();
             return true;
-        }catch (\Exception $exception){
+        } catch (\Exception $exception) {
             DB::rollBack();
             Log::critical('Ошибка при восстановлении пользователя: ' . $exception->getMessage(), [
                 'user_id' => $user->id,

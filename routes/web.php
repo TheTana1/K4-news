@@ -25,7 +25,6 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('reviews', ReviewController::class)->only(['index', 'show','destroy']);
     Route::resource('comments', CommentController::class);
 
-
 });
 Auth::routes(['register' => false, 'reset' => false]);
 Route::get('password/reset', [TelegramResetPasswordController::class, 'showLinkRequestForm'])

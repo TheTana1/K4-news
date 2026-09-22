@@ -11,13 +11,14 @@ class UserFilter
     public static function apply(Request $request, Builder $query): Builder
     {
         if ($request->has('name') && $request->input('name') != null) {
-            $query->where('name', 'like', '%' . $request->input('name') . '%');
+            $query->whereRaw('LOWER(name) LIKE ?', ['%' . strtolower($request->input('name')) . '%']);
         }
         if ($request->has('email') && $request->input('email') != null) {
-            $query->where('email', 'like', '%' . $request->input('email') . '%');
+            $query->whereRaw('LOWER(email) LIKE ?', ['%' . strtolower($request->input('email')) . '%']);
         }
         if ($request->has('username') && $request->input('username') != null) {
-            $query->where('telegram_username', 'like', '%' . $request->input('username') . '%');
+            $username = strtolower(ltrim($request->input('username'), '@'));
+            $query->whereRaw('LOWER(telegram_username) LIKE ?', ['%' . $username . '%']);
         }
         if ($request->has('role_id') && $request->input('role_id') != null) {
             $query->where('role_id',  $request->input('role_id'));
