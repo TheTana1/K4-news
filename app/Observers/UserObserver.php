@@ -37,7 +37,7 @@ class UserObserver
      */
     public function restored(User $user): void
     {
-        //
+        info('Пользователь успешно восстановлен: ', ['user_id' => $user->id]);
     }
 
     /**
@@ -45,6 +45,6 @@ class UserObserver
      */
     public function forceDeleted(User $user): void
     {
-        //
+        info('Пользователь полностью удалён: ', ['user_id' => $user->id]);
     }
 }

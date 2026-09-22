@@ -12,7 +12,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
 class UserRepository
@@ -154,18 +153,17 @@ class UserRepository
             }
 
             $validatedData = array_filter($validatedData, fn ($value) => $value !== null);
-
             $user->update($validatedData);
 
             if ($request->has('phones') && is_array($request->phones)) {
-                $user->phones()->delete();
+                $user->phones()->forceDelete();
 
                 foreach ($request->phones as $phoneData) {
                     if (empty($phoneData['number'])) {
                         continue;
                     }
 
-                    $user->phones()->updateOrCreate([
+                    $user->phones()->create([
                         'phone_number' => $phoneData['number'],
                     ]);
                 }

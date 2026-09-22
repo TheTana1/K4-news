@@ -16,8 +16,9 @@ class NewAdHandler
 {
     public function __construct(
         readonly UserRegistrationService $userRegistrationService,
-        readonly TelegramService $telegramService,
-    ) {
+        readonly TelegramService         $telegramService,
+    )
+    {
     }
 
     public function handle($chatId, $userDb): bool
@@ -386,27 +387,22 @@ class NewAdHandler
             session()->forget("ad_{$chatId}");
             session()->forget("ad_user_{$chatId}");
 
-            $roleLabels = [
-                2 => 'всем',
+            $roleLabels = match ($data['role_id']) {
                 3 => 'сотрудникам кухни',
-                4 => 'сотрудникам зала'
-            ];
+                4 => 'сотрудникам зала',
+                default => 'всем'
+            };
 
             $text = "✅ <b>Объявление успешно опубликовано!</b>\n\n" .
                 "🆔 ID: {$ad->id}\n" .
-                "👥 Отправлено: " . ($roleLabels[$data['role_id'] ?? 2] ?? 'всем') . "\n" .
+                "👥 Отправлено: " . $roleLabels . "\n" .
                 "📅 Дата: " . now()->format('d.m.Y H:i');
 
-            return $this->telegramService->sendHtmlMessage(
+            return $this->telegramService->sendHtmlWithKeyboard(
                 $chatId,
                 $text,
                 [
-                    'reply_markup' => [
-                        'keyboard' => [
-                            [['text' => '🏠 На главную']],
-                        ],
-                        'resize_keyboard' => true,
-                    ],
+                    [['text' => '🏠 На главную']]
                 ]
             );
 

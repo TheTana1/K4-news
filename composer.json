@@ -17,7 +17,8 @@
         "laravel/tinker": "^2.10.1",
         "laravel/ui": "^4.6",
         "tymon/jwt-auth": "^2.3",
-        "westacks/telebot-laravel": "^4.6"
+        "westacks/telebot-laravel": "^4.6",
+        "ext-curl": "*"
     },
     "require-dev": {
         "barryvdh/laravel-ide-helper": "^3.7",

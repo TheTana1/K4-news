@@ -98,11 +98,6 @@
                                 </div>
                             </div>
                             <div class="col-md-6">
-                                <label for="telegram_id" class="form-label">Telegram ID</label>
-                                <input type="text" name="telegram_id" id="telegram_id" value="{{ old('telegram_id') }}"
-                                       class="form-control">
-                            </div>
-                            <div class="col-md-6">
                                 <label for="birthday" class="form-label">Дата рождения</label>
                                 <input type="date" name="birthday" id="birthday" value="{{ old('birthday') }}"
                                        class="form-control">

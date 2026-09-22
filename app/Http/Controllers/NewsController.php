@@ -5,13 +5,16 @@ namespace App\Http\Controllers;
 use App\Models\News;
 use App\Http\Requests\NewsRequest;
 use App\Repositories\NewsRepository;
+use App\Services\NewsService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class NewsController extends Controller
 {
-    public function __construct(readonly NewsRepository $newsRepository)
+    public function __construct(
+        readonly NewsService $newsService,
+        readonly NewsRepository $newsRepository)
     {
         $this->authorizeResource(News::class, 'news');
     }
@@ -45,6 +48,16 @@ class NewsController extends Controller
     {
         $news = $this->newsRepository->store($request);
 
+        if (!$news) {
+            return back()
+                ->withInput()
+                ->with('error', 'Не удалось создать новость');
+        }
+
+        $this->newsService->sendNewsMessage($news,
+            "❗ <b>Новая новость</b>"
+        );
+
         return redirect()
             ->route('news.show', $news)
             ->with('success', 'Новость успешно создана');
@@ -52,10 +65,19 @@ class NewsController extends Controller
 
     public function update(NewsRequest $request, News $news): RedirectResponse
     {
-        $updatedNews = $this->newsRepository->update($request, $news);
+        $news = $this->newsRepository->update($request, $news);
 
+        if (!$news) {
+            return back()
+                ->withInput()
+                ->with('error', 'Не удалось обновить новость');
+        }
+
+        $this->newsService->sendNewsMessage($news,
+            "⚠ <b>Изменение новости</b>"
+        );
         return redirect()
-            ->route('news.show', $updatedNews)
+            ->route('news.show', $news)
             ->with('success', 'Новость успешно обновлена');
     }
 

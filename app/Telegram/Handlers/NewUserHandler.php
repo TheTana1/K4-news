@@ -4,12 +4,15 @@ namespace App\Telegram\Handlers;
 
 use App\Services\TelegramService;
 use App\Services\UserRegistrationService;
+use App\Services\UserService;
 use Illuminate\Support\Str;
 use WeStacks\TeleBot\Objects\Message;
 
 class NewUserHandler
 {
-    public function __construct(readonly TelegramService $telegramService)
+    public function __construct(
+        readonly UserService     $userService,
+        readonly TelegramService $telegramService)
     {
     }
 
@@ -49,26 +52,22 @@ class NewUserHandler
                 'password' => $newPassword
             ]);
 
-            app(UserRegistrationService::class)->createUser($data);
+            $userDb = app(UserRegistrationService::class)->createUser($data);
             session()->forget($sessionKey);
+
+            $this->userService->sendCreateUserMessage($userDb);
 
             $text = "✅ <b>Регистрация завершена!</b>\n\n";
             $text .= "Вам выдан пароль <code>{$newPassword}</code>\n";
             $text .= "Рекомендуем сменить его после входа.";
-            return $this->telegramService->sendHtmlMessage(
+            return $this->telegramService->sendHtmlWithKeyboard(
                 $chatId,
                 $text,
                 [
-                    'reply_markup' =>
-                        [
-                            'keyboard' =>
-                                [
-                                    [['text' => '🏠 На главную']],
-                                ],
-                            'resize_keyboard' => true,
-                        ]
+                    [['text' => '🏠 На главную']]
                 ]
             );
+
         }
 
         if ($text === '⏮ Назад') {

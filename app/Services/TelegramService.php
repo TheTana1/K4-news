@@ -4,6 +4,7 @@ namespace App\Services;
 
 use Illuminate\Support\Facades\Log;
 use WeStacks\TeleBot\Laravel\TeleBot;
+use function PHPUnit\Framework\isResource;
 
 class TelegramService
 {
@@ -12,9 +13,7 @@ class TelegramService
      */
     public function sendHtmlMessage(?string $chatId, string $text, array $options = []): bool
     {
-        return $this->send($chatId, $text, array_merge([
-            'parse_mode' => 'HTML',
-        ], $options));
+        return $this->sendHtml($chatId, $text, $options);
     }
 
     /**
@@ -23,6 +22,43 @@ class TelegramService
     public function sendMessage(?string $chatId, string $text, array $options = []): bool
     {
         return $this->send($chatId, $text, $options);
+    }
+
+    /**
+     * Отправить HTML-сообщение с кнопками (reply keyboard).
+     */
+    public function sendHtmlWithKeyboard(?string $chatId, string $text, array $keyboard, array $options = []): bool
+    {
+        return $this->sendHtml($chatId, $text, array_merge([
+            'reply_markup' => [
+                'keyboard' => $keyboard,
+                'resize_keyboard' => true,
+            ],
+        ], $options));
+    }
+
+    /**
+     * Отправить HTML-сообщение и убрать клавиатуру.
+     */
+    public function sendHtmlWithRemoveKeyboard(?string $chatId, string $text, array $options = []): bool
+    {
+        return $this->sendHtml($chatId, $text, array_merge([
+            'reply_markup' => [
+                'remove_keyboard' => true,
+            ],
+        ], $options));
+    }
+
+    /**
+     * Отправить HTML-сообщение с inline-кнопками.
+     */
+    public function sendHtmlWithInlineKeyboard(?string $chatId, string $text, array $inlineKeyboard, array $options = []): bool
+    {
+        return $this->sendHtml($chatId, $text, array_merge([
+            'reply_markup' => [
+                'inline_keyboard' => $inlineKeyboard,
+            ],
+        ], $options));
     }
 
     /**
@@ -75,9 +111,27 @@ class TelegramService
     }
 
     /**
-     * Базовый метод отправки. Все остальные — обёртки над ним.
+     * Базовый метод отправки обычного сообщения.
      */
     protected function send(?string $chatId, string $text, array $options = []): bool
+    {
+        return $this->dispatch($chatId, $text, $options);
+    }
+
+    /**
+     * Базовый метод отправки HTML-сообщения.
+     */
+    protected function sendHtml(?string $chatId, string $text, array $options = []): bool
+    {
+        return $this->dispatch($chatId, $text, array_merge([
+            'parse_mode' => 'HTML',
+        ], $options));
+    }
+
+    /**
+     * Общий метод отправки. Сюда приходят уже собранные опции.
+     */
+    protected function dispatch(?string $chatId, string $text, array $options = []): bool
     {
         if (empty($chatId)) {
             Log::warning('Telegram send skipped: empty chat_id', [
@@ -99,6 +153,47 @@ class TelegramService
                 'text' => mb_substr($text, 0, 100),
             ]);
             return false;
+        }
+    }
+
+    public function sendPhoto(string $file_path, ?string $chatId)
+    {
+        try {
+            $handle = fopen(storage_path('/app/public/' . $file_path), 'rb');
+            TeleBot::sendPhoto([
+                'chat_id' => $chatId,
+                'photo' => $handle,
+            ]);
+            return true;
+        } catch (\Exception $e) {
+            Log::error('Telegram send failed: ' . $e->getMessage(), ['chat_id' => $chatId,]);
+return false;
+        } finally {
+            if (is_resource($handle)) {
+                fclose($handle);
+            }
+        }
+    }
+
+    public function sendDocument(string $file_path, ?string $chatId)
+    {
+        try {
+            $handle = fopen(storage_path('/app/public/' . $file_path), 'rb');
+            TeleBot::sendDocument([
+                'chat_id' => $chatId,
+                'document' => $handle,
+            ]);
+
+        } catch
+        (\Exception $e) {
+            Log::error('Telegram send failed: ' . $e->getMessage(), [
+                'chat_id' => $chatId,
+            ]);
+
+        } finally {
+            if (is_resource($handle)) {
+                fclose($handle);
+            }
         }
     }
 }

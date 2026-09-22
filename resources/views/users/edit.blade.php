@@ -156,10 +156,10 @@
                                 <select name="gender" id="gender"
                                         class="form-select @error('gender') is-invalid @enderror">
                                     <option value="">Не указан</option>
-                                    <option value="0" {{ old('gender', $user->gender) === 0 ? 'selected' : '' }}>
+                                    <option value="0" {{ old('gender', $user->gender) === false ? 'selected' : '' }}>
                                         Мужской
                                     </option>
-                                    <option value="1" {{ old('gender', $user->gender) === 1 ? 'selected' : '' }}>
+                                    <option value="1" {{ old('gender', $user->gender) === true ? 'selected' : '' }}>
                                         Женский
                                     </option>
                                 </select>

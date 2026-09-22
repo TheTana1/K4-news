@@ -5,13 +5,16 @@ namespace App\Http\Controllers;
 use App\Http\Requests\AdvertisementRequest;
 use App\Models\Advertisement;
 use App\Repositories\AdvertisementRepository;
+use App\Services\AdvertisementService;
+use App\Services\TelegramService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class AdvertisementController extends Controller
 {
-    public function __construct(readonly AdvertisementRepository $advertisementRepository)
+    public function __construct(readonly AdvertisementService    $advertisementService,
+                                readonly AdvertisementRepository $advertisementRepository)
     {
         $this->authorizeResource(Advertisement::class, 'advertisement');
     }
@@ -24,6 +27,7 @@ class AdvertisementController extends Controller
 
     public function show(Advertisement $advertisement): View
     {
+
         $data = $this->advertisementRepository->show($advertisement);
         return view('advertisements.show', [
             'advertisement' => $data['advertisement'],
@@ -45,6 +49,14 @@ class AdvertisementController extends Controller
     public function store(AdvertisementRequest $request): RedirectResponse
     {
         $advertisement = $this->advertisementRepository->store($request);
+        if (!$advertisement) {
+            return back()
+                ->withInput()
+                ->with('error', 'Не удалось создать объявление');
+        }
+        $this->advertisementService->sendAdvertisementMessage($advertisement,
+            "‼ <b>Новое объявление</b>"
+        );
 
         return redirect()
             ->route('advertisements.show', $advertisement)
@@ -55,6 +67,15 @@ class AdvertisementController extends Controller
     {
         $advertisement = $this->advertisementRepository->update($request, $advertisement);
 
+        if (!$advertisement) {
+            return back()
+                ->withInput()
+                ->with('error', 'Не удалось обновить объявление');
+        }
+
+        $this->advertisementService->sendAdvertisementMessage($advertisement,
+            "⚠ <b>Изменение объявления</b>"
+        );
         return redirect()
             ->route('advertisements.show', $advertisement)
             ->with('success', 'Объявление успешно обновлено');

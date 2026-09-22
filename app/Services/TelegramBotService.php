@@ -9,13 +9,13 @@ use App\Telegram\Handlers\NewUserHandler;
 use App\Telegram\Handlers\StartHandler;
 use Illuminate\Support\Facades\Log;
 
-class TelegramBotService
+readonly class TelegramBotService
 {
 
     public function __construct(
-        readonly ReviewParseService $reviewParseService,
-        readonly TelegramService $telegramService,
-        readonly UserRegistrationService $userRegistrationService,
+        public ReviewParseService      $reviewParseService,
+        public TelegramService         $telegramService,
+        public UserRegistrationService $userRegistrationService,
     ) {
     }
 
@@ -94,7 +94,7 @@ class TelegramBotService
                     (string) $chatId,
                     "✅ Отзыв сохранён!\n\n" .
                     "⭐ Рейтинг: {$stars} ({$count}/5)\n" .
-                    "📅 Дата: " . now()->format('d.m.Y H:i')
+                    "📅 Дата: " . local_date(now())
                 );
             }
 
@@ -117,14 +117,14 @@ class TelegramBotService
     {
         if (!$chatId) return false;
 
-        $text = "📖 Помощь по боту:\n\n";
+        $text = "<b>📖 Помощь по боту:</b>\n\n";
         $text .= "📝 /new_ad - Создать объявление\n";
         $text .= "📝 /new_news - Создать новость\n";
         $text .= "❓ /help - Эта справка\n\n";
         $text .= "⭐ Отправьте сообщение со звёздами (★) для создания отзыва\n\n";
         $text .= "Также вы можете использовать кнопки в меню.";
 
-        return $this->telegramService->sendWithKeyboard(
+        return $this->telegramService->sendHtmlWithKeyboard(
             $chatId,
             $text,
             [

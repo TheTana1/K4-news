@@ -1,0 +1,40 @@
+FROM php:8.5.2-fpm-alpine
+
+# Устанавливаем зависимости и PHP-расширения
+RUN apk add --no-cache \
+        git \
+        curl \
+        libpng-dev \
+        oniguruma-dev \
+        libxml2-dev \
+        postgresql-dev \
+        zip \
+        unzip \
+        freetype-dev \
+        libjpeg-turbo-dev \
+        $PHPIZE_DEPS \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install pdo_pgsql pgsql mbstring exif pcntl bcmath gd \
+    && pecl install redis \
+    && docker-php-ext-enable redis \
+    && apk del $PHPIZE_DEPS
+
+# Composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+# Настройки PHP
+RUN { \
+        echo "upload_max_filesize = 20M"; \
+        echo "post_max_size = 25M"; \
+        echo "memory_limit = 256M"; \
+    } > /usr/local/etc/php/conf.d/uploads.ini
+
+# Entrypoint
+COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
+WORKDIR /var/www/html
+EXPOSE 9000
+
+ENTRYPOINT ["entrypoint.sh"]
+CMD ["php-fpm"]

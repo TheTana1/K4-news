@@ -100,7 +100,7 @@ public function __construct(readonly AdvertisementFilter $advertisementFilter)
     final public function update(AdvertisementRequest $request, Advertisement $advertisement): Advertisement
     {
         DB::beginTransaction();
-
+//dd($request);
         try {
             $validatedData = $request->validated();
             if ($request->hasFile('files')) {

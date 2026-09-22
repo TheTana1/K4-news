@@ -16,8 +16,9 @@ class NewNewsHandler
 {
     public function __construct(
         readonly UserRegistrationService $userRegistrationService,
-        readonly TelegramService $telegramService,
-    ) {
+        readonly TelegramService         $telegramService,
+    )
+    {
     }
 
     public function handle($chatId, $userDb): bool
@@ -371,16 +372,11 @@ class NewNewsHandler
                 "👥 Отправлено: " . ($roleLabels[$data['role_id'] ?? 2] ?? 'всем') . "\n" .
                 "📅 Дата: " . now()->format('d.m.Y H:i');
 
-            return $this->telegramService->sendHtmlMessage(
+            return $this->telegramService->sendHtmlWithKeyboard(
                 $chatId,
                 $text,
                 [
-                    'reply_markup' => [
-                        'keyboard' => [
-                            [['text' => '🏠 На главную']],
-                        ],
-                        'resize_keyboard' => true,
-                    ],
+                    [['text' => '🏠 На главную']]
                 ]
             );
 

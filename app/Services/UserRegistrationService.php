@@ -12,6 +12,10 @@ use Illuminate\Support\Facades\Log;
 
 class UserRegistrationService
 {
+    public function __construct(readonly UserService $userService)
+    {
+    }
+
     public function registerFromTelegram($from): ?User
     {
         if (!$from || !isset($from->id)) {
@@ -58,10 +62,12 @@ class UserRegistrationService
             Cache::tags(['users-index'])->flush();
             Cache::tags(['dashboard'])->flush();
 
+
+
             Log::info('Успешное создание user: ', [
-                'telegram_id' => $user->id,
+                'telegram_id' => $userDb->id,
                 'user_id' => $userDb->id,
-                'username' => $user->username
+                'username' => $userDb->username
             ]);
 
             return $userDb;

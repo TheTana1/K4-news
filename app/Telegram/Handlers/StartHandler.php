@@ -17,14 +17,14 @@ class StartHandler
             return $this->telegramService->sendMessage($chatId, '❌ Ошибка чата');
         }
 
-        $text = "👋 Привет!\n\n";
+        $text = "<b>👋 Привет!</b>\n\n";
         $text .= "Я бот для публикации объявлений и отзывов.\n\n";
         $text .= "📌 Доступные команды:\n";
         $text .= "/new_ad - Создать объявление\n";
         $text .= "/new_news - Создать новость\n";
         $text .= "/help - Помощь\n";
 
-        return $this->telegramService->sendWithKeyboard(
+        return $this->telegramService->sendHtmlWithKeyboard(
             $chatId,
             $text,
             [

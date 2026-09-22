@@ -12,10 +12,11 @@ use Illuminate\Validation\Rule;
 class UserRequest extends FormRequest
 {
     static $user;
+
     public function authorize(): bool
     {
-        $user=auth()->user();
-        return  $user->isAdmin() ||  $user->isModerator() || $this->user()->id === $user->id;
+        $user = auth()->user();
+        return $user->isAdmin() || $user->isModerator() || $this->user()->id === $user->id;
     }
 
     public function rules(): array
@@ -41,13 +42,26 @@ class UserRequest extends FormRequest
                     'gender' => 'nullable|in:0,1',
                     'role_id' => 'nullable|exists:roles,id',
                     'telegram_id' => 'nullable|string|max:255|unique:users,telegram_id',
-                    'telegram_username' => 'nullable|string|max:255',
+                    'telegram_username' => 'nullable|string|max:255|unique:users,telegram_username',
                     'is_active_in_group' => 'nullable|boolean',
                     'phones' => 'nullable|array',
-                    'phones.*.number' => 'required_with:phones|string|max:20',
-                    ];
+                    'phones.*.number' => 'required_with:phones|string|max:20|distinct',
+                ];
 
             case 'PUT':
+                $password = $this->input('password');
+
+                if (empty($password) ||
+                    $password === 'password' ||
+                    Hash::check($password, $this->user()?->password)) {
+                    $this->request->remove('password');
+                    $this->request->remove('password_confirmation');
+                }
+                if (auth()->user()->isModerator() || auth()->user()->isAdmin()) {
+                    $this->request->remove('password');
+                    $this->request->remove('password_confirmation');
+                }
+
                 return ['name' => 'sometimes|string|max:255',
                     'email' => [
                         'sometimes',
@@ -59,17 +73,13 @@ class UserRequest extends FormRequest
                     'birthday' => 'nullable|date|before:' . $maxDate . '|after:' . $minDate,
                     'gender' => 'nullable|in:0,1',
                     'role_id' => 'nullable|exists:roles,id',
-                    'telegram_id' => [
-                        'nullable',
-                        'string',
-                        'max:255',
-                    ],
-                    'telegram_username' => 'nullable|string|max:255',
+                    'telegram_id' => 'nullable|string|max:255|unique:users,telegram_id',
+                    'telegram_username' => 'nullable|string|max:255|unique:users,telegram_username',
                     'is_active_in_group' => 'nullable|boolean',
                     'likes' => 'nullable|integer|min:0',
                     'phones' => 'nullable|array',
                     'phones.*.id' => 'nullable|exists:phones,id',
-                    'phones.*.number' => 'required_with:phones|string|max:20',
+                    'phones.*.number' => 'required_with:phones|string|max:20|distinct',
                     ];
         };
         return [];
@@ -101,6 +111,7 @@ class UserRequest extends FormRequest
             'role_id.exists' => 'Выбранная роль не существует',
 
             'telegram_id.unique' => 'Пользователь с таким Telegram ID уже существует',
+            'telegram_username.unique' => 'Пользователь с таким Telegram username уже существует',
             'telegram_id.max' => 'Telegram ID не должен превышать 255 символов',
 
             'telegram_username.max' => 'Telegram username не должен превышать 255 символов',
@@ -119,8 +130,10 @@ class UserRequest extends FormRequest
             'phones.*.number.string' => 'Номер телефона должен быть строкой',
             'phones.*.number.max' => 'Номер телефона не должен превышать 20 символов',
             'phones.*.id.exists' => 'Телефон не найден в базе данных',
+            'phones.*.number.distinct' => 'Этот номер уже указан. Уберите дубликат.',
         ];
     }
+
 
     public function after()
     {
@@ -137,22 +150,5 @@ class UserRequest extends FormRequest
         ];
     }
 
-    protected function prepareForValidation(): void
-    {
 
-        $password = $this->input('password');
-
-        if (empty($password) ||
-            $password === 'password' ||
-            Hash::check($password, $this->user()?->password)) {
-            $this->request->remove('password');
-            $this->request->remove('password_confirmation');
-            return;
-        }
-        if (auth()->user()->isModerator()||auth()->user()->isAdmin()) {
-            $this->request->remove('password');
-            $this->request->remove('password_confirmation');
-        }
-
-    }
 }
