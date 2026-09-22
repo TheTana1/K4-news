@@ -75,6 +75,10 @@ services:
       - "9000"
     networks:
       - backend
+
+#      только на время dev, потом удалить environment
+    environment:
+      - PHP_OPCACHE_ENABLE=0
     depends_on:
       postgres:
         condition: service_healthy
