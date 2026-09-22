@@ -67,6 +67,7 @@ services:
   php:
     build:
       context: ./docker/php
+      dockerfile: Dockerfile.dev
     container_name: laravel_phpK4
     restart: unless-stopped
     volumes:
@@ -76,9 +77,6 @@ services:
     networks:
       - backend
 
-#      только на время dev, потом удалить environment
-    environment:
-      - PHP_OPCACHE_ENABLE=0
     depends_on:
       postgres:
         condition: service_healthy
@@ -135,6 +133,7 @@ services:
   telegram-poll:
     build:
       context: ./docker/app
+      dockerfile: Dockerfile.dev
     container_name: telegram_pollK4
     restart: unless-stopped
     volumes:

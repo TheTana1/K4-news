@@ -50,6 +50,7 @@ class News extends Model
 
     protected $casts = [
         'published_at' => 'datetime',
+        'role_id' => 'integer',
     ];
 
     public function scopeForCurrentUser($query)

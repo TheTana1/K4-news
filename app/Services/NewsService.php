@@ -30,6 +30,7 @@ readonly class NewsService
             ]);
             return false;
         }
+
         $roleLabels = match ($news->role_id) {
             3 => 'сотрудникам кухни',
             4 => 'сотрудникам зала',
@@ -37,9 +38,9 @@ readonly class NewsService
         };
         $date = local_date(now());
         $text =
-            "‼ <b>Новое объявление</b>" .
+            "❗ <b>Новая новость</b>" .
             "🆔 ID: {$news->id}\n" .
-            "👥 Отправлено: " . ($roleLabels) . "\n" .
+            "👥 Отправлено: " . $roleLabels . "\n" .
             "📅 Дата: " . $date . "\n" .
             "✏️ Текст: " . $news->content;
 
@@ -63,7 +64,6 @@ readonly class NewsService
             ]);
             return false;
         }
-
         $roleLabels = match ($news->role_id) {
             3 => 'сотрудникам кухни',
             4 => 'сотрудникам зала',
@@ -73,7 +73,7 @@ readonly class NewsService
         $text =
             "$header\n\n" .
             "🆔 ID: {$news->id}\n" .
-            "👥 Отправлено: " . ($roleLabels) . "\n" .
+            "👥 Отправлено: " . $roleLabels . "\n" .
             "📅 Дата: " . $date . "\n" .
             "✏️ Текст: " . $news->content;
         $this->resendToUsers($users, $text, $news);

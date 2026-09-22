@@ -48,6 +48,7 @@ class Advertisement extends Model
 
     protected $casts = [
         'published_at' => 'datetime',
+        'role_id' => 'integer',
     ];
     public function scopeForRole($query, $roleId = null)
     {

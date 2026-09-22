@@ -106,11 +106,12 @@ public function __construct(readonly AdvertisementFilter $advertisementFilter)
             if ($request->hasFile('files')) {
                 $this->uploadFiles($request->file('files'), $advertisement);
             }
+            $advertisement->update($validatedData);
+            DB::commit();
+
             if ($request->has('delete_files') && is_array($request->delete_files)) {
                 $this->deleteFiles($advertisement, $request->delete_files);
             }
-            $advertisement->update($validatedData);
-            DB::commit();
 
             Cache::tags(['advertisements-index'])->flush();
             Cache::tags(['advertisement:' . $advertisement->id])->flush();
@@ -133,10 +134,11 @@ public function __construct(readonly AdvertisementFilter $advertisementFilter)
         DB::beginTransaction();
 
         try {
-            $this->deleteAllFiles($advertisement);
+
             $result = $advertisement->delete();
 
             DB::commit();
+            $this->deleteAllFiles($advertisement);
 
             Cache::tags(['advertisements-index'])->flush();
             Cache::tags(['advertisement:'. $advertisement->id])->flush();

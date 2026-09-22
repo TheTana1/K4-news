@@ -1,21 +1,48 @@
 FROM php:8.5-cli-alpine
 
-RUN apk add --no-cache \
-    git \
-    curl \
-    libpng-dev \
-    oniguruma-dev \
-    libxml2-dev \
-    postgresql-dev \
-    zip \
-    unzip \
-    $PHPIZE_DEPS \
+RUN apk add --no-cache --virtual .build-deps \
+        $PHPIZE_DEPS \
+        postgresql-dev \
+        libpng-dev \
+        oniguruma-dev \
+        libxml2-dev \
+        freetype-dev \
+        libjpeg-turbo-dev \
+    && apk add --no-cache \
+        git \
+        zip \
+        unzip \
+        postgresql-libs \
+        libpng \
+        oniguruma \
+        libxml2 \
+        freetype \
+        libjpeg-turbo \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install pdo_pgsql pgsql mbstring exif pcntl bcmath gd \
     && pecl install redis \
     && docker-php-ext-enable redis \
-    && apk del $PHPIZE_DEPS
+    && apk del .build-deps
 
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+# Dev-настройки
+RUN { \
+        echo "memory_limit = 512M"; \
+        echo "upload_max_filesize = 20M"; \
+        echo "post_max_size = 25M"; \
+        echo "opcache.enable = 0"; \
+        echo "opcache.enable_cli = 0"; \
+        echo "expose_php = Off"; \
+        echo "display_errors = On"; \
+        echo "log_errors = On"; \
+        echo "error_log = /proc/self/fd/2"; \
+        echo "realpath_cache_size = 4096K"; \
+        echo "realpath_cache_ttl = 600"; \
+    } > /usr/local/etc/php/conf.d/zz-dev.ini
+
+ENV COMPOSER_ALLOW_SUPERUSER=1 \
+    COMPOSER_NO_INTERACTION=1
 
 WORKDIR /var/www/html
 
