@@ -2,11 +2,9 @@
 
 namespace App\Services;
 
+use App\Jobs\SendAdvertisementTelegram;
 use App\Models\Advertisement;
-use App\Models\User;
-use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Storage;
 
 readonly class AdvertisementService
 {
@@ -14,123 +12,40 @@ readonly class AdvertisementService
     {
     }
 
-    public final function sendAdvertisementMessageTG(?string $chatId, Advertisement $advertisement): bool
+    /**
+     * Отправка в Telegram через очередь (с указанием chatId, которого исключить).
+     */
+    public final function sendAdvertisementMessageTG(
+        ?string       $chatId,
+        Advertisement $advertisement,
+        string        $header = '‼ <b>Новое объявление</b>'
+    ): bool
     {
-        if ($advertisement->role_id === null) {
-            $users = User::where('telegram_id', '!=', $chatId)
-                ->whereNotNull('telegram_id')
-                ->get();
-        } else {
-            $users = User::where('role_id', '=', $advertisement->role_id)
-                ->where('telegram_id', '!=', $chatId)
-                ->whereNotNull('telegram_id')
-                ->get();
-        }
+        SendAdvertisementTelegram::dispatch($advertisement, $header, $chatId);
 
-        if ($users->isEmpty()) {
-            Log::info('Рассылка объявления прервана: нет пользователей с telegram_id', [
-                'advertisement_id' => $advertisement->id,
-            ]);
-            return false;
-        }
+        Log::info('Рассылка Telegram поставлена в очередь', [
+            'advertisement_id' => $advertisement->id,
+            'exclude_chat_id' => $chatId,
+            'header' => $header,
+        ]);
 
-        $roleLabels = match ($advertisement->role_id) {
-            1 => 'администраторам',
-            2 => 'менеджерам',
-            3 => 'сотрудникам кухни',
-            4 => 'сотрудникам зала',
-            5 => 'сотрудникам бара',
-            6 => 'сотрудникам клининга',
-            7 => 'сотрудникам техслужб',
-            default => 'всем'
-        };
-
-        $date = local_date(now());
-        $text =
-            "‼ <b>Новое объявление</b>\n\n" .
-            "🆔 ID: {$advertisement->id}\n" .
-            "👥 Отправлено: " . ($roleLabels) . "\n" .
-            "📅 Дата: " . $date . "\n" .
-            "✏️ Текст: " . $advertisement->content;
-
-        return $this->resendToUsers($users, $text, $advertisement);
-    }
-
-    public final function sendAdvertisementMessage(Advertisement $advertisement, string $header): bool
-    {
-        if ($advertisement->role_id === null) {
-            $users = User::whereNotNull('telegram_id')->get();
-        } else {
-            $users = User::where('role_id', '=', $advertisement->role_id)
-                ->whereNotNull('telegram_id')
-                ->get();
-        }
-
-        if ($users->isEmpty()) {
-            Log::info('Рассылка объявления прервана: нет пользователей с telegram_id', [
-                'advertisement_id' => $advertisement->id,
-            ]);
-            return false;
-        }
-
-        $roleLabels = match ($advertisement->role_id) {
-            1 => 'администраторам',
-            2 => 'менеджерам',
-            3 => 'сотрудникам кухни',
-            4 => 'сотрудникам зала',
-            5 => 'сотрудникам бара',
-            6 => 'сотрудникам клининга',
-            7 => 'сотрудникам техслужб',
-            default => 'всем'
-        };
-
-        $date = local_date(now());
-        $text =
-            "$header\n\n" .
-            "🆔 ID: {$advertisement->id}\n" .
-            "👥 Отправлено: " . ($roleLabels) . "\n" .
-            "📅 Дата: " . $date . "\n" .
-            "✏️ Текст: " . $advertisement->content;
-
-        return $this->resendToUsers($users, $text, $advertisement);
+        return true;
     }
 
     /**
-     * @param Collection $users
-     * @param string $text
-     * @param Advertisement $advertisement
-     * @return bool
+     * Отправка в Telegram через очередь (для веб-создания).
      */
-    private function resendToUsers(Collection $users, string $text, Advertisement $advertisement): bool
+    public final function sendAdvertisementMessage(
+        Advertisement $advertisement,
+        string        $header = '‼ <b>Новое объявление</b>'
+    ): bool
     {
-        foreach ($users as $user) {
-            if (!$this->telegramService->sendHtmlWithRemoveKeyboard($user->telegram_id, $text)) {
-                Log::warning('Рассылка: не удалось отправить', [
-                    'advertisement_id' => $advertisement->id,
-                    'user_id' => $user->id,
-                ]);
-            }
-        }
+        SendAdvertisementTelegram::dispatch($advertisement, $header);
 
-        if ($advertisement->files()->count() > 0) {
-            foreach ($users as $user) {
-                foreach ($advertisement->files as $file) {
-                    if (!file_exists(Storage::disk('public')->path($file->file_path))) {
-                        Log::error('Telegram send failed: файла не существует', [
-                            'chat_id' => $user->telegram_id,
-                            'file_path' => $file->file_path,
-                        ]);
-                        continue;
-                    }
-
-                    if (str_starts_with($file->mime_type, 'image/')) {
-                        $this->telegramService->sendPhoto($file->file_path, $user->telegram_id);
-                    } else {
-                        $this->telegramService->sendDocument($file->file_path, $user->telegram_id);
-                    }
-                }
-            }
-        }
+        Log::info('Рассылка Telegram поставлена в очередь', [
+            'advertisement_id' => $advertisement->id,
+            'header' => $header,
+        ]);
 
         return true;
     }

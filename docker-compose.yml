@@ -86,11 +86,12 @@ services:
   queue-worker:
     build:
       context: ./docker/app
+      dockerfile: Dockerfile.dev
     container_name: queue_workerK4
     restart: unless-stopped
     volumes:
       - ./:/var/www/html
-    command: ["php", "artisan", "queue:work", "redis", "--tries=3", "--timeout=90"]
+    command: ["php", "artisan", "queue:work", "redis", "--tries=3", "--timeout=90", "--sleep=1"]
     networks:
       - backend
     depends_on:
