@@ -43,20 +43,23 @@
                             @endif
 
                             <div class="info-item">
-                                @if($user->role)
                                     @php
-                                        $spanColor = match($user->role?->slug){
-                                        'admin' => '#',
-                                        'moderator'=> "#0D6EFD",
-                                        'Kitchen_Worker' => "#a40e13",
-                                        'Service Staff'=> "#ff661b"
-                                    };
+                                        $spanColor =  match($user->role?->slug) {
+                                            'admin' => "#8a008c",
+                                            'moderator' => "#0D6EFD",
+                                            'Kitchen_Staff' => "#a40e13",
+                                            'Service_Staff' => "#ff661b",
+                                            'Bar_Staff' => "#228B22",
+                                            'Cleaning_Staff' => "#7B68EE",
+                                            'Tech_Service' => "#B8860B",
+                                            default => "#A9A9A9",
+                                        };
                                     @endphp
                                     <span
                                         style="color: {{ $spanColor }}">
                                         {{ $user->role->label }}
                                     </span>
-                                @endif
+
                                 @if($user->is_active_in_group)
                                     <span class="badge bg-success">В группе</span>
                                 @else

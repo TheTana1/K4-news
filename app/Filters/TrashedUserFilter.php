@@ -9,25 +9,26 @@ class TrashedUserFilter
 {
     public static function apply(Request $request, Builder $query): Builder
     {
-        if ($request->has('name') && $request->input('name') != null) {
-            $query->whereRaw('LOWER(name) LIKE ?', ['%' . strtolower($request->input('name')) . '%']);
+        if ($request->filled('name')) {
+            $query->whereRaw('LOWER(name) LIKE ?', ['%' . mb_strtolower($request->input('name')) . '%']);
         }
-        if ($request->has('email') && $request->input('email') != null) {
-            $query->whereRaw('LOWER(email) LIKE ?', ['%' . strtolower($request->input('email')) . '%']);
+        if ($request->filled('email')) {
+            $query->whereRaw('LOWER(email) LIKE ?', ['%' . mb_strtolower($request->input('email')) . '%']);
         }
-        if ($request->has('username') && $request->input('username') != null) {
-            $username = strtolower(ltrim($request->input('username'), '@'));
+        if ($request->filled('username')) {
+            $username = mb_strtolower(ltrim($request->input('username'), '@'));
             $query->whereRaw('LOWER(telegram_username) LIKE ?', ['%' . $username . '%']);
         }
-        if ($request->has('role_id') && $request->input('role_id') != null) {
-            $query->where('role_id',  $request->input('role_id'));
+        if ($request->filled('role_id')) {
+            $query->where('role_id', $request->input('role_id'));
         }
-        if ($request->has('date_from') && $request->input('date_from') != null) {
+        if ($request->filled('date_from')) {
             $query->whereDate('deleted_at', '>=', $request->input('date_from'));
         }
-        if ($request->has('date_to') && $request->input('date_to') != null) {
+        if ($request->filled('date_to')) {
             $query->whereDate('deleted_at', '<=', $request->input('date_to'));
         }
+
         return $query;
     }
 }

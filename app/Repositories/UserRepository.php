@@ -32,7 +32,8 @@ class UserRepository
 
         $key = 'users-index:' . md5(serialize([
                 $request->query(),
-                $perPage
+                $perPage,
+                auth()->id()
             ]));
 
         return Cache::tags(['users-index'])->remember($key, self::CACHE_TTL, function () use ($request, $perPage) {

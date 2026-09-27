@@ -23,14 +23,14 @@ public function __construct(readonly AdvertisementFilter $advertisementFilter)
 
     final public function index(Request $request, int $perPage = self::PER_PAGE)
     {
-        $key = 'users-index:' . md5(serialize([
+        $key = 'advertisements-index:' . md5(serialize([
                 $request->query(),
-                $perPage
+                $perPage,
+                auth()->id()
             ]));
-
         return Cache::tags(['advertisements-index'])->remember($key, self::CACHE_TTL, fn ()=>
              $this->advertisementFilter
-                 ->apply(request(),Advertisement::query())
+                 ->apply($request,Advertisement::query())
                 ->forCurrentUser()
                 ->with(['role'])
                 ->latest()

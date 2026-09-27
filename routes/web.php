@@ -32,4 +32,5 @@ Route::get('password/reset', [TelegramResetPasswordController::class, 'showLinkR
 Route::post('password/email', [TelegramResetPasswordController::class, 'send'])
     ->name('password.email');
 
+Route::view('/privacy-policy', 'privacy-policy')->name('privacy.policy');
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');

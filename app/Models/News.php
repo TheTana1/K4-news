@@ -57,12 +57,18 @@ class News extends Model
     {
         if (Auth::check()) {
             $roleId = Auth::user()->role_id;
-            if($roleId===1||$roleId===2){
+
+            if ($roleId === 1 || $roleId === 2) {
                 return $query;
             }
-            return $query->whereIn('role_id',[ $roleId ?? 2, 1,2]);
+
+            return $query->where(function ($q) use ($roleId) {
+                $q->where('role_id', $roleId)
+                    ->orWhereNull('role_id');
+            });
         }
-        return $query->where('role_id', 2);
+
+        return $query->whereNull('role_id');
     }
     public function user():BelongsTo
     {

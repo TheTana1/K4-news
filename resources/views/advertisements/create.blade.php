@@ -32,10 +32,12 @@
                     <form action="{{ route('advertisements.store') }}" method="POST" enctype="multipart/form-data">
                         @csrf
                         <div class="mb-3">
-                            <label for="content" class="form-label">Содержание <span class="text-danger">*</span></label>
+                            <label for="content" class="form-label">Содержание <span
+                                    class="text-danger">*</span></label>
                             <textarea name="content" id="content" rows="8"
                                       class="form-control @error('content') is-invalid @enderror">{{ old('content') }}</textarea>
-                            @error('content') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                            @error('content')
+                            <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
 
                         <div class="mb-3">
@@ -52,9 +54,16 @@
                         <div class="mb-3">
                             <label for="role_id" class="form-label">Кому отправить?</label>
                             <select name="role_id" id="role_id" class="form-select">
-                                <option value="2">Всем</option>
+                                <option value="">Всем</option>
+                                @if(auth()->user()->isAdmin()||auth()->user()->isModerator())
+                                    <option value="1">Администраторам</option>
+                                @endif
+                                <option value="2">Менеджерам</option>
                                 <option value="3">Сотрудникам кухни</option>
                                 <option value="4">Сотрудникам зала</option>
+                                <option value="5">Сотрудникам бара</option>
+                                <option value="6">Сотрудникам клининга</option>
+                                <option value="7">Сотрудникам техслужб</option>
 
                             </select>
                             @error('role_id')
@@ -70,7 +79,6 @@
                             <a href="{{ route('advertisements.index') }}" class="btn btn-secondary">Отмена</a>
                             <button type="submit" class="btn btn-primary">Создать</button>
                         </div>
-
 
 
                         <div class="mb-3">
@@ -101,7 +109,8 @@
                                 </div>
                             @endif
 
-                            <small class="text-muted">Можно загрузить: PDF, TXT, XLS, XLSX, DOC, DOCX изображения (JPG, PNG, GIF, BMP, WEBP, SVG)</small>
+                            <small class="text-muted">Можно загрузить: PDF, TXT, XLS, XLSX, DOC, DOCX изображения (JPG,
+                                PNG, GIF, BMP, WEBP, SVG)</small>
                             <div id="fileList" class="mt-2"></div>
                         </div>
                     </form>
@@ -112,12 +121,12 @@
 
     @push('scripts')
         <script>
-            document.addEventListener('DOMContentLoaded', function() {
+            document.addEventListener('DOMContentLoaded', function () {
                 const fileInput = document.getElementById('files');
                 const fileList = document.getElementById('fileList');
 
                 if (fileInput) {
-                    fileInput.addEventListener('change', function(e) {
+                    fileInput.addEventListener('change', function (e) {
                         fileList.innerHTML = '';
 
                         if (this.files.length > 0) {

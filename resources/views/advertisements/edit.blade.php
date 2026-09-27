@@ -59,9 +59,16 @@
                         <div class="mb-3">
                             <label for="role_id" class="form-label">Для кого?</label>
                             <select name="role_id" id="role_id" class="form-select">
-                                <option value="2" {{ old('status', $advertisement->role_id === 2) ? 'selected' : '' }}>Всем</option>
-                                <option value="3" {{ old('status', $advertisement->role_id === 3) ? 'selected' : '' }}>Сотрудникам кухни</option>
-                                <option value="4" {{ old('status', $advertisement->role_id === 4) ? 'selected' : '' }}>Сотрудникам зала</option>
+                                <option value="">Всем</option>
+                                @if(auth()->user()->isAdmin()||auth()->user()->isModerator())
+                                    <option value="1">Администраторам</option>
+                                @endif
+                                <option value="2">Менеджерам</option>
+                                <option value="3">Сотрудникам кухни</option>
+                                <option value="4">Сотрудникам зала</option>
+                                <option value="5">Сотрудникам бара</option>
+                                <option value="6">Сотрудникам клининга</option>
+                                <option value="7">Сотрудникам техслужб</option>
 
                             </select>
                             @error('role_id')

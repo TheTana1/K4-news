@@ -23,7 +23,7 @@ class AdvertisementRequest extends FormRequest
                 'user_id' => 'nullable|integer|exists:users,id',
                 'files' => 'nullable|array',
                 'files.*' => 'nullable|file|mimes:pdf,txt,xls,xlsx,doc,docx,jpg,jpeg,png,gif,bmp,webp,svg|max:20240',
-                'role_id' => '|integer|exists:roles,id',
+                'role_id' => 'nullable|integer|exists:roles,id',
             ];
 
             case 'PUT':  return [
@@ -34,7 +34,7 @@ class AdvertisementRequest extends FormRequest
                 'files.*' => 'nullable|file|mimes:pdf,txt,xls,xlsx,doc,docx,jpg,jpeg,png,gif,bmp,webp,svg|max:20240',
                 'delete_files' => 'nullable|array',
                 'delete_files.*' => 'exists:files,id',
-                'role_id' => '|integer|exists:roles,id',
+                'role_id' => 'nullable|integer|exists:roles,id',
             ];
         };
         return [];

@@ -28,11 +28,12 @@ public function __construct(readonly NewsFilter $newsFilter)
     {
         $key = 'news-index:' . md5(serialize([
                 $request->query(),
-                $perPage
+                $perPage,
+                auth()->id()
             ]));
         return Cache::tags(['news-index'])->remember($key, self::CACHE_TTL, fn()=>
             $this->newsFilter
-                ->apply(request(),News::query())
+                ->apply($request,News::query())
             ->forCurrentUser()
             ->with(['role'])
             ->latest()

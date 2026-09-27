@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\News;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
@@ -14,9 +15,7 @@ readonly class NewsService
     }
     public final function sendNewsMessageTG(?string $chatId, News $news): bool
     {
-
-
-        if ($news->role_id == 2) {
+        if ($news->role_id === null) {
             $users = User::where('telegram_id', '!=', $chatId)->
             whereNotNull('telegram_id')->get();
         } else {
@@ -32,8 +31,13 @@ readonly class NewsService
         }
 
         $roleLabels = match ($news->role_id) {
+            1 => 'администраторам',
+            2 => 'менеджерам',
             3 => 'сотрудникам кухни',
             4 => 'сотрудникам зала',
+            5 => 'сотрудникам бара',
+            6 => 'сотрудникам клининга',
+            7 => 'сотрудникам техслужб',
             default => 'всем'
         };
         $date = local_date(now());
@@ -50,7 +54,7 @@ readonly class NewsService
     {
 
 
-        if ($news->role_id == 2) {
+        if ($news->role_id === null) {
             $users = User::whereNotNull('telegram_id')->get();
         } else {
             $users = User::where('role_id', '=', $news->role_id)
@@ -65,8 +69,13 @@ readonly class NewsService
             return false;
         }
         $roleLabels = match ($news->role_id) {
+            1 => 'администраторам',
+            2 => 'менеджерам',
             3 => 'сотрудникам кухни',
             4 => 'сотрудникам зала',
+            5 => 'сотрудникам бара',
+            6 => 'сотрудникам клининга',
+            7 => 'сотрудникам техслужб',
             default => 'всем'
         };
         $date = local_date(now());
@@ -82,12 +91,12 @@ readonly class NewsService
     }
 
     /**
-     * @param \Illuminate\Database\Eloquent\Collection $users
+     * @param Collection $users
      * @param string $text
      * @param News $news
      * @return bool
      */
-    private function resendToUsers(\Illuminate\Database\Eloquent\Collection $users, string $text, News $news) :bool
+    private function resendToUsers(Collection $users, string $text, News $news) :bool
     {
         foreach ($users as $user) {
             if (!$this->telegramService->sendHtmlWithRemoveKeyboard($user->telegram_id, $text)) {

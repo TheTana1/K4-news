@@ -41,6 +41,17 @@ class LoginController extends Controller
         $this->middleware('auth')->only('logout');
     }
 
+    protected function validateLogin(Request $request)
+    {
+        $request->validate([
+            'telegram_username' => 'required|string',
+            'password'          => 'required|string',
+            'cf-turnstile-response' => ['required', 'string', 'min:10', new \App\Rules\Turnstile()],
+        ], [
+            'cf-turnstile-response.required' => 'Подтвердите, что вы не робот.',
+            'cf-turnstile-response.min'      => 'Токен капчи недействителен.',
+        ]);
+    }
     protected function attemptLogin(Request $request)
     {
         $username = strtolower(ltrim((string) $request->input('telegram_username'), '@'));

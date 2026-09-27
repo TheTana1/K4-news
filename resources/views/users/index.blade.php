@@ -58,11 +58,13 @@
                         <label class="form-label small text-muted">Роль</label>
                         <select name="role_id" class="form-select form-select-sm">
                             <option value="">Все роли</option>
-                            @foreach($roles as $role)
-                                <option value="{{ $role->id }}" {{ request('role_id') == $role->id ? 'selected' : '' }}>
-                                    {{ $role->label }}
-                                </option>
-                            @endforeach
+                            <option value="1">Администратор</option>
+                            <option value="2">Менеджер</option>
+                            <option value="3">Сотрудник кухни</option>
+                            <option value="4">Сотрудник зала</option>
+                            <option value="5">Сотрудник бара</option>
+                            <option value="6">Сотрудник клининга</option>
+                            <option value="7">Техслужба</option>
                         </select>
                     </div>
 
@@ -217,11 +219,15 @@
                                         <div class="info-item">
                                             <small class="text-muted d-block">Роль</small>
                                             @php
-                                                 $spanColor = match($user->role?->slug){
+                                                $spanColor = match($user->role?->slug) {
                                                     'admin' => "#8a008c",
-                                                    'moderator'=> "#0D6EFD",
-                                                    'Kitchen_Worker' => "#a40e13",
-                                                    'Service Staff'=> "#ff661b"
+                                                    'moderator' => "#0D6EFD",
+                                                    'Kitchen_Staff' => "#a40e13",
+                                                    'Service_Staff' => "#ff661b",
+                                                    'Bar_Staff' => "#228B22",
+                                                    'Cleaning_Staff' => "#7B68EE",
+                                                    'Tech_Service' => "#B8860B",
+                                                    default => "#A9A9A9",
                                                 };
                                             @endphp
                                             <span style="color: {{ $spanColor }}">{{ $user->role?->label }}</span>

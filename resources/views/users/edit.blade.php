@@ -230,11 +230,13 @@
                                         <label for="role_id" class="form-label mb-0">Роль:</label>
                                         <select name="role_id" id="role_id"
                                                 class="form-select form-select-sm w-auto @error('role_id') is-invalid @enderror">
-                                            @foreach($roles as $role)
-                                                <option value="{{ $role->id }}" @selected(old('role_id', $user->role_id) == $role->id)>
-                                                    {{ $role->label }}
-                                                </option>
-                                            @endforeach
+                                            <option value="1">Администратор</option>
+                                            <option value="2">Менеджер</option>
+                                            <option value="3">Сотрудник кухни</option>
+                                            <option value="4">Сотрудник зала</option>
+                                            <option value="5">Сотрудник бара</option>
+                                            <option value="6">Сотрудник клининга</option>
+                                            <option value="7">Техслужба</option>
                                         </select>
                                         @error('role_id')
                                         <div class="invalid-feedback d-block">{{ $message }}</div>

@@ -45,7 +45,7 @@ class NewAdHandler
                 return $this->askForFile($chatId);
             }
             if ($data['step'] == 3) {
-                return $this->askForAudience($chatId);
+                return $this->askForAudience($chatId, $this->isAdmin($chatId));
             }
             if ($data['step'] == 4) {
                 return $this->confirmAd($chatId, $data);
@@ -99,14 +99,14 @@ class NewAdHandler
             if ($text === '✅ Готово') {
                 $data['step'] = 3;
                 session([$sessionKey => $data]);
-                return $this->askForAudience($chatId);
+                return $this->askForAudience($chatId, $this->isAdmin($chatId));
             }
 
             if ($text === '⏭ Пропустить') {
                 $data['files'] = [];
                 $data['step'] = 3;
                 session([$sessionKey => $data]);
-                return $this->askForAudience($chatId);
+                return $this->askForAudience($chatId, $this->isAdmin($chatId));
             }
 
             $filesInfo = $this->processAllFiles($message);
@@ -140,13 +140,23 @@ class NewAdHandler
         }
 
         if ($data['step'] == 3) {
+            $isAdmin = $this->isAdmin($chatId);
+
             $audienceMap = [
-                '👥 Всем' => 2,
+                '🗣 Всем' => null,
+                '👨🏻‍💼 Менеджерам' => 2,
                 '🍳 Сотрудникам кухни' => 3,
-                '🛎 Сотрудникам зала' => 4
+                '🛎 Сотрудникам зала' => 4,
+                '🍸 Сотрудникам бара' => 5,
+                '🧽 Сотрудникам клининга' => 6,
+                '⚙ Сотрудникам техслужб' => 7,
             ];
 
-            if (isset($audienceMap[$text])) {
+            if ($isAdmin) {
+                $audienceMap['👨🏻‍⚖️ Администраторам'] = 1;
+            }
+
+            if (array_key_exists($text, $audienceMap)) {
                 $data['role_id'] = $audienceMap[$text];
                 $data['step'] = 4;
                 session([$sessionKey => $data]);
@@ -159,7 +169,7 @@ class NewAdHandler
                 return $this->askForFile($chatId);
             }
 
-            return $this->askForAudience($chatId);
+            return $this->askForAudience($chatId, $isAdmin);
         }
 
         if ($data['step'] == 4) {
@@ -181,7 +191,7 @@ class NewAdHandler
             if ($text === '👥 Изменить получателей') {
                 $data['step'] = 3;
                 session([$sessionKey => $data]);
-                return $this->askForAudience($chatId);
+                return $this->askForAudience($chatId, $this->isAdmin($chatId));
             }
 
             if ($text === '❌ Отмена') {
@@ -203,6 +213,13 @@ class NewAdHandler
         );
     }
 
+    private function isAdmin($chatId): bool
+    {
+        return User::where('telegram_id', (string) $chatId)
+            ->where('role_id', 1)
+            ->exists();
+    }
+
     private function askForFile($chatId): bool
     {
         return $this->telegramService->sendWithKeyboard(
@@ -215,30 +232,46 @@ class NewAdHandler
         );
     }
 
-    private function askForAudience($chatId): bool
+    private function askForAudience($chatId, bool $isAdmin = false): bool
     {
+        $keyboard = [];
+
+        if ($isAdmin) {
+            $keyboard[] = [['text' => '👨🏻‍⚖️ Администраторам']];
+        }
+
+        $keyboard[] = [['text' => '🗣 Всем'], ['text' => '👨🏻‍💼 Менеджерам']];
+        $keyboard[] = [['text' => '🍳 Сотрудникам кухни'], ['text' => '🛎 Сотрудникам зала']];
+        $keyboard[] = [['text' => '🍸 Сотрудникам бара'], ['text' => '🧽 Сотрудникам клининга']];
+        $keyboard[] = [['text' => '⚙ Сотрудникам техслужб']];
+        $keyboard[] = [['text' => '⬅️ Назад'], ['text' => '❌ Отмена']];
+
         return $this->telegramService->sendWithKeyboard(
             $chatId,
             "👥 Кому отправить объявление?\n\nВыберите аудиторию:",
-            [
-                [['text' => '👥 Всем'], ['text' => '🍳 Сотрудникам кухни']],
-                [['text' => '🛎 Сотрудникам зала']],
-                [['text' => '⬅️ Назад'], ['text' => '❌ Отмена']],
-            ]
+            $keyboard
         );
     }
 
     private function confirmAd($chatId, $data): bool
     {
         $roleLabels = [
-            2 => '👥 Всем',
-            3 => '🍳 Сотрудникам кухни',
-            4 => '🛎 Сотрудникам зала'
+            1 => 'администраторам',
+            2 => 'менеджерам',
+            3 => 'сотрудникам кухни',
+            4 => 'сотрудникам зала',
+            5 => 'сотрудникам бара',
+            6 => 'сотрудникам клининга',
+            7 => 'сотрудникам техслужб',
         ];
+
+        $recipientLabel = $data['role_id'] === null
+            ? 'всем'
+            : ($roleLabels[$data['role_id']] ?? '🗣 Всем');
 
         $text = "✅ Проверьте объявление:\n\n";
         $text .= "📝 Текст:\n{$data['text']}\n\n";
-        $text .= "👥 Получатели: " . ($roleLabels[$data['role_id'] ?? 2] ?? '👥 Всем') . "\n\n";
+        $text .= "👥 Получатели: {$recipientLabel}\n\n";
 
         if (!empty($data['files']) && is_array($data['files'])) {
             $text .= "📎 Файлы (всего: " . count($data['files']) . "):\n";
@@ -355,10 +388,10 @@ class NewAdHandler
 
             $ad = Advertisement::create([
                 'content' => $data['text'],
-                'user_id' => User::where('telegram_username', $telegramUser['telegram_username'])->value('id') ?? null,
+                'user_id' => User::where('telegram_username', $telegramUser['telegram_username'] ?? null)->value('id') ?? null,
                 'status' => 'active',
                 'published_at' => now(),
-                'role_id' => $data['role_id'] ?? 2,
+                'role_id' => $data['role_id'] ?? null,
             ]);
 
             if (!empty($data['files']) && is_array($data['files'])) {
@@ -388,13 +421,18 @@ class NewAdHandler
             session()->forget("ad_{$chatId}");
             session()->forget("ad_user_{$chatId}");
 
-            $roleLabels = match ($data['role_id']) {
+            $roleLabels = match ($data['role_id'] ?? null) {
+                1 => 'администраторам',
+                2 => 'менеджерам',
                 3 => 'сотрудникам кухни',
                 4 => 'сотрудникам зала',
-                default => 'всем'
+                5 => 'сотрудникам бара',
+                6 => 'сотрудникам клининга',
+                7 => 'сотрудникам техслужб',
+                default => 'всем',
             };
 
-            app(AdvertisementService::class)->sendAdvertisementMessageTG($chatId,$ad);
+            app(AdvertisementService::class)->sendAdvertisementMessageTG($chatId, $ad);
 
             $text = "✅ <b>Объявление успешно опубликовано!</b>\n\n" .
                 "🆔 ID: {$ad->id}\n" .

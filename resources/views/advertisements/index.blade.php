@@ -38,10 +38,16 @@
                     <div class="col-12 col-md-6 col-lg-2">
                         <label class="form-label small text-muted">Роль</label>
                         <select name="role_id" class="form-select form-select-sm">
-                            <option value="">Все роли</option>
-                            <option value="2">Всем</option>
-                            <option value="3">Сотрудникам Кухни</option>
-                            <option value="4">Сотрудникам Зала</option>
+                            <option value="">Всем</option>
+                            @if(auth()->user()->isAdmin()||auth()->user()->isModerator())
+                                <option value="1">Администраторам</option>
+                            @endif
+                            <option value="2">Менеджерам</option>
+                            <option value="3">Сотрудникам кухни</option>
+                            <option value="4">Сотрудникам зала</option>
+                            <option value="5">Сотрудникам бара</option>
+                            <option value="6">Сотрудникам клининга</option>
+                            <option value="7">Сотрудникам техслужб</option>
                         </select>
                     </div>
 
@@ -185,22 +191,31 @@
                                         <div class="info-item">
                                             <small class="text-muted d-block">Роль</small>
                                             @php
-                                                $spanLabel = match($ad->role?->slug){
-                                                    'admin'=> 'Администратор',
-                                                    'moderator'=> 'Всем',
-                                                    'Kitchen_Worker' => 'Сотрудникам Кухни',
-                                                    'Service Staff'=>'Сотрудникам Зала'
+                                                $roleSlug = $ad->role?->slug;
+
+                                                $spanLabel = match($roleSlug) {
+                                                    'admin' => 'Администраторам',
+                                                    'moderator' => 'Менеджерам',
+                                                    'Kitchen_Staff' => 'Сотрудникам Кухни',
+                                                    'Service_Staff' => 'Сотрудникам Зала',
+                                                    'Bar_Staff' => 'Сотрудникам Бара',
+                                                    'Cleaning_Staff' => 'Сотрудникам Клининга',
+                                                    'Tech_Service' => 'Сотрудникам Техслужб',
+                                                    default => 'Всем',
                                                 };
-                                                 $spanColor = match($ad->role?->slug){
+
+                                                $spanColor = match($roleSlug) {
                                                     'admin' => "#8a008c",
-                                                    'moderator'=> "#0D6EFD",
-                                                    'Kitchen_Worker' => "#a40e13",
-                                                    'Service Staff'=> "#ff661b"
+                                                    'moderator' => "#0D6EFD",
+                                                    'Kitchen_Staff' => "#a40e13",
+                                                    'Service_Staff' => "#ff661b",
+                                                    'Bar_Staff' => "#228B22",
+                                                    'Cleaning_Staff' => "#7B68EE",
+                                                    'Tech_Service' => "#B8860B",
+                                                    default => "#A9A9A9",
                                                 };
                                             @endphp
-                                            <span
-                                            style="color: {{ $spanColor }}">{{ $spanLabel }}</span>
-
+                                            <span style="color: {{ $spanColor }}">{{ $spanLabel }}</span>
                                         </div>
                                     </div>
                                     <div class="col-6 col-sm-4">
@@ -231,23 +246,23 @@
                                         <i class="bi bi-eye me-1"></i> Просмотр
                                     </a>
                                     @can('update',$ad)
-                                    <a href="{{ route('advertisements.edit', $ad) }}"
-                                       class="btn btn-sm btn-outline-success">
-                                        <i class="bi bi-pencil"></i>
-                                    </a>
+                                        <a href="{{ route('advertisements.edit', $ad) }}"
+                                           class="btn btn-sm btn-outline-success">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
                                     @endcan
                                     @can('delete',$ad)
-                                    <form action="{{ route('advertisements.destroy', $ad) }}"
-                                          method="POST"
-                                          class="d-inline">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit"
-                                                class="btn btn-sm btn-outline-danger"
-                                                onclick="return confirm('Вы уверены, что хотите удалить объявление #{{ $ad->id }}?')">
-                                            <i class="bi bi-trash"></i>
-                                        </button>
-                                    </form>
+                                        <form action="{{ route('advertisements.destroy', $ad) }}"
+                                              method="POST"
+                                              class="d-inline">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit"
+                                                    class="btn btn-sm btn-outline-danger"
+                                                    onclick="return confirm('Вы уверены, что хотите удалить объявление #{{ $ad->id }}?')">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </form>
                                     @endcan
                                 </div>
                             </div>

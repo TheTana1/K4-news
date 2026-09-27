@@ -34,15 +34,29 @@
                                     <i class="bi bi-person me-1"></i> Кому
                                 </span>
                                 @php
-                                    $spanLabel = match($advertisement->role?->slug){
-                                        'moderator'=> 'Всем',
-                                        'Kitchen_Worker' => 'Сотрудникам Кухни',
-                                        'Service Staff'=>'Сотрудникам Зала'
+                                    $roleSlug = $advertisement->role?->slug;
+
+                                    $spanLabel = match($roleSlug) {
+
+                                        'admin' => 'Администраторам',
+                                        'moderator' => 'Менеджерам',
+                                        'Kitchen_Staff' => 'Сотрудникам Кухни',
+                                        'Service_Staff' => 'Сотрудникам Зала',
+                                        'Bar_Staff' => 'Сотрудникам Бара',
+                                        'Cleaning_Staff' => 'Сотрудникам Клининга',
+                                        'Tech_Service' => 'Сотрудникам Техслужб',
+                                        default => 'Всем',
                                     };
-                                     $spanColor = match($advertisement->role?->slug){
-                                        'moderator'=> "#0D6EFD",
-                                        'Kitchen_Worker' => "#a40e13",
-                                        'Service Staff'=> "#ff661b"
+
+                                    $spanColor = match($roleSlug) {
+                                        'admin' => "#8a008c",
+                                        'moderator' => "#0D6EFD",
+                                        'Kitchen_Staff' => "#a40e13",
+                                        'Service_Staff' => "#ff661b",
+                                        'Bar_Staff' => "#228B22",
+                                        'Cleaning_Staff' => "#7B68EE",
+                                        'Tech_Service' => "#B8860B",
+                                        default => "#A9A9A9",
                                     };
                                 @endphp
                                 <span style="color: {{ $spanColor }}">

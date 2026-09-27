@@ -45,7 +45,7 @@ class NewNewsHandler
                 return $this->askForPhotos($chatId);
             }
             if ($data['step'] == 3) {
-                return $this->askForAudience($chatId);
+                return $this->askForAudience($chatId, $this->isAdmin($chatId));
             }
             if ($data['step'] == 4) {
                 return $this->confirmNews($chatId, $data);
@@ -99,14 +99,14 @@ class NewNewsHandler
             if ($text === '✅ Готово') {
                 $data['step'] = 3;
                 session([$sessionKey => $data]);
-                return $this->askForAudience($chatId);
+                return $this->askForAudience($chatId, $this->isAdmin($chatId));
             }
 
             if ($text === '⏭ Пропустить') {
                 $data['photos'] = [];
                 $data['step'] = 3;
                 session([$sessionKey => $data]);
-                return $this->askForAudience($chatId);
+                return $this->askForAudience($chatId, $this->isAdmin($chatId));
             }
 
             if (isset($message->photo) && !empty($message->photo)) {
@@ -146,13 +146,23 @@ class NewNewsHandler
         }
 
         if ($data['step'] == 3) {
+            $isAdmin = $this->isAdmin($chatId);
+
             $audienceMap = [
-                '👥 Всем' => 2,
+                '🗣 Всем' => null,
+                '👨🏻‍💼 Менеджерам' => 2,
                 '🍳 Сотрудникам кухни' => 3,
-                '🛎 Сотрудникам зала' => 4
+                '🛎 Сотрудникам зала' => 4,
+                '🍸 Сотрудникам бара' => 5,
+                '🧽 Сотрудникам клининга' => 6,
+                '⚙ Сотрудникам техслужб' => 7,
             ];
 
-            if (isset($audienceMap[$text])) {
+            if ($isAdmin) {
+                $audienceMap['👨🏻‍⚖️ Администраторам'] = 1;
+            }
+
+            if (array_key_exists($text, $audienceMap)) {
                 $data['role_id'] = $audienceMap[$text];
                 $data['step'] = 4;
                 session([$sessionKey => $data]);
@@ -165,7 +175,7 @@ class NewNewsHandler
                 return $this->askForPhotos($chatId);
             }
 
-            return $this->askForAudience($chatId);
+            return $this->askForAudience($chatId, $isAdmin);
         }
 
         if ($data['step'] == 4) {
@@ -187,7 +197,7 @@ class NewNewsHandler
             if ($text === '👥 Изменить получателей') {
                 $data['step'] = 3;
                 session([$sessionKey => $data]);
-                return $this->askForAudience($chatId);
+                return $this->askForAudience($chatId, $this->isAdmin($chatId));
             }
 
             if ($text === '❌ Отмена') {
@@ -209,6 +219,13 @@ class NewNewsHandler
         );
     }
 
+    private function isAdmin($chatId): bool
+    {
+        return User::where('telegram_id', (string) $chatId)
+            ->where('role_id', 1)
+            ->exists();
+    }
+
     private function askForPhotos($chatId): bool
     {
         return $this->telegramService->sendWithKeyboard(
@@ -224,30 +241,46 @@ class NewNewsHandler
         );
     }
 
-    private function askForAudience($chatId): bool
+    private function askForAudience($chatId, bool $isAdmin = false): bool
     {
+        $keyboard = [];
+
+        if ($isAdmin) {
+            $keyboard[] = [['text' => '👨🏻‍⚖️ Администраторам']];
+        }
+
+        $keyboard[] = [['text' => '🗣 Всем'], ['text' => '👨🏻‍💼 Менеджерам']];
+        $keyboard[] = [['text' => '🍳 Сотрудникам кухни'], ['text' => '🛎 Сотрудникам зала']];
+        $keyboard[] = [['text' => '🍸 Сотрудникам бара'], ['text' => '🧽 Сотрудникам клининга']];
+        $keyboard[] = [['text' => '⚙ Сотрудникам техслужб']];
+        $keyboard[] = [['text' => '⬅️ Назад'], ['text' => '❌ Отмена']];
+
         return $this->telegramService->sendWithKeyboard(
             $chatId,
             "👥 Кому отправить новость?\n\nВыберите аудиторию:",
-            [
-                [['text' => '👥 Всем'], ['text' => '🍳 Сотрудникам кухни']],
-                [['text' => '🛎 Сотрудникам зала']],
-                [['text' => '⬅️ Назад'], ['text' => '❌ Отмена']],
-            ]
+            $keyboard
         );
     }
 
     private function confirmNews($chatId, $data): bool
     {
         $roleLabels = [
-            2 => '👥 Всем',
-            3 => '🍳 Сотрудникам кухни',
-            4 => '🛎 Сотрудникам зала'
+            1 => 'администраторам',
+            2 => 'менеджерам',
+            3 => 'сотрудникам кухни',
+            4 => 'сотрудникам зала',
+            5 => 'сотрудникам бара',
+            6 => 'сотрудникам клининга',
+            7 => 'сотрудникам техслужб',
         ];
+
+        $recipientLabel = $data['role_id'] === null
+            ? 'всем'
+            : ($roleLabels[$data['role_id']] ?? 'всем');
 
         $text = "✅ Проверьте новость:\n\n";
         $text .= "📝 Текст:\n{$data['text']}\n\n";
-        $text .= "👥 Получатели: " . ($roleLabels[$data['role_id'] ?? 2] ?? '👥 Всем') . "\n\n";
+        $text .= "👥 Получатели: {$recipientLabel}\n\n";
 
         if (!empty($data['photos']) && is_array($data['photos'])) {
             $text .= "📸 Фото (всего: " . count($data['photos']) . "):\n";
@@ -330,12 +363,11 @@ class NewNewsHandler
 
             $news = News::create([
                 'content' => $data['text'],
-                'user_id' => User::where('telegram_username', $telegramUser['telegram_username'])->value('id') ?? null,
+                'user_id' => User::where('telegram_username', $telegramUser['telegram_username'] ?? null)->value('id') ?? null,
                 'status' => 'active',
                 'published_at' => now(),
-                'role_id' => $data['role_id'] ?? 2,
+                'role_id' => $data['role_id'] ?? null,
             ]);
-
             if (!empty($data['photos']) && is_array($data['photos'])) {
                 foreach ($data['photos'] as $photoData) {
                     if (empty($photoData['file_path']) || empty($photoData['file_name'])) {
@@ -362,16 +394,21 @@ class NewNewsHandler
             session()->forget("news_{$chatId}");
             session()->forget("news_user_{$chatId}");
 
-            $roleLabels = [
-                2 => 'всем',
+            $roleLabels = match ($data['role_id'] ?? null) {
+                1 => 'администраторам',
+                2 => 'менеджерам',
                 3 => 'сотрудникам кухни',
-                4 => 'сотрудникам зала'
-            ];
-            app(NewsService::class)->sendNewsMessageTG($chatId,$news);
+                4 => 'сотрудникам зала',
+                5 => 'сотрудникам бара',
+                6 => 'сотрудникам клининга',
+                7 => 'сотрудникам техслужб',
+                default => 'всем',
+            };
+            app(NewsService::class)->sendNewsMessageTG($chatId, $news);
 
             $text = "✅ <b>Новость успешно опубликована!</b>\n\n" .
                 "🆔 ID: {$news->id}\n" .
-                "👥 Отправлено: " . ($roleLabels[$data['role_id'] ?? 2] ?? 'всем') . "\n" .
+                "👥 Отправлено: " . $roleLabels . "\n" .
                 "📅 Дата: " . now()->format('d.m.Y H:i');
 
             return $this->telegramService->sendHtmlWithKeyboard(

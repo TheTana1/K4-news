@@ -134,14 +134,19 @@ class User extends Authenticatable implements JWTSubject
     {
         if (Auth::check()) {
             $roleId = Auth::user()->role_id;
-            if($roleId===1||$roleId===2){
+
+            if ($roleId === 1 || $roleId === 2) {
                 return $query;
             }
-            return $query->whereIn('role_id',[ $roleId ?? 2, 1,2]);
-        }
-        return $query;
-    }
 
+            return $query->where(function ($q) use ($roleId) {
+                $q->where('role_id', $roleId)
+                    ->orWhereNull('role_id');
+            });
+        }
+
+        return $query->whereNull('role_id');
+    }
     // Хелперы для проверки ролей
     public function isAdmin(): bool
     {

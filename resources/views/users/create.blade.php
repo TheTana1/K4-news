@@ -42,9 +42,12 @@
                                     <label for="avatar"
                                            class="position-absolute bottom-0 end-0 bg-body-tertiary fw-semibold rounded-circle p-1 shadow-sm d-flex align-items-center justify-content-center"
                                            style="cursor:pointer; transform:translate(10%,10%); width:36px; height:36px;">
-                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-600">
-                                            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
-                                            <circle cx="12" cy="13" r="4" />
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+                                             stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                             stroke-linejoin="round" class="text-gray-600">
+                                            <path
+                                                d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                                            <circle cx="12" cy="13" r="4"/>
                                         </svg>
                                     </label>
                                     <input type="file"
@@ -70,22 +73,27 @@
                                 <label for="name" class="form-label">Имя <span class="text-danger">*</span></label>
                                 <input type="text" name="name" id="name" value="{{ old('name') }}"
                                        class="form-control @error('name') is-invalid @enderror">
-                                @error('name') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                                @error('name')
+                                <div class="invalid-feedback">{{ $message }}</div> @enderror
                             </div>
                             <div class="col-md-6">
                                 <label for="email" class="form-label">Email <span class="text-danger">*</span></label>
                                 <input type="email" name="email" id="email" value="{{ old('email') }}"
                                        class="form-control @error('email') is-invalid @enderror">
-                                @error('email') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                                @error('email')
+                                <div class="invalid-feedback">{{ $message }}</div> @enderror
                             </div>
                             <div class="col-md-6">
-                                <label for="password" class="form-label">Пароль <span class="text-danger">*</span></label>
+                                <label for="password" class="form-label">Пароль <span
+                                        class="text-danger">*</span></label>
                                 <input type="password" name="password" id="password"
                                        class="form-control @error('password') is-invalid @enderror">
-                                @error('password') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                                @error('password')
+                                <div class="invalid-feedback">{{ $message }}</div> @enderror
                             </div>
                             <div class="col-md-6">
-                                <label for="password_confirmation" class="form-label">Подтверждение пароля <span class="text-danger">*</span></label>
+                                <label for="password_confirmation" class="form-label">Подтверждение пароля <span
+                                        class="text-danger">*</span></label>
                                 <input type="password" name="password_confirmation" id="password_confirmation"
                                        class="form-control">
                             </div>
@@ -93,7 +101,8 @@
                                 <label for="telegram_username" class="form-label">Telegram username</label>
                                 <div class="input-group">
                                     <span class="input-group-text">@</span>
-                                    <input type="text" name="telegram_username" id="telegram_username" value="{{ old('telegram_username') }}"
+                                    <input type="text" name="telegram_username" id="telegram_username"
+                                           value="{{ old('telegram_username') }}"
                                            class="form-control">
                                 </div>
                             </div>
@@ -116,18 +125,18 @@
                         <div class="mt-3" id="phones-wrapper">
                             <label class="form-label">Телефоны <span class="text-danger">*</span></label>
                             <div id="phones-list">
-                                    <div class="phone-item mb-2" data-index="0">
-                                        <div class="input-group">
-                                            <input type="hidden" name="phones[0][id]" value="">
-                                            <input type="text"
-                                                   name="phones[0][number]"
-                                                   class="form-control phone-mask"
-                                                   placeholder="+7 (999) 123-45-67">
-                                            <button type="button" class="btn btn-outline-danger btn-remove-phone" disabled>
-                                                <i class="bi bi-trash"></i>
-                                            </button>
-                                        </div>
+                                <div class="phone-item mb-2" data-index="0">
+                                    <div class="input-group">
+                                        <input type="hidden" name="phones[0][id]" value="">
+                                        <input type="text"
+                                               name="phones[0][number]"
+                                               class="form-control phone-mask"
+                                               placeholder="+7 (999) 123-45-67">
+                                        <button type="button" class="btn btn-outline-danger btn-remove-phone" disabled>
+                                            <i class="bi bi-trash"></i>
+                                        </button>
                                     </div>
+                                </div>
                             </div>
 
                             <button type="button" id="add-phone" class="btn btn-sm btn-outline-primary mt-2">
@@ -147,11 +156,14 @@
                             <div class="col-md-6">
                                 <label for="role_id" class="form-label">Роль</label>
                                 <select name="role_id" id="role_id" class="form-select">
-                                    @foreach($roles as $role)
-                                        <option value="{{ $role->id }}" {{ old('role_id') == $role->id ? 'selected' : '' }}>
-                                            {{ $role->label }}
-                                        </option>
-                                    @endforeach
+                                    <option value="1">Администратор</option>
+                                    <option value="2">Менеджер</option>
+                                    <option value="3">Сотрудник кухни</option>
+                                    <option value="4">Сотрудник зала</option>
+                                    <option value="5">Сотрудник бара</option>
+                                    <option value="6">Сотрудник клининга</option>
+                                    <option value="7">Техслужба</option>
+
                                 </select>
                             </div>
                             <div class="col-md-6 d-flex align-items-center">
