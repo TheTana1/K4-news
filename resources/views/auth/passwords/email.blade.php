@@ -30,7 +30,18 @@
                                 @enderror
                             </div>
                         </div>
-
+                        {{--                        cloudflare--}}
+                        <div class="row mb-3">
+                            <div class="col-md-6 offset-md-4">
+                                <div class="cf-turnstile"
+                                     data-sitekey="{{ config('services.turnstile.site_key') }}"
+                                     data-callback="onTurnstileSuccess">
+                                </div>
+                                @error('cf-turnstile-response')
+                                <span class="text-danger small d-block mt-1">{{ $message }}</span>
+                                @enderror
+                            </div>
+                        </div>
                         <div class="row mb-0">
                             <div class="col-md-6 offset-md-4">
                                 <button type="submit" class="btn btn-primary">
