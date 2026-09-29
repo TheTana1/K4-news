@@ -12,7 +12,22 @@
     </nav>
 
     <div class="row g-4">
+
+
         <div class="col-lg-12">
+            @if($user->id === auth()->id() && !$user->hasVerifiedEmail())
+                <div class="alert alert-info alert-dismissible fade show d-flex align-items-center flex-wrap gap-2"
+                     role="alert">
+                    <i class="bi bi-info-circle"></i>
+                    <span>Подтвердите email, чтобы получать уведомления на почту.</span>
+                    <form method="POST" action="{{ route('verification.send') }}" class="d-inline">
+                        @csrf
+                        <button type="submit" style="margin-left: 1em" class="btn btn-sm btn-outline-info">Подтвердить
+                        </button>
+                    </form>
+                    <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            @endif
             <div class="row g-4">
                 <!-- Колонка 1: Аватар -->
                 <div class="col-md-4">
@@ -43,20 +58,20 @@
                             @endif
 
                             <div class="info-item">
-                                    @php
-                                        $spanColor =  match($user->role?->slug) {
-                                            'admin' => "#8a008c",
-                                            'moderator' => "#0D6EFD",
-                                            'Kitchen_Staff' => "#a40e13",
-                                            'Service_Staff' => "#ff661b",
-                                            'Bar_Staff' => "#228B22",
-                                            'Cleaning_Staff' => "#7B68EE",
-                                            'Tech_Service' => "#B8860B",
-                                            default => "#A9A9A9",
-                                        };
-                                    @endphp
-                                    <span
-                                        style="color: {{ $spanColor }}">
+                                @php
+                                    $spanColor =  match($user->role?->slug) {
+                                        'admin' => "#8a008c",
+                                        'moderator' => "#0D6EFD",
+                                        'Kitchen_Staff' => "#a40e13",
+                                        'Service_Staff' => "#ff661b",
+                                        'Bar_Staff' => "#228B22",
+                                        'Cleaning_Staff' => "#7B68EE",
+                                        'Tech_Service' => "#B8860B",
+                                        default => "#A9A9A9",
+                                    };
+                                @endphp
+                                <span
+                                    style="color: {{ $spanColor }}">
                                         {{ $user->role->label }}
                                     </span>
 
@@ -101,8 +116,12 @@
                                     <span class="text-muted">
                                         <i class="bi bi-envelope me-1"></i> Email
                                     </span>
+
+
                                     <a href="mailto:{{ $user->email }}" class="text-break">{{ $user->email }}</a>
+
                                 </div>
+
                             </li>
                             @if($user->phones->isNotEmpty())
                                 @foreach($user->phones as $phone)
@@ -136,7 +155,8 @@
                                         <span class="text-muted">
                                             <i class="bi bi-at me-1"></i> Username
                                         </span>
-                                        <a href="https://t.me/{{$user->telegram_username}}" target="_blank" rel="noopener">
+                                        <a href="https://t.me/{{$user->telegram_username}}" target="_blank"
+                                           rel="noopener">
                                             <span>{{'@'.$user->telegram_username}}</span>
                                         </a>
 
@@ -181,38 +201,46 @@
                                 </span>
                                 <span>{{ $user->created_at->format('d.m.Y H:i') }}</span>
                             </li>
-                            @if($user->joined_at)
+                            @if($user->hasVerifiedEmail())
                                 <li class="list-group-item d-flex justify-content-between align-items-center">
                                     <span class="text-muted">
-                                        <i class="bi bi-person-plus me-1"></i> Вступил в группу
+                                        <i class="bi bi-gender-ambiguous me-1"></i> Пол
                                     </span>
-                                    <span>{{ \Carbon\Carbon::parse($user->joined_at)->format('d.m.Y H:i') }}</span>
+                                    <span>Email подтверждён</span>
                                 </li>
                             @endif
-                            @if($user->left_at)
-                                <li class="list-group-item d-flex justify-content-between align-items-center">
-                                    <span class="text-muted">
-                                        <i class="bi bi-person-x me-1"></i> Покинул группу
-                                    </span>
-                                    <span>{{ \Carbon\Carbon::parse($user->left_at)->format('d.m.Y H:i') }}</span>
-                                </li>
-                            @endif
-                            @if($user->last_post_at)
-                                <li class="list-group-item d-flex justify-content-between align-items-center">
-                                    <span class="text-muted">
-                                        <i class="bi bi-chat-dots me-1"></i> Последний пост
-                                    </span>
-                                    <span>{{ \Carbon\Carbon::parse($user->last_post_at)->diffForHumans() }}</span>
-                                </li>
-                            @endif
-                            @if($user->last_activity_at)
-                                <li class="list-group-item d-flex justify-content-between align-items-center">
-                                    <span class="text-muted">
-                                        <i class="bi bi-activity me-1"></i> Последняя активность
-                                    </span>
-                                    <span>{{ \Carbon\Carbon::parse($user->last_activity_at)->diffForHumans() }}</span>
-                                </li>
-                            @endif
+                            {{--                            @if($user->joined_at)--}}
+                            {{--                                <li class="list-group-item d-flex justify-content-between align-items-center">--}}
+                            {{--                                    <span class="text-muted">--}}
+                            {{--                                        <i class="bi bi-person-plus me-1"></i> Вступил в группу--}}
+                            {{--                                    </span>--}}
+                            {{--                                    <span>{{ \Carbon\Carbon::parse($user->joined_at)->format('d.m.Y H:i') }}</span>--}}
+                            {{--                                </li>--}}
+                            {{--                            @endif--}}
+                            {{--                            @if($user->left_at)--}}
+                            {{--                                <li class="list-group-item d-flex justify-content-between align-items-center">--}}
+                            {{--                                    <span class="text-muted">--}}
+                            {{--                                        <i class="bi bi-person-x me-1"></i> Покинул группу--}}
+                            {{--                                    </span>--}}
+                            {{--                                    <span>{{ \Carbon\Carbon::parse($user->left_at)->format('d.m.Y H:i') }}</span>--}}
+                            {{--                                </li>--}}
+                            {{--                            @endif--}}
+                            {{--                            @if($user->last_post_at)--}}
+                            {{--                                <li class="list-group-item d-flex justify-content-between align-items-center">--}}
+                            {{--                                    <span class="text-muted">--}}
+                            {{--                                        <i class="bi bi-chat-dots me-1"></i> Последний пост--}}
+                            {{--                                    </span>--}}
+                            {{--                                    <span>{{ \Carbon\Carbon::parse($user->last_post_at)->diffForHumans() }}</span>--}}
+                            {{--                                </li>--}}
+                            {{--                            @endif--}}
+                            {{--                            @if($user->last_activity_at)--}}
+                            {{--                                <li class="list-group-item d-flex justify-content-between align-items-center">--}}
+                            {{--                                    <span class="text-muted">--}}
+                            {{--                                        <i class="bi bi-activity me-1"></i> Последняя активность--}}
+                            {{--                                    </span>--}}
+                            {{--                                    <span>{{ \Carbon\Carbon::parse($user->last_activity_at)->diffForHumans() }}</span>--}}
+                            {{--                                </li>--}}
+                            {{--                            @endif--}}
                             @if(!$user->birthday && !isset($user->gender) && !$user->joined_at && !$user->last_activity_at)
                                 <li class="list-group-item text-center text-muted py-4">
                                     <i class="bi bi-info-circle"></i> Нет дополнительной информации
@@ -241,7 +269,8 @@
                                     <div class="d-flex w-100 justify-content-between align-items-center">
                                         <div>
                                             <strong>{{ $comment->user?->name ?? 'Гость' }}</strong>
-                                            <small class="text-muted ms-2">{{ $comment->created_at->diffForHumans() }}</small>
+                                            <small
+                                                class="text-muted ms-2">{{ $comment->created_at->diffForHumans() }}</small>
                                         </div>
                                         <div>
                                             <small class="text-muted">

@@ -76,7 +76,9 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
         'is_active_in_group',
         'telegram_id',
         'telegram_username',
+        'email_verified_at',
         'updated_at',
+
     ];
 
     protected $hidden = [
@@ -91,6 +93,7 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
             'birthday' => 'date',
             'gender' => 'boolean',
             'is_active_in_group' => 'boolean',
+            'email_verified_at' => 'datetime',
         ];
     }
 
