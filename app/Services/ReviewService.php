@@ -5,9 +5,9 @@ namespace App\Services;
 use App\Jobs\SendReviewTelegram;
 use Illuminate\Support\Facades\Log;
 
-class ReviewService
+readonly class ReviewService
 {
-    public function __construct(readonly TelegramService $telegramService)
+    public function __construct(public TelegramService $telegramService)
     {
     }
 

@@ -5,7 +5,6 @@ namespace App\Telegram\Handlers;
 use App\Models\User;
 use App\Services\NewsService;
 use App\Services\TelegramService;
-use App\Services\UserRegistrationService;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use WeStacks\TeleBot\Laravel\TeleBot;
@@ -13,11 +12,10 @@ use App\Models\News;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
 
-class NewNewsHandler
+readonly class NewNewsHandler
 {
     public function __construct(
-        readonly UserRegistrationService $userRegistrationService,
-        readonly TelegramService         $telegramService,
+        public TelegramService         $telegramService,
     )
     {
     }

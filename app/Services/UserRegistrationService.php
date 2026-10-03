@@ -10,9 +10,9 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 
-class UserRegistrationService
+readonly class UserRegistrationService
 {
-    public function __construct(readonly UserService $userService)
+    public function __construct(public UserService $userService)
     {
     }
 

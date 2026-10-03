@@ -4,10 +4,10 @@ namespace App\Telegram\Handlers;
 
 use App\Services\TelegramService;
 
-class StartHandler
+readonly class StartHandler
 {
     public function __construct(
-        readonly TelegramService $telegramService,
+        public TelegramService $telegramService,
     ) {
     }
 

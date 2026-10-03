@@ -23,6 +23,7 @@ class Turnstile implements ValidationRule
                 'remoteip' => request()->ip(),
             ]);
 
+
         // Обязательно проверяем HTTP-статус И поле success
         if (!$response->successful() || $response->json('success') !== true) {
             $fail('Капча не пройдена. Попробуйте снова.');

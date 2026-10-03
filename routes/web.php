@@ -37,9 +37,10 @@ Route::view('/privacy-policy', 'privacy-policy')->name('privacy.policy');
 
 Route::get('/email/verify/{id}/{hash}', function (EmailVerificationRequest $request) {
     $request->fulfill();
-
-    return redirect('/users/'.auth()->id());
-})->middleware(['auth', 'signed'])->name('verification.verify');
+    Cache::tags(['user:' . auth()->id()])->flush();
+    return redirect()->route('users.show', auth()->id())
+        ->with('success', 'Email успешно подтверждён!');
+})->middleware(['auth', 'signed', 'throttle:6,1'])->name('verification.verify');
 Route::post('/email/verification-notification', function (Request $request) {
     $request->user()->sendEmailVerificationNotification();
     return back()->with('message', 'Ссылка отправлена!');

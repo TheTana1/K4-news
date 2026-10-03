@@ -22,7 +22,7 @@
                     <span>Подтвердите email, чтобы получать уведомления на почту.</span>
                     <form method="POST" action="{{ route('verification.send') }}" class="d-inline">
                         @csrf
-                        <button type="submit" style="margin-left: 1em" class="btn btn-sm btn-outline-info">Подтвердить
+                        <button type="submit" style="margin-left: 1em" class="btn btn-sm btn-outline-info" >Подтвердить
                         </button>
                     </form>
                     <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
@@ -204,7 +204,7 @@
                             @if($user->hasVerifiedEmail())
                                 <li class="list-group-item d-flex justify-content-between align-items-center">
                                     <span class="text-muted">
-                                        <i class="bi bi-gender-ambiguous me-1"></i> Пол
+                                        <i class="bi bi-postcard me-1"></i>
                                     </span>
                                     <span>Email подтверждён</span>
                                 </li>

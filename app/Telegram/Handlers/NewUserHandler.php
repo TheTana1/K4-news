@@ -7,11 +7,11 @@ use App\Services\UserRegistrationService;
 use App\Services\UserService;
 use Illuminate\Support\Str;
 
-class NewUserHandler
+readonly class NewUserHandler
 {
     public function __construct(
-        readonly UserService     $userService,
-        readonly TelegramService $telegramService)
+        public UserService     $userService,
+        public TelegramService $telegramService)
     {
     }
 

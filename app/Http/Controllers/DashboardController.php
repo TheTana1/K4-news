@@ -19,7 +19,7 @@ class DashboardController extends Controller
             'ads_count'     => Advertisement::forCurrentUser()->count(),
             'news_count'    => News::forCurrentUser()->count(),
             'reviews_count' => Review::count(),
-            'users_count'   => (User::count())-1,
+            'users_count'   => User::where('telegram_username','!=','admin')->count()
         ]);
 
         $recentAds = Cache::tags(['dashboard'])->remember("dashboard:ads:{$userId}", self::CACHE_TTL,

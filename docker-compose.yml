@@ -149,6 +149,16 @@ services:
       php:
         condition: service_started
 
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: mailpit
+    restart: unless-stopped
+    ports:
+      - "8025:8025"   # веб-интерфейс
+      - "1025:1025"   # SMTP
+    networks:
+      - backend
+
 volumes:
   postgres_data:
   redis_data:

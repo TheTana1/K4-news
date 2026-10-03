@@ -5,7 +5,6 @@ namespace App\Telegram\Handlers;
 use App\Models\User;
 use App\Services\AdvertisementService;
 use App\Services\TelegramService;
-use App\Services\UserRegistrationService;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use WeStacks\TeleBot\Laravel\TeleBot;
@@ -13,11 +12,10 @@ use App\Models\Advertisement;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
 
-class NewAdHandler
+readonly class NewAdHandler
 {
     public function __construct(
-        readonly UserRegistrationService $userRegistrationService,
-        readonly TelegramService         $telegramService
+        public TelegramService $telegramService
     )
     {
     }
