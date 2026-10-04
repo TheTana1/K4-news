@@ -206,7 +206,7 @@
                                     <span class="text-muted">
                                         <i class="bi bi-postcard me-1"></i>
                                     </span>
-                                    <span>Email подтверждён</span>
+                                    <span class="text-success">Email подтверждён</span>
                                 </li>
                             @endif
                             {{--                            @if($user->joined_at)--}}
