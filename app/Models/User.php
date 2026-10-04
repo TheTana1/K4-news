@@ -123,6 +123,10 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
     {
         return $this->hasMany(News::class, 'telegram_author_id', 'telegram_id');
     }
+    public function shifts(): HasMany
+    {
+        return $this->hasMany(Shift::class);
+    }
 
     //Мутаторы
     public function setEmailAttribute(string $email): void
