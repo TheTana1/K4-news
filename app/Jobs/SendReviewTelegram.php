@@ -19,8 +19,7 @@ class SendReviewTelegram implements ShouldQueue
     public int $timeout = 300;
 
     public function __construct(
-        public int $count,
-        public ?string $excludeChatId = null,
+        public int $count
     ) {}
 
     public function handle(TelegramService $telegramService): void

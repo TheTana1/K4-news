@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('', [DashboardController::class, 'index'])->name('dashboard');
 Route::middleware(['auth'])->group(function () {
-    Route::get('trashed-users',[UserController::class, 'indexTrashed'])->name('trashed-users.index');
+    Route::get('trashed-users', [UserController::class, 'indexTrashed'])->name('trashed-users.index');
     Route::patch('trashed-users/{id}/restore', [UserController::class, 'restore'])
         ->name('users.restore');
     Route::delete('trashed-users/{id}/force-delete', [UserController::class, 'forceDelete'])
@@ -23,26 +23,32 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('users', UserController::class);
     Route::resource('advertisements', AdvertisementController::class);
     Route::resource('news', NewsController::class);
-    Route::resource('reviews', ReviewController::class)->only(['index', 'show','destroy']);
+    Route::resource('reviews', ReviewController::class)->only(['index', 'show', 'destroy']);
     Route::resource('comments', CommentController::class);
 
 });
 Auth::routes(['register' => false, 'reset' => false]);
+
 Route::get('password/reset', [TelegramResetPasswordController::class, 'showLinkRequestForm'])
     ->name('password.request');
 Route::post('password/email', [TelegramResetPasswordController::class, 'send'])
     ->name('password.email');
-
 Route::view('/privacy-policy', 'privacy-policy')->name('privacy.policy');
 
 Route::get('/email/verify/{id}/{hash}', function (EmailVerificationRequest $request) {
     $request->fulfill();
-    Cache::tags(['user:' . auth()->id()])->flush();
-    return redirect()->route('users.show', auth()->id())
+    $user = auth()->user();
+    $user->update(['email_notifications' => true]);
+
+    Cache::tags(['user:' . $user->id])->flush();
+
+    return redirect()->route('users.show', $user->id)
         ->with('success', 'Email успешно подтверждён!');
 })->middleware(['auth', 'signed', 'throttle:6,1'])->name('verification.verify');
+
 Route::post('/email/verification-notification', function (Request $request) {
     $request->user()->sendEmailVerificationNotification();
     return back()->with('message', 'Ссылка отправлена!');
 })->middleware(['auth', 'throttle:6,1'])->name('verification.send');
+
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');

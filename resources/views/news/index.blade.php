@@ -273,10 +273,10 @@
                     </div>
                 @empty
                     <div class="text-center text-muted py-5">
-                        <i class="bi bi-megaphone fs-1 d-block mb-3"></i>
-                        <p class="mb-0">Объявлений пока нет</p>
+                        <i class="bi bi-newspaper fs-1 d-block mb-3"></i>
+                        <p class="mb-0">Новостей пока нет</p>
                         <a href="{{ route('news.create') }}" class="btn btn-primary mt-3">
-                            <i class="bi bi-plus-lg me-1"></i> Добавить первое объявление
+                            <i class="bi bi-plus-lg me-1"></i> Добавить первую новость
                         </a>
                     </div>
                 @endforelse

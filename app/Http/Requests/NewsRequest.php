@@ -23,7 +23,7 @@ class NewsRequest extends FormRequest
                 'user_id' => 'nullable|integer|exists:users,id',
                 'files' => 'nullable|array',
                 'files.*' => 'nullable|file|mimes:jpg,jpeg,png,gif,bmp,webp,svg|max:10240',
-                'role_id' => 'required|integer|exists:roles,id',
+                'role_id' => 'nullable|integer|exists:roles,id',
             ];
 
             case 'PUT': return [
@@ -34,7 +34,7 @@ class NewsRequest extends FormRequest
                 'files.*' => 'nullable|file|mimes:jpg,jpeg,png,gif,bmp,webp,svg|max:10240',
                 'delete_files' => 'nullable|array',
                 'delete_files.*' => 'exists:files,id',
-                'role_id' => 'required|integer|exists:roles,id',
+                'role_id' => 'nullable|integer|exists:roles,id',
             ];
         };
         return [];

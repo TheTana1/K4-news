@@ -79,6 +79,7 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
         'email_verified_at',
         'updated_at',
 
+        'email_notifications',
     ];
 
     protected $hidden = [
@@ -94,6 +95,7 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
             'gender' => 'boolean',
             'is_active_in_group' => 'boolean',
             'email_verified_at' => 'datetime',
+            'email_notifications' => 'boolean',
         ];
     }
 

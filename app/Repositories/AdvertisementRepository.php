@@ -17,9 +17,10 @@ class AdvertisementRepository
     private const PER_PAGE = 10;
     private const COMMENTS_PER_PAGE = 10;
     private const CACHE_TTL = 900;
-public function __construct(readonly AdvertisementFilter $advertisementFilter)
-{
-}
+
+    public function __construct(readonly AdvertisementFilter $advertisementFilter)
+    {
+    }
 
     final public function index(Request $request, int $perPage = self::PER_PAGE)
     {
@@ -28,40 +29,39 @@ public function __construct(readonly AdvertisementFilter $advertisementFilter)
                 $perPage,
                 auth()->id()
             ]));
-        return Cache::tags(['advertisements-index'])->remember($key, self::CACHE_TTL, fn ()=>
-             $this->advertisementFilter
-                 ->apply($request,Advertisement::query())
-                ->forCurrentUser()
-                ->with(['role'])
-                ->latest()
-                ->paginate($perPage)
-                ->withQueryString()
+        return Cache::tags(['advertisements-index'])->remember($key, self::CACHE_TTL, fn() => $this->advertisementFilter
+            ->apply($request, Advertisement::query())
+            ->forCurrentUser()
+            ->with(['role'])
+            ->latest()
+            ->paginate($perPage)
+            ->withQueryString()
         );
 
     }
 
     final  public function show(Advertisement $advertisement, int $countPaginate = self::COMMENTS_PER_PAGE): array
     {
-        $advertisement = Cache::tags(['advertisement:'. $advertisement->id])->remember(
-            'advertisement:'. $advertisement->id,
+        $advertisement = Cache::tags(['advertisement:' . $advertisement->id])->remember(
+            'advertisement:' . $advertisement->id,
             self::CACHE_TTL,
-            fn() =>  $advertisement->load([ 'files', 'role'])
+            fn() => $advertisement->load(['files', 'role'])
         );
-        $comments = Cache::tags(['advertisement:'. $advertisement->id])->remember(
-            'advertisement:' . $advertisement->id . ':comments:page:'.request()->query('page'),
+        $comments = Cache::tags(['advertisement:' . $advertisement->id])->remember(
+            'advertisement:' . $advertisement->id . ':comments:page:' . request()->query('page'),
             self::CACHE_TTL,
-            fn () => $advertisement->comments()
+            fn() => $advertisement->comments()
                 ->with(['user.role', 'commentable'])
                 ->latest()
                 ->paginate($countPaginate)
                 ->withQueryString()
         );
-        return ['advertisement'=>$advertisement, 'comments'=>$comments];
+        return ['advertisement' => $advertisement, 'comments' => $comments];
     }
 
     public function edit(Advertisement $advertisement)
     {
-        if(Cache::tags(['advertisement:' . $advertisement->id])->has('advertisement:' . $advertisement->id)) {
+        if (Cache::tags(['advertisement:' . $advertisement->id])->has('advertisement:' . $advertisement->id)) {
             return Cache::tags(['advertisement:' . $advertisement->id])->get('advertisement:' . $advertisement->id);
         }
         return $advertisement->load(['files', 'role']);
@@ -83,7 +83,6 @@ public function __construct(readonly AdvertisementFilter $advertisementFilter)
             DB::commit();
 
             Cache::tags(['advertisements-index'])->flush();
-            Cache::tags(['advertisement:'. $advertisement->id])->flush();
             Cache::tags(['dashboard'])->flush();
 
             return $advertisement->load('files', 'role');
@@ -141,7 +140,7 @@ public function __construct(readonly AdvertisementFilter $advertisementFilter)
             $this->deleteAllFiles($advertisement);
 
             Cache::tags(['advertisements-index'])->flush();
-            Cache::tags(['advertisement:'. $advertisement->id])->flush();
+            Cache::tags(['advertisement:' . $advertisement->id])->flush();
             Cache::tags(['dashboard'])->flush();
 
             return $result;
@@ -159,7 +158,7 @@ public function __construct(readonly AdvertisementFilter $advertisementFilter)
     protected function uploadFiles(array $files, Advertisement $advertisement): void
     {
         foreach ($files as $file) {
-            $path =  $file->store('advertisements/' . $advertisement->id, 'public');
+            $path = $file->store('advertisements/' . $advertisement->id, 'public');
 
             $advertisement->files()->create([
                 'file_path' => $path,

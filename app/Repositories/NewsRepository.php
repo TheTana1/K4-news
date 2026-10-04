@@ -20,9 +20,10 @@ class NewsRepository
     private const PER_PAGE = 10;
     private const COMMENTS_PER_PAGE = 10;
     private const CACHE_TTL = 900;
-public function __construct(readonly NewsFilter $newsFilter)
-{
-}
+
+    public function __construct(readonly NewsFilter $newsFilter)
+    {
+    }
 
     final public function index(Request $request, int $perPage = self::PER_PAGE)
     {
@@ -31,9 +32,8 @@ public function __construct(readonly NewsFilter $newsFilter)
                 $perPage,
                 auth()->id()
             ]));
-        return Cache::tags(['news-index'])->remember($key, self::CACHE_TTL, fn()=>
-            $this->newsFilter
-                ->apply($request,News::query())
+        return Cache::tags(['news-index'])->remember($key, self::CACHE_TTL, fn() => $this->newsFilter
+            ->apply($request, News::query())
             ->forCurrentUser()
             ->with(['role'])
             ->latest()
@@ -41,32 +41,35 @@ public function __construct(readonly NewsFilter $newsFilter)
             ->withQueryString()
         );
     }
-    final public function show(News $news, int $countPaginate = self::COMMENTS_PER_PAGE):array
+
+    final public function show(News $news, int $countPaginate = self::COMMENTS_PER_PAGE): array
     {
-        $news = Cache::tags(['news:'. $news->id])->remember(
-            'news:'. $news->id,
+        $news = Cache::tags(['news:' . $news->id])->remember(
+            'news:' . $news->id,
             self::CACHE_TTL,
-            fn() =>  $news->load(['files', 'role','user'])
+            fn() => $news->load(['files', 'role', 'user'])
         );
-        $comments = Cache::tags(['news:'. $news->id])->remember(
-            'news:' . $news->id . ':comments:page:'.request()->query('page'),
+        $comments = Cache::tags(['news:' . $news->id])->remember(
+            'news:' . $news->id . ':comments:page:' . request()->query('page'),
             self::CACHE_TTL,
-            fn () => $news->comments()
+            fn() => $news->comments()
                 ->with(['user.role', 'commentable'])
                 ->latest()
                 ->paginate($countPaginate)
                 ->withQueryString()
         );
-        return ['news'=>$news, 'comments'=>$comments];
+        return ['news' => $news, 'comments' => $comments];
 
     }
+
     public function edit(News $news)
     {
-        if(Cache::tags(['news:' . $news->id])->has('news:' . $news->id)) {
+        if (Cache::tags(['news:' . $news->id])->has('news:' . $news->id)) {
             return Cache::tags(['news:' . $news->id])->get('news:' . $news->id);
         }
         return $news->load(['files', 'role']);
     }
+
     protected function uploadFiles(array $files, News $news): void
     {
         foreach ($files as $file) {
@@ -83,7 +86,8 @@ public function __construct(readonly NewsFilter $newsFilter)
             }
         }
     }
-    protected function deleteFiles( News $news, array $fileIds): void
+
+    protected function deleteFiles(News $news, array $fileIds): void
     {
         $files = $news->files()->whereIn('id', $fileIds)->get();
         foreach ($files as $file) {
@@ -91,6 +95,7 @@ public function __construct(readonly NewsFilter $newsFilter)
             $file->delete();
         }
     }
+
     protected function deleteAllFiles(News $news): void
     {
         foreach ($news->files as $file) {
@@ -98,6 +103,7 @@ public function __construct(readonly NewsFilter $newsFilter)
             $file->delete();
         }
     }
+
     final public function store(NewsRequest $request): News
     {
         DB::beginTransaction();
@@ -117,7 +123,7 @@ public function __construct(readonly NewsFilter $newsFilter)
             Cache::tags(['news-index'])->flush();
             Cache::tags(['dashboard'])->flush();
 
-            return $news->load('files');
+            return $news->load('files','role');
 
         } catch (\Exception $exception) {
             DB::rollBack();
@@ -145,7 +151,7 @@ public function __construct(readonly NewsFilter $newsFilter)
             DB::commit();
 
             Cache::tags(['news-index'])->flush();
-            Cache::tags(['news:'. $news->id])->flush();
+            Cache::tags(['news:' . $news->id])->flush();
             Cache::tags(['dashboard'])->flush();
 
             return $news->load('files');
@@ -159,6 +165,7 @@ public function __construct(readonly NewsFilter $newsFilter)
             throw new BadRequestHttpException('Ошибка при обновлении объявления: ' . $exception->getMessage());
         }
     }
+
     final public function destroy(News $news): bool
     {
         DB::beginTransaction();
@@ -170,7 +177,7 @@ public function __construct(readonly NewsFilter $newsFilter)
             DB::commit();
 
             Cache::tags(['news-index'])->flush();
-            Cache::tags(['news:'. $news->id])->flush();
+            Cache::tags(['news:' . $news->id])->flush();
             Cache::tags(['dashboard'])->flush();
 
             return $result;

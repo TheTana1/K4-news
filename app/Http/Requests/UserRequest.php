@@ -46,6 +46,7 @@ class UserRequest extends FormRequest
                     'is_active_in_group' => 'nullable|boolean',
                     'phones' => 'nullable|array',
                     'phones.*.number' => 'required_with:phones|string|max:20|distinct',
+
                 ];
 
             case 'PUT':
@@ -80,6 +81,7 @@ class UserRequest extends FormRequest
                     'phones' => 'nullable|array',
                     'phones.*.id' => 'nullable|exists:phones,id',
                     'phones.*.number' => 'required_with:phones|string|max:20|distinct',
+                    'email_notifications' => 'required|boolean',
                     ];
         };
         return [];
@@ -130,7 +132,10 @@ class UserRequest extends FormRequest
             'phones.*.number.string' => 'Номер телефона должен быть строкой',
             'phones.*.number.max' => 'Номер телефона не должен превышать 20 символов',
             'phones.*.id.exists' => 'Телефон не найден в базе данных',
-            'phones.*.number.distinct' => 'Этот номер уже указан. Уберите дубликат.',
+            'phones.*.number.distinct' => 'Этот номер уже указан. Уберите дубликат',
+
+            'email_notifications.boolean' => 'Неправильное значение!',
+            'email_notifications.required' => 'Обязательно для передачи запроса.'
         ];
     }
 

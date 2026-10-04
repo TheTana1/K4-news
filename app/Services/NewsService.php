@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Jobs\SendNewsEmail;
 use App\Jobs\SendNewsTelegram;
 use App\Models\News;
 use Illuminate\Support\Facades\Log;
@@ -39,6 +40,9 @@ readonly class NewsService
         string $header = '❗ <b>Новая новость</b>'
     ): bool {
         SendNewsTelegram::dispatch($news, $header);
+
+        $emailHeader = strip_tags($header);
+        SendNewsEmail::dispatch($news, $emailHeader);
 
         Log::info('Рассылка новости поставлена в очередь', [
             'news_id' => $news->id,

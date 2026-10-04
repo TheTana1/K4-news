@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Jobs\SendReviewEmail;
 use App\Jobs\SendReviewTelegram;
 use Illuminate\Support\Facades\Log;
 
@@ -25,6 +26,8 @@ readonly class ReviewService
     public function sendMessage(string $count): bool
     {
         SendReviewTelegram::dispatch((int) $count);
+
+        SendReviewEmail::dispatch((int) $count);
 
         Log::info('Рассылка отзыва поставлена в очередь', [
             'count' => $count,

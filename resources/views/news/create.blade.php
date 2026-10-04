@@ -52,7 +52,7 @@
                         <div class="mb-3">
                             <label for="role_id" class="form-label">Для кого?</label>
                             <select name="role_id" id="role_id" class="form-select">
-                                <option value="8">Всем</option>
+                                <option value="">Всем</option>
                                 @if(auth()->user()->isAdmin()||auth()->user()->isModerator())
                                     <option value="1">Администраторам</option>
                                 @endif

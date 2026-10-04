@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Jobs\SendAdvertisementEmail;
 use App\Jobs\SendAdvertisementTelegram;
 use App\Models\Advertisement;
 use Illuminate\Support\Facades\Log;
@@ -41,6 +42,9 @@ readonly class AdvertisementService
     ): bool
     {
         SendAdvertisementTelegram::dispatch($advertisement, $header);
+
+        $emailHeader = strip_tags($header);
+        SendAdvertisementEmail::dispatch($advertisement, $emailHeader);
 
         Log::info('Рассылка Telegram поставлена в очередь', [
             'advertisement_id' => $advertisement->id,

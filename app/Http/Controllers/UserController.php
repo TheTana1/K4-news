@@ -87,6 +87,7 @@ class UserController extends Controller
 
     public function update(UserRequest $request, User $user): RedirectResponse
     {
+
         $oldRole = $user->role_id;
         $this->userRepository->update($request, $user);
         if (!$user) {

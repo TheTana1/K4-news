@@ -176,7 +176,8 @@
                                 @forelse($user->phones as $index => $phone)
                                     <div class="phone-item mb-2" data-index="{{ $index }}">
                                         <div class="input-group">
-                                            <input type="hidden" name="phones[{{ $index }}][id]" value="{{ $phone->id }}">
+                                            <input type="hidden" name="phones[{{ $index }}][id]"
+                                                   value="{{ $phone->id }}">
                                             <input type="text"
                                                    name="phones[{{ $index }}][number]"
                                                    value="{{ $phone->phone_number }}"
@@ -200,7 +201,8 @@
                                                    class="form-control phone-mask"
                                                    placeholder="+7 (999) 123-45-67">
 
-                                            <button type="button" class="btn btn-outline-danger btn-remove-phone" disabled>
+                                            <button type="button" class="btn btn-outline-danger btn-remove-phone"
+                                                    disabled>
                                                 <i class="bi bi-trash"></i>
                                             </button>
                                         </div>
@@ -221,7 +223,7 @@
                         </div>
 
 
-                            <!-- Роль и статус -->
+                        <!-- Роль и статус -->
 
                         <div class="row g-3 mt-2">
                             @if(auth()->user()->isAdmin())
@@ -249,11 +251,17 @@
                                 <div class="d-flex align-items-center gap-2">
                                     <label for="is_active_in_group" class="form-label mb-0">Статус в Telegram:</label>
                                     @if(auth()->user()->isModerator()||auth()->user()->isAdmin())
-                                    <select name="is_active_in_group" id="is_active_in_group"
-                                            class="form-select form-select-sm w-auto @error('is_active_in_group') is-invalid @enderror">
-                                        <option value="1" @selected(old('is_active_in_group', $user->is_active_in_group) == 1)>Активен</option>
-                                        <option value="0" @selected(old('is_active_in_group', $user->is_active_in_group) == 0)>Неактивен</option>
-                                    </select>
+                                        <select name="is_active_in_group" id="is_active_in_group"
+                                                class="form-select form-select-sm w-auto @error('is_active_in_group') is-invalid @enderror">
+                                            <option
+                                                value="1" @selected(old('is_active_in_group', $user->is_active_in_group) == 1)>
+                                                Активен
+                                            </option>
+                                            <option
+                                                value="0" @selected(old('is_active_in_group', $user->is_active_in_group) == 0)>
+                                                Неактивен
+                                            </option>
+                                        </select>
                                     @endif
                                     @if($user->is_active_in_group)
                                         <i class="bi bi-check-circle-fill text-success fs-5" title="Активен"></i>
@@ -264,31 +272,38 @@
                             </div>
                         </div>
 
-                            <!-- Даты (только для просмотра) -->
-                            <hr>
-                            <div class="row g-3">
-                                <div class="col-md-4">
-                                    <label class="form-label text-muted">Создан</label>
-                                    <p class="fw-bold">{{ $user->created_at->format('d.m.Y H:i') }}</p>
-                                </div>
-                                @if($user->joined_at)
-                                    <div class="col-md-4">
-                                        <label class="form-label text-muted">Вступил в группу</label>
-                                        <p class="fw-bold">{{ $user->joined_at->format('d.m.Y H:i') }}</p>
-                                    </div>
-                                @endif
-                                @if($user->left_at)
-                                    <div class="col-md-4">
-                                        <label class="form-label text-muted">Покинул группу</label>
-                                        <p class="fw-bold">{{ $user->left_at->format('d.m.Y H:i') }}</p>
-                                    </div>
-                                @endif
+                        <!-- Дата и рассылка -->
+                        <hr>
+                        <div class="row g-3 align-items-center">
+                            <div class="col-md-4">
+                                <label class="form-label text-muted">Создан</label>
+                                <p class="fw-bold mb-0">{{ $user->created_at->format('d.m.Y H:i') }}</p>
                             </div>
 
-                            <div class="d-flex justify-content-end gap-2 mt-4">
-                                <a href="{{ route('users.show', $user) }}" class="btn btn-secondary">Отмена</a>
-                                <button type="submit" class="btn btn-primary">Сохранить изменения</button>
+                            <div class="col-md-4">
+                                <div class="form-check form-switch">
+                                    <input type="hidden" name="email_notifications" value="0">
+                                    <input class="form-check-input"
+                                           type="checkbox"
+                                           name="email_notifications"
+                                           id="email_notifications"
+                                           value="1"
+                                        {{ old('email_notifications', $user->email_notifications) ? 'checked' : '' }}>
+                                    <label class="form-check-label" for="email_notifications">
+                                        Получать рассылку на email
+                                    </label>
+                                </div>
+                                @error('email_notifications')
+                                <div class="invalid-feedback d-block">{{ $message }}</div>
+                                @enderror
                             </div>
+                        </div>
+
+
+                        <div class="d-flex justify-content-end gap-2 mt-4">
+                            <a href="{{ route('users.show', $user) }}" class="btn btn-secondary">Отмена</a>
+                            <button type="submit" class="btn btn-primary">Сохранить изменения</button>
+                        </div>
 
                     </form>
                 </div>

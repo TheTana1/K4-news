@@ -59,9 +59,11 @@ readonly class NewUserHandler
                 $this->userService->sendCreateUserMessage($userDb);
             }
 
-            $msg = "✅ <b>Регистрация завершена!</b>\n\n";
-            $msg .= "Вам выдан пароль <code>{$newPassword}</code>\n";
-            $msg .= "Рекомендуем сменить его после входа.";
+            $msg =
+                "✅ <b>Регистрация завершена!</b>\n\n".
+                "Ваш логин <code>@{$from->username}</code>\n".
+                "Вам выдан пароль <code>{$newPassword}</code>\n".
+                "Рекомендуем сменить его после входа.";
 
             return $this->telegramService->sendHtmlWithKeyboard(
                 $chatId,
