@@ -6,6 +6,7 @@ use App\Http\Controllers\CommentController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\NewsController;
 use App\Http\Controllers\ReviewController;
+use App\Http\Controllers\ShiftController;
 use Illuminate\Http\Request;
 use App\Http\Controllers\UserController;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
@@ -25,7 +26,12 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('news', NewsController::class);
     Route::resource('reviews', ReviewController::class)->only(['index', 'show', 'destroy']);
     Route::resource('comments', CommentController::class);
+    Route::post('/dashboard/shifts', [DashboardController::class, 'storeShifts'])->name('shifts.store');
 
+    Route::get('/shifts', [ShiftController::class, 'index'])->name('shifts.index');
+    Route::post('/shifts/submit', [ShiftController::class, 'submit'])->name('shifts.submit');
+    Route::post('/shifts/save', [ShiftController::class, 'save'])->name('shifts.save');
+    Route::patch('/shifts/{user}/{date}/approve', [ShiftController::class, 'approve'])->name('shifts.approve');
 });
 Auth::routes(['register' => false, 'reset' => false]);
 
