@@ -1,98 +1,96 @@
 <?php
-// app/Http/Controllers/DashboardController.php
 
 namespace App\Http\Controllers;
 
-use App\Models\Advertisement;
-use App\Models\News;
-use App\Models\Review;
 use App\Models\Shift;
-use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\View\View;
 
 class DashboardController extends Controller
 {
-    private const CACHE_TTL = 900; // 15 минут
+    private const CACHE_TTL = 300; // 5 минут
 
-    public function index(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View|\Illuminate\View\View
+    public function index(Request $request): View
     {
         $userId = auth()->id();
 
-        $stats = Cache::tags(['dashboard'])->remember("dashboard:stats:{$userId}", self::CACHE_TTL, fn () => [
-            'ads_count'     => Advertisement::forCurrentUser()->count(),
-            'news_count'    => News::forCurrentUser()->count(),
-            'reviews_count' => Review::count(),
-            'users_count'   => User::where('telegram_username', '!=', 'admin')->count(),
-        ]);
+        // Статистика
+        $stats = Cache::tags(['dashboard'])->remember(
+            "dashboard:stats:{$userId}",
+            self::CACHE_TTL,
+            function () {
+                return [
+                    'ads_count'     => \App\Models\Advertisement::count(),
+                    'news_count'    => \App\Models\News::count(),
+                    'reviews_count' => \App\Models\Review::count(),
+                    'users_count'   => \App\Models\User::count(),
+                ];
+            }
+        );
 
-        $recentAds = Cache::tags(['dashboard'])->remember("dashboard:ads:{$userId}", self::CACHE_TTL,
-            fn () => Advertisement::forCurrentUser()->latest()->take(5)->get());
+        // Последние записи
+        $recentAds = Cache::tags(['dashboard'])->remember(
+            "dashboard:recent-ads:{$userId}",
+            self::CACHE_TTL,
+            fn () => \App\Models\Advertisement::latest()->take(5)->get()
+        );
 
-        $recentNews = Cache::tags(['dashboard'])->remember("dashboard:news:{$userId}", self::CACHE_TTL,
-            fn () => News::forCurrentUser()->latest()->take(5)->get());
+        $recentNews = Cache::tags(['dashboard'])->remember(
+            "dashboard:recent-news:{$userId}",
+            self::CACHE_TTL,
+            fn () => \App\Models\News::latest()->take(5)->get()
+        );
 
-        $recentReviews = Cache::tags(['dashboard'])->remember('dashboard:reviews:global', self::CACHE_TTL,
-            fn () => Review::latest()->take(5)->get());
+        $recentReviews = Cache::tags(['dashboard'])->remember(
+            "dashboard:recent-reviews:{$userId}",
+            self::CACHE_TTL,
+            fn () => \App\Models\Review::latest()->take(5)->get()
+        );
 
-        // --- Календарь смен ---
-        $startOfMonth = now()->startOfMonth();
-        $endOfMonth   = now()->endOfMonth();
+        // Календарь смен
+        $days = Cache::tags(['dashboard'])->remember(
+            "dashboard:shifts:{$userId}",
+            self::CACHE_TTL,
+            function () use ($userId) {
+                $start = Carbon::now()->startOfMonth();
+                $end   = Carbon::now()->endOfMonth();
 
-        // Существующие смены пользователя за текущий месяц
-        $shifts = Shift::where('user_id', $userId)
-            ->whereBetween('date', [$startOfMonth->toDateString(), $endOfMonth->toDateString()])
-            ->get()
-            ->keyBy(fn ($s) => $s->date->format('Y-m-d'));
+                // Все смены за месяц — одним запросом
+                $shifts = Shift::where('user_id', $userId)
+                    ->whereBetween('date', [$start->toDateString(), $end->toDateString()])
+                    ->get()
+                    ->keyBy(fn ($s) => $s->date->format('Y-m-d'));
 
-        $days = [];
-        $current = $startOfMonth->copy();
+                $days    = [];
+                $current = $start->copy();
 
-        while ($current <= $endOfMonth) {
-            $key   = $current->format('Y-m-d');
-            $shift = $shifts->get($key);
+                while ($current <= $end) {
+                    $dateKey = $current->format('Y-m-d');
+                    $shift   = $shifts[$dateKey] ?? null;
 
-            $days[] = [
-                'date'       => $key,
-                'day'        => $current->day,
-                'weekday'    => $current->isoFormat('dd'),
-                'is_weekend' => $current->isWeekend(),
-                'type'       => $shift?->type   ?? 'off',
-                'status'     => $shift?->status ?? 'draft',
-            ];
+                    $days[] = [
+                        'date'       => $dateKey,
+                        'day'        => $current->day,
+                        'weekday'    => $current->isoFormat('dd'),
+                        'is_weekend' => $current->isWeekend(),
+                        'type'       => $shift?->type   ?? 'off',
+                        'status'     => $shift?->status ?? 'draft',
+                    ];
 
-            $current->addDay();
-        }
+                    $current->addDay();
+                }
 
+                return $days;
+            }
+        );
         return view('dashboard', compact(
-            'stats', 'days',
-            'recentAds', 'recentNews', 'recentReviews'
+            'stats',
+            'recentAds',
+            'recentNews',
+            'recentReviews',
+            'days'
         ));
-    }
-
-    public function storeShifts(Request $request)
-    {
-        $validated = $request->validate([
-            'days'        => 'required|array',
-            'days.*.date' => 'required|date',
-            'days.*.type' => 'required|in:off,full,half',
-        ]);
-
-        $userId = auth()->id();
-
-        foreach ($validated['days'] as $day) {
-            Shift::updateOrCreate(
-                ['user_id' => $userId, 'date' => $day['date']],
-                [
-                    'type'   => $day['type'],
-                    'status' => $day['type'] === 'off' ? 'draft' : 'pending',
-                ]
-            );
-        }
-
-        // Сбрасываем кэш статистики, если он зависит от смен
-        Cache::tags(['dashboard'])->flush();
-
-        return response()->json(['success' => true]);
     }
 }

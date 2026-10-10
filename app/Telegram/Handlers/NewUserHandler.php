@@ -41,15 +41,15 @@ readonly class NewUserHandler
         $sessionKey = "user_{$chatId}";
         $data = session($sessionKey, ['step' => 1]);
 
-        $newPassword = Str::random(12);
-
         if ($text === '✅ Отправить') {
+            $newPassword = Str::random(12);
+
             $data = array_merge($data, [
                 'id' => $from->id,
                 'first_name' => $from->first_name ?? null,
                 'last_name' => $from->last_name ?? null,
                 'username' => $from->username ?? null,
-                'password' => $newPassword
+                'password' => $newPassword,
             ]);
 
             $userDb = app(UserRegistrationService::class)->createUser($data);
@@ -57,21 +57,28 @@ readonly class NewUserHandler
 
             if ($userDb) {
                 $this->userService->sendCreateUserMessage($userDb);
+                $msg =
+                    "✅ <b>Регистрация завершена!</b>\n\n".
+                    "Ваш логин <code>@{$userDb->telegram_username}</code>\n".
+                    "Вам выдан пароль <code>{$newPassword}</code>\n".
+                    "Рекомендуем сменить его после входа.";
+
+                return $this->telegramService->sendHtmlWithKeyboard(
+                    $chatId,
+                    $msg,
+                    [
+                        [['text' => '🏠 На главную']]
+                    ]
+                );
+            }
+            else{
+                return $this->telegramService->sendMessage(
+                    $chatId,
+                    '❌ Не удалось завершить регистрацию. Попробуйте позже или обратитесь к администратору.'
+                );
             }
 
-            $msg =
-                "✅ <b>Регистрация завершена!</b>\n\n".
-                "Ваш логин <code>@{$from->username}</code>\n".
-                "Вам выдан пароль <code>{$newPassword}</code>\n".
-                "Рекомендуем сменить его после входа.";
 
-            return $this->telegramService->sendHtmlWithKeyboard(
-                $chatId,
-                $msg,
-                [
-                    [['text' => '🏠 На главную']]
-                ]
-            );
         }
 
         if ($text === '⏮ Назад') {

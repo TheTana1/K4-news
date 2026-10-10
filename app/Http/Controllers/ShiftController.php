@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\ShiftRequest;
 use App\Models\Shift;
-use App\Models\User;
 use App\Repositories\ShiftRepository;
-use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -29,50 +29,67 @@ class ShiftController extends Controller
     /**
      * Сотрудник отправляет свою строку на рассмотрение.
      */
-    public function submit(Request $request): JsonResponse
+    public function submit(ShiftRequest $request): RedirectResponse
     {
-        $validated = $request->validate([
-            'user_id'     => 'required|integer|exists:users,id',
-            'days'        => 'required|array',
-            'days.*.date' => 'required|date',
-            'days.*.type' => 'required|in:off,full,half',
-        ]);
 
-        $this->authorize('submit', [Shift::class, $validated['user_id']]);
+        $validated = $request->validated();
 
-        $this->shiftRepository->submitOwn($validated['user_id'], $validated['days']);
+        // Группируем по user_id
+        $grouped = collect($validated['days'])->groupBy('user_id');
 
-        return response()->json(['success' => true]);
+        foreach ($grouped as $userId => $days) {
+            $this->authorize('submit', [Shift::class, (int) $userId]);
+
+            $this->shiftRepository->submitOwn(
+                (int) $userId,
+                $days->map(fn ($d) => [
+                    'date' => $d['date'],
+                    'type' => $d['type'],
+                ])->all()
+            );
+        }
+
+        return redirect()
+            ->route('shifts.index', ['month' => $validated['month']])
+            ->with('success', 'Ваша строка отправлена на рассмотрение.');
     }
 
     /**
      * Админ/модератор сохраняет изменения (approved).
      */
-    public function save(Request $request): JsonResponse
+    public function save(ShiftRequest $request): RedirectResponse
     {
-        $validated = $request->validate([
-            'user_id'     => 'required|integer|exists:users,id',
-            'days'        => 'required|array',
-            'days.*.date' => 'required|date',
-            'days.*.type' => 'required|in:off,full,half',
-        ]);
+
+        $validated = $request->validated();
 
         $this->authorize('saveAll', Shift::class);
 
-        $this->shiftRepository->saveAll($validated['user_id'], $validated['days']);
+        $grouped = collect($validated['days'])->groupBy('user_id');
 
-        return response()->json(['success' => true]);
+        foreach ($grouped as $userId => $days) {
+            $this->shiftRepository->saveAll(
+                (int) $userId,
+                $days->map(fn ($d) => [
+                    'date' => $d['date'],
+                    'type' => $d['type'],
+                ])->all()
+            );
+        }
+
+        return redirect()
+            ->route('shifts.index', ['month' => $validated['month']])
+            ->with('success', 'Изменения сохранены.');
     }
 
     /**
      * Согласовать смену (pending → approved).
      */
-    public function approve(int $user, string $date): JsonResponse
+    public function approve(int $user, string $date): RedirectResponse
     {
         $this->authorize('approve', Shift::class);
 
         $this->shiftRepository->approve($user, $date);
 
-        return response()->json(['success' => true]);
+        return back()->with('success', 'Смена согласована.');
     }
 }

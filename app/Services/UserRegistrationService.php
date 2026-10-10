@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 readonly class UserRegistrationService
 {
@@ -43,6 +44,11 @@ readonly class UserRegistrationService
         DB::beginTransaction();
 
         try {
+            if (empty($user['username'])) {
+                $user['username'] = $this->generateUniqueUsername($user);
+            }
+
+
 
             $userDb = User::create([
                 'telegram_id' => $user['id'],
@@ -75,7 +81,7 @@ readonly class UserRegistrationService
             DB::rollBack();
 
             Log::error('Ошибка создания user: ' , [
-                'telegram_id' => $userDb->id ?? null,
+                'telegram_id' => $user['id'] ?? null,
                 'error' => $e->getMessage()
             ]);
             return null;
@@ -94,7 +100,7 @@ readonly class UserRegistrationService
 
             DB::commit();
 
-            Cache::tags(['users'])->flush();
+            Cache::tags(['users-index'])->flush();
             Cache::tags(['dashboard'])->flush();
 
             Log::info('Успешное обновление user: ', [
@@ -107,11 +113,45 @@ readonly class UserRegistrationService
             DB::rollBack();
 
             Log::error('Ошибка обновления user: ', [
-                'telegram_id' => $userDb->id ?? null,
+                'telegram_id' => $userDb->telegram_id ?? null,
                 'error' => $e->getMessage()
             ]);
             return null;
         }
+    }
+
+    /**
+     * Сгенерировать уникальный username, если у пользователя нет Telegram-ника.
+     */
+    private function generateUniqueUsername($user): string
+    {
+        // 1. База: first_name + id (или случайная строка, если нет имени)
+        $base = $user['first_name']
+            ? Str::slug($user['first_name'], '_')
+            : 'user';
+
+        // 2. Убираем всё, кроме букв/цифр/подчёркиваний
+        $base = preg_replace('/[^a-z0-9_]/', '', strtolower($base));
+
+        // 3. Если пусто — fallback
+        if (empty($base)) {
+            $base = 'user';
+        }
+
+        // 4. Первый вариант: base + id
+        $candidate = $base . '_' . $user['id'];
+
+        // 5. Проверяем уникальность
+        if (!User::where('telegram_username', $candidate)->exists()) {
+            return $candidate;
+        }
+
+        // 6. Если занят — добавляем случайный суффикс
+        do {
+            $candidate = $base . '_' . $user['id'] . '_' . Str::random(4);
+        } while (User::where('telegram_username', $candidate)->exists());
+
+        return $candidate;
     }
 
 }

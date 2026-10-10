@@ -160,126 +160,53 @@
         </div>
     </div>
 
-    {{-- Календарь смен --}}
     @auth()
         <div class="card shadow-sm">
-            <div class="card-header bg-body-tertiary fw-semibold">
-                <i class="bi bi-calendar-week me-1"></i> Календарь смен — {{ now()->isoFormat('D MMMM YYYY') }}
+            <div class="card-header bg-body-tertiary d-flex justify-content-between align-items-center py-2">
+            <span class="fw-semibold">
+                <i class="bi bi-calendar-week me-1"></i> Мой график
+            </span>
+                <span class="small text-muted">{{ now()->isoFormat('D MMMM YYYY') }}</span>
             </div>
-            <div class="card-body">
-                <div class="row g-2 flex-nowrap overflow-auto" id="calendar">
+
+            <div class="card-body p-2">
+                <div class="d-flex gap-2 overflow-auto pb-1">
                     @foreach ($days as $day)
-                        <div class="col">
-                            <div
-                                class="card h-100 text-center p-2 user-select-none"
-                                role="button"
-                                data-date="{{ $day['date'] }}"
-                                data-type="{{ $day['type'] }}"
-                            >
-                                <div class="fs-4 fw-semibold">{{ $day['day'] }}</div>
-                                <div class="text-muted small">{{ $day['weekday'] }}</div>
+                        @php
+                            $typeData = match ($day['type']) {
+                                'full' => ['class' => 'bg-success',           'label' => 'Работа'],
+                                'half' => ['class' => 'bg-warning text-dark', 'label' => 'Полдня'],
+                                default => ['class' => 'bg-danger',           'label' => 'Выходной'],
+                            };
 
-                                {{-- Бейдж типа смены --}}
-                                <span class="badge mt-1">&nbsp;</span>
+                            $statusIcon = match ($day['status']) {
+                                'approved' => 'bi-check-circle-fill text-success',
+                                'pending'  => 'bi-clock-fill text-warning',
+                                default    => null,
+                            };
+                        @endphp
 
-                                {{-- Бейдж статуса согласования --}}
-                                @if ($day['status'] === 'pending')
-                                    <span class="badge bg-info-subtle text-info-emphasis mt-1">На проверке</span>
-                                @elseif ($day['status'] === 'approved')
-                                    <span class="badge bg-primary-subtle text-primary-emphasis mt-1">Согласовано</span>
+                        <div class="text-center border rounded p-2 flex-shrink-0" style="width: 72px;">
+                            <div class="small text-muted text-uppercase" style="font-size: 0.65rem;">
+                                {{ $day['weekday'] }}
+                            </div>
+
+                            <div class="fs-4 fw-bold lh-1 my-1">{{ $day['day'] }}</div>
+
+                            <span class="badge {{ $typeData['class'] }} d-block"
+                                  style="font-size: 0.6rem; padding: 0.2rem 0;">
+                            {{ $typeData['label'] }}
+                        </span>
+
+                            <div class="mt-1" style="height: 14px; line-height: 14px;">
+                                @if($statusIcon)
+                                    <i class="bi {{ $statusIcon }}" style="font-size: 0.75rem;"></i>
                                 @endif
                             </div>
                         </div>
                     @endforeach
                 </div>
             </div>
-
-            <div class="card-footer d-flex justify-content-end gap-2 bg-body-tertiary">
-                <button type="button" class="btn btn-outline-secondary" id="btnCancel">Отмена</button>
-                <button type="button" class="btn btn-primary" id="btnSubmit">Отправить</button>
-            </div>
         </div>
     @endauth
 @endsection
-
-@push('scripts')
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const TYPES = [
-                { key: 'off',  label: 'Выходной',      badge: 'bg-danger',            wrap: 'bg-danger-subtle border-danger-subtle'   },
-                { key: 'full', label: 'Работа',        badge: 'bg-success',           wrap: 'bg-success-subtle border-success-subtle' },
-                { key: 'half', label: 'Неполный день', badge: 'bg-warning text-dark', wrap: 'bg-warning-subtle border-warning-subtle' },
-            ];
-
-            const calendarEl = document.getElementById('calendar');
-            if (!calendarEl) return;
-
-            // Первичная отрисовка бейджей типов
-            calendarEl.querySelectorAll('.card[data-date]').forEach(cell => {
-                renderCell(cell, cell.dataset.type);
-            });
-
-            // Клик — циклическое переключение off → full → half → off
-            calendarEl.addEventListener('click', e => {
-                const cell = e.target.closest('.card[data-date]');
-                if (!cell) return;
-
-                const currentIdx = TYPES.findIndex(t => t.key === cell.dataset.type);
-                const nextIdx    = (currentIdx + 1) % TYPES.length;
-                renderCell(cell, TYPES[nextIdx].key);
-            });
-
-            function renderCell(cell, typeKey) {
-                const type = TYPES.find(t => t.key === typeKey) || TYPES[0];
-
-                cell.dataset.type = type.key;
-
-                cell.classList.remove(
-                    'bg-success-subtle', 'border-success-subtle',
-                    'bg-warning-subtle', 'border-warning-subtle',
-                    'bg-danger-subtle',  'border-danger-subtle'
-                );
-                type.wrap.split(' ').forEach(cls => cell.classList.add(cls));
-
-                const typeBadge = cell.querySelector('.badge');
-                typeBadge.className = 'badge mt-1 ' + type.badge;
-                typeBadge.textContent = type.label;
-            }
-
-            // Отмена
-            document.getElementById('btnCancel').addEventListener('click', () => {
-                if (confirm('Отменить все изменения?')) {
-                    window.location.reload();
-                }
-            });
-
-            // Отправить
-            document.getElementById('btnSubmit').addEventListener('click', async () => {
-                const days = [...calendarEl.querySelectorAll('.card[data-date]')].map(cell => ({
-                    date: cell.dataset.date,
-                    type: cell.dataset.type,
-                }));
-
-                try {
-                    const res = await fetch('{{ route('shifts.store') }}', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                            'Accept': 'application/json',
-                        },
-                        body: JSON.stringify({ days }),
-                    });
-
-                    if (!res.ok) throw new Error('Ошибка сервера');
-
-                    alert('Смены сохранены!');
-                    window.location.reload();
-                } catch (err) {
-                    console.error(err);
-                    alert('Не удалось сохранить данные');
-                }
-            });
-        });
-    </script>
-@endpush

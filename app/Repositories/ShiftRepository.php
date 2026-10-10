@@ -12,8 +12,9 @@ use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
 class ShiftRepository
 {
-    private const CACHE_TTL = 300;
+    private const CACHE_TTL = 300; // 5 минут
 
+    // ЧТЕНИЕ
     public function index(?string $month = null): array
     {
         $month = $month ?: Carbon::now()->format('Y-m');
@@ -98,8 +99,10 @@ class ShiftRepository
         });
     }
 
-
-
+    // ЗАПИСЬ
+    /**
+     * Сотрудник отправляет СВОЮ строку на рассмотрение.
+     */
     public function submitOwn(int $userId, array $days): void
     {
         DB::beginTransaction();
@@ -126,7 +129,8 @@ class ShiftRepository
             }
 
             DB::commit();
-            $this->clearCache();
+            Cache::tags(['shifts'])->flush();
+            Cache::tags(['dashboard'])->flush();
 
         } catch (\Exception $e) {
             DB::rollBack();
@@ -137,6 +141,9 @@ class ShiftRepository
         }
     }
 
+    /**
+     * Админ/модератор сохраняет изменения (approved).
+     */
     public function saveAll(int $userId, array $days): void
     {
         DB::beginTransaction();
@@ -163,7 +170,8 @@ class ShiftRepository
             }
 
             DB::commit();
-            $this->clearCache();
+            Cache::tags(['shifts'])->flush();
+            Cache::tags(['dashboard'])->flush();
 
         } catch (\Exception $e) {
             DB::rollBack();
@@ -174,6 +182,9 @@ class ShiftRepository
         }
     }
 
+    /**
+     * Согласовать смену (pending → approved).
+     */
     public function approve(int $userId, string $date): bool
     {
         DB::beginTransaction();
@@ -186,7 +197,8 @@ class ShiftRepository
             $shift->update(['status' => 'approved']);
 
             DB::commit();
-            $this->clearCache();
+            Cache::tags(['shifts'])->flush();
+            Cache::tags(['dashboard'])->flush();
 
             return true;
         } catch (\Exception $e) {
@@ -197,11 +209,5 @@ class ShiftRepository
             ]);
             throw new BadRequestHttpException('Не удалось согласовать смену');
         }
-    }
-
-
-    private function clearCache(): void
-    {
-        Cache::tags(['shifts'])->flush();
     }
 }
