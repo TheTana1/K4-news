@@ -2,6 +2,69 @@
 
 @section('title', 'Смены сотрудников')
 
+@push('styles')
+    <style>
+        /* --- Единственный необходимый CSS: sticky-поведение --- */
+
+        /* Контейнер прокрутки (Bootstrap .table-responsive уже даёт overflow-x,
+           добавим ограничение по высоте, чтобы шапка липла и по вертикали) */
+        .shifts-scroll {
+            max-height: 75vh;
+            overflow: auto;
+        }
+
+        /* Угол «Сотрудник»: липнет и сверху, и слева */
+        .shifts-table thead th.sticky-corner {
+            position: sticky;
+            top: 0;
+            left: 0;
+            z-index: 4;
+            min-width: 200px;
+        }
+
+        /* Заголовки дней: липнут сверху */
+        .shifts-table thead th.sticky-day {
+            position: sticky;
+            top: 0;
+            z-index: 3;
+            min-width: 44px;
+        }
+
+        /* Колонка имён: липнет слева */
+        .shifts-table tbody td.sticky-user {
+            position: sticky;
+            left: 0;
+            z-index: 2;
+            min-width: 200px;
+        }
+
+        /* Заголовок группы: тоже слева, чтобы не уезжал */
+        .shifts-table tbody td.sticky-group {
+            position: sticky;
+            left: 0;
+            z-index: 2;
+        }
+
+        /* Тонкие разделители у липких ячеек */
+        .shifts-table thead th.sticky-corner {
+            box-shadow: 2px 0 0 0 var(--bs-border-color),
+            0 2px 0 0 var(--bs-border-color);
+        }
+        .shifts-table thead th.sticky-day {
+            box-shadow: 0 2px 0 0 var(--bs-border-color);
+        }
+        .shifts-table tbody td.sticky-user,
+        .shifts-table tbody td.sticky-group {
+            box-shadow: 2px 0 0 0 var(--bs-border-color);
+        }
+
+        /* Подсветка sticky-ячейки при наведении на строку */
+        .shifts-table tbody tr:hover td.sticky-user {
+            background-color: var(--bs-tertiary-bg) !important;
+        }
+    </style>
+@endpush
+
 @section('content')
     @php
         $monthLabel = \Carbon\Carbon::createFromFormat('Y-m', $month)->isoFormat('MMMM YYYY');
@@ -43,16 +106,15 @@
         <input type="hidden" name="month" value="{{ $month }}">
 
         <div class="card shadow-sm">
-            <div class="table-responsive">
-                <table class="table table-sm table-bordered align-middle mb-0 text-center">
+            <div class="table-responsive shifts-scroll">
+                <table class="table table-sm table-bordered align-middle mb-0 text-center shifts-table">
                     <thead>
                     <tr>
-                        <th class="text-start bg-body-tertiary" style="position: sticky; top: 0; z-index: 3;">
+                        <th class="text-start bg-body-tertiary sticky-corner">
                             Сотрудник
                         </th>
                         @foreach ($days as $day)
-                            <th class="small {{ $day['is_weekend'] ? 'text-danger' : '' }}"
-                                style="min-width: 44px; position: sticky; top: 0; z-index: 2;">
+                            <th class="small bg-body-tertiary sticky-day {{ $day['is_weekend'] ? 'text-danger' : '' }}">
                                 <div>{{ $day['day'] }}</div>
                                 <div class="text-muted fw-normal small">{{ $day['weekday'] }}</div>
                             </th>
@@ -67,7 +129,7 @@
                     @forelse ($groupedUsers as $roleLabel => $roleUsers)
                         {{-- Заголовок группы --}}
                         <tr class="table-secondary">
-                            <td colspan="{{ count($days) + 1 }}" class="text-start fw-bold small py-2">
+                            <td colspan="{{ count($days) + 1 }}" class="text-start fw-bold small py-2 sticky-group">
                                 <i class="bi bi-people-fill me-1"></i> {{ $roleLabel }}
                                 <span class="badge bg-secondary ms-2">{{ $roleUsers->count() }}</span>
                             </td>
@@ -79,7 +141,7 @@
                             @endphp
 
                             <tr data-user="{{ $user->id }}">
-                                <td class="text-start" style="position: sticky; left: 0; background: inherit; z-index: 1;">
+                                <td class="text-start bg-body sticky-user">
                                     <div class="d-flex align-items-center">
                                         <div class="flex-shrink-0 me-2">
                                             @if($user->avatar_path)
@@ -96,7 +158,7 @@
                                                 </div>
                                             @endif
                                         </div>
-                                        <div class="min-width-0">
+                                        <div style="min-width: 0;">
                                             <div class="fw-semibold text-truncate" style="max-width: 150px;">
                                                 {{ $user->name }}
                                             </div>
@@ -180,7 +242,7 @@
             const authId = {{ $auth->id }};
             const form = document.getElementById('shifts-form');
 
-            // --- Клик по ячейке: цикл ---
+            // --- Клик по ячейке: цикл off → full → half → off ---
             document.querySelectorAll('.day-cell[data-editable="1"]').forEach(cell => {
                 cell.addEventListener('click', function () {
                     const current = cell.dataset.type || 'off';
@@ -199,9 +261,8 @@
                 });
             });
 
-            // --- Перед submit: создать inputs days[N][key] ---
+            // --- Перед submit: собрать inputs days[N][key] ---
             form?.addEventListener('submit', function (e) {
-                // Удаляем старые inputs
                 form.querySelectorAll('input[name^="days["]').forEach(el => el.remove());
 
                 const days = [];
@@ -220,12 +281,10 @@
                     return;
                 }
 
-                // Для сотрудника — только своя строка
                 const filtered = canSaveAll
                     ? days
                     : days.filter(d => d.user_id === authId);
 
-                // Создаём inputs
                 filtered.forEach((day, i) => {
                     Object.entries(day).forEach(([key, value]) => {
                         const input = document.createElement('input');
