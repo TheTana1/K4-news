@@ -13,9 +13,6 @@ readonly class AdvertisementService
     {
     }
 
-    /**
-     * Отправка в Telegram через очередь (с указанием chatId, которого исключить).
-     */
     public final function sendAdvertisementMessageTG(
         ?string       $chatId,
         Advertisement $advertisement,

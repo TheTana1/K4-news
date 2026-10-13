@@ -22,19 +22,25 @@
     <div class="row g-3 mb-4">
         <div class="col-6 col-lg-3">
             <div class="card h-100">
+                <a href="{{route('advertisements.index')}}" class="text-decoration-none text-body">
                 <div class="card-body d-flex align-items-center">
                     <div class="bg-primary bg-opacity-10 rounded p-3 me-3">
                         <i class="bi bi-megaphone fs-4 text-primary"></i>
                     </div>
                     <div>
+
                         <div class="text-muted small text-uppercase">Важное</div>
                         <div class="h4 mb-0">{{ $stats['ads_count'] }}</div>
                     </div>
                 </div>
+                </a>
+
             </div>
         </div>
         <div class="col-6 col-lg-3">
             <div class="card h-100">
+                <a href="{{route('news.index')}}" class="text-decoration-none text-body">
+
                 <div class="card-body d-flex align-items-center">
                     <div class="bg-success bg-opacity-10 rounded p-3 me-3">
                         <i class="bi bi-newspaper fs-4 text-success"></i>
@@ -42,34 +48,44 @@
                     <div>
                         <div class="text-muted small text-uppercase">Новости</div>
                         <div class="h4 mb-0">{{ $stats['news_count'] }}</div>
+
                     </div>
                 </div>
+                </a>
             </div>
         </div>
         <div class="col-6 col-lg-3">
             <div class="card h-100">
+                <a href="{{ route('reviews.index') }}" class="text-decoration-none text-body">
                 <div class="card-body d-flex align-items-center">
                     <div class="bg-warning bg-opacity-10 rounded p-3 me-3">
                         <i class="bi bi-star fs-4 text-warning"></i>
                     </div>
                     <div>
+
                         <div class="text-muted small text-uppercase">Отзывы</div>
                         <div class="h4 mb-0">{{ $stats['reviews_count'] }}</div>
+
                     </div>
                 </div>
+                </a>
             </div>
         </div>
         <div class="col-6 col-lg-3">
             <div class="card h-100">
+                <a href="{{ route('users.index') }}" class="text-decoration-none text-body">
                 <div class="card-body d-flex align-items-center">
                     <div class="bg-danger bg-opacity-10 rounded p-3 me-3">
                         <i class="bi bi-people fs-4 text-danger"></i>
                     </div>
                     <div>
+
                         <div class="text-muted small text-uppercase">Коллеги</div>
                         <div class="h4 mb-0">{{ $stats['users_count'] }}</div>
+
                     </div>
                 </div>
+                </a>
             </div>
         </div>
     </div>

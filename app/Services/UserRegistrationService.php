@@ -120,38 +120,15 @@ readonly class UserRegistrationService
         }
     }
 
-    /**
-     * Сгенерировать уникальный username, если у пользователя нет Telegram-ника.
-     */
     private function generateUniqueUsername($user): string
     {
-        // 1. База: first_name + id (или случайная строка, если нет имени)
         $base = $user['first_name']
             ? Str::slug($user['first_name'], '_')
             : 'user';
 
-        // 2. Убираем всё, кроме букв/цифр/подчёркиваний
         $base = preg_replace('/[^a-z0-9_]/', '', strtolower($base));
 
-        // 3. Если пусто — fallback
-        if (empty($base)) {
-            $base = 'user';
-        }
-
-        // 4. Первый вариант: base + id
-        $candidate = $base . '_' . $user['id'];
-
-        // 5. Проверяем уникальность
-        if (!User::where('telegram_username', $candidate)->exists()) {
-            return $candidate;
-        }
-
-        // 6. Если занят — добавляем случайный суффикс
-        do {
-            $candidate = $base . '_' . $user['id'] . '_' . Str::random(4);
-        } while (User::where('telegram_username', $candidate)->exists());
-
-        return $candidate;
+        return $base . '_' . $user['id'];
     }
 
 }
