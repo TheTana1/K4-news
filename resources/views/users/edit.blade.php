@@ -279,26 +279,26 @@
                                 <label class="form-label text-muted">Создан</label>
                                 <p class="fw-bold mb-0">{{ $user->created_at->format('d.m.Y H:i') }}</p>
                             </div>
-
-                            <div class="col-md-4">
-                                <div class="form-check form-switch">
-                                    <input type="hidden" name="email_notifications" value="0">
-                                    <input class="form-check-input"
-                                           type="checkbox"
-                                           name="email_notifications"
-                                           id="email_notifications"
-                                           value="1"
-                                        {{ old('email_notifications', $user->email_notifications) ? 'checked' : '' }}>
-                                    <label class="form-check-label" for="email_notifications">
-                                        Получать рассылку на email
-                                    </label>
+                            @if($user->hasVerifiedEmail())
+                                <div class="col-md-4">
+                                    <div class="form-check form-switch">
+                                        <input type="hidden" name="email_notifications" value="0">
+                                        <input class="form-check-input"
+                                               type="checkbox"
+                                               name="email_notifications"
+                                               id="email_notifications"
+                                               value="1"
+                                            {{ old('email_notifications', $user->email_notifications) ? 'checked' : '' }}>
+                                        <label class="form-check-label" for="email_notifications">
+                                            Получать рассылку на email
+                                        </label>
+                                    </div>
+                                    @error('email_notifications')
+                                    <div class="invalid-feedback d-block">{{ $message }}</div>
+                                    @enderror
                                 </div>
-                                @error('email_notifications')
-                                <div class="invalid-feedback d-block">{{ $message }}</div>
-                                @enderror
-                            </div>
                         </div>
-
+                        @endif
 
                         <div class="d-flex justify-content-end gap-2 mt-4">
                             <a href="{{ route('users.show', $user) }}" class="btn btn-secondary">Отмена</a>
