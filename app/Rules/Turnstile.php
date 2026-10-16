@@ -20,7 +20,6 @@ class Turnstile implements ValidationRule
             ->post('https://challenges.cloudflare.com/turnstile/v0/siteverify', [
                 'secret'   => config('services.turnstile.secret_key'),
                 'response' => $value,
-                'remoteip' => request()->ip(),
             ]);
 
 

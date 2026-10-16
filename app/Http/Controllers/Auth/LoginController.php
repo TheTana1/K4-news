@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
+use Illuminate\Foundation\Auth\ThrottlesLogins;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 
@@ -21,8 +22,8 @@ class LoginController extends Controller
     |
     */
 
-    use AuthenticatesUsers;
-
+    use AuthenticatesUsers, ThrottlesLogins; //2-ое это попытки входа
+    protected int $decayMinutes = 2;
     /**
      * Where to redirect users after login.
      *
@@ -61,6 +62,7 @@ class LoginController extends Controller
 
         if ($user && Hash::check($password, $user->password)) {
             $this->guard()->login($user, $request->filled('remember'));
+            $this->clearLoginAttempts($request);
             return true;
         }
 
