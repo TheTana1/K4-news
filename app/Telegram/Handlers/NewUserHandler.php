@@ -105,7 +105,7 @@ readonly class NewUserHandler
         return match ($step) {
             1 => $this->processPhone($chatId, $text, $data),
             2 => $this->processEmail($chatId, $text, $data),
-            5 => $this->processRole($chatId, $text, $data),
+            3 => $this->processRole($chatId, $text, $data),
             default => $this->handleCancel($chatId),
         };
     }
@@ -142,7 +142,7 @@ readonly class NewUserHandler
         }
 
         $data['email'] = $text;
-        $data['step'] = 5;
+        $data['step'] = 3;
         session(["user_{$chatId}" => $data]);
 
         return $this->askForRole($chatId);
@@ -167,7 +167,7 @@ readonly class NewUserHandler
         }
 
         $data['role'] = $role;
-        $data['step'] = 6;
+        $data['step'] = 4;
         session(["user_{$chatId}" => $data]);
 
         return $this->confirmUser($chatId, $data);
@@ -180,8 +180,8 @@ readonly class NewUserHandler
         return match ($step) {
             1 => $this->telegramService->sendMessage($chatId, "📱 Напишите ваш телефон"),
             2 => $this->askForEmail($chatId),
-            5 => $this->askForRole($chatId),
-            6 => $this->confirmUser($chatId, $data),
+            3 => $this->askForRole($chatId),
+            4 => $this->confirmUser($chatId, $data),
             default => $this->telegramService->sendMessage($chatId, 'Продолжите регистрацию'),
         };
     }
