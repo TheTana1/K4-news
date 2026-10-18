@@ -131,6 +131,87 @@
             </div>
         </div>
 
+        {{-- Просмотры --}}
+        <div class="col-lg-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <div>
+                        <i class="bi bi-eye me-1"></i> Просмотрели
+                    </div>
+                    <span class="badge bg-primary rounded-pill">{{ $viewers->count() }}</span>
+                </div>
+
+                <div class="card-body">
+                    @if($viewers->isNotEmpty())
+                        <div class="d-flex align-items-center flex-wrap gap-3">
+
+                            {{-- Стопка аватаров --}}
+                            <div class="d-flex align-items-center flex-nowrap overflow-auto"
+                                 style="max-width: 100%; gap: 0;">
+                                @foreach($viewers as $viewer)
+                                    <div class="position-relative"
+                                         style="
+                                             flex-shrink: 0;
+                                             {{ !$loop->first ? 'margin-left: -8px;' : '' }}
+                                             z-index: 1;
+                                             transition: transform .2s, z-index .2s;
+                                         "
+                                         onmouseover="this.style.transform='translateY(-3px) scale(1.1)'; this.style.zIndex=10;"
+                                         onmouseout="this.style.transform=''; this.style.zIndex=1;"
+                                         data-bs-toggle="tooltip"
+                                         data-bs-placement="top"
+                                         title="{{ $viewer->name }} ({{ $viewer->role?->label ?? 'Сотрудник' }})@if($viewer->pivot?->created_at) — {{ $viewer->pivot->created_at->diffForHumans() }}@endif">
+
+                                        @if($viewer->avatar_path)
+                                            <img src="{{ asset($viewer->avatar_path) }}" alt="Ошибка отображения аватара"
+                                                 class="rounded-circle border border-2 border-body shadow-sm"
+                                                 width="32" height="32"
+                                                 style="object-fit: cover;">
+                                        @else
+                                            @php
+                                                $colors = ['primary', 'secondary', 'success', 'danger', 'warning', 'info', 'dark'];
+                                                $color  = $colors[abs(crc32($viewer->name)) % count($colors)];
+                                            @endphp
+                                            <div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold border border-2 border-body shadow-sm bg-{{ $color }}"
+                                                 style="width:32px;height:32px;font-size:.75rem;">
+                                                {{ mb_strtoupper(mb_substr($viewer->name, 0, 1)) }}
+                                            </div>
+                                        @endif
+                                    </div>
+                                @endforeach
+
+                                {{-- Плашка +N --}}
+                                @if($viewers->count() > 10)
+                                    <div class="position-relative"
+                                         style="margin-left: -8px; z-index: 1; transition: transform .2s, z-index .2s;"
+                                         onmouseover="this.style.transform='translateY(-3px) scale(1.1)'; this.style.zIndex=10;"
+                                         onmouseout="this.style.transform=''; this.style.zIndex=1;"
+                                         data-bs-toggle="tooltip"
+                                         data-bs-placement="top"
+                                         title="{{ $viewers->count() - 10 }} ещё человек(а)">
+                                        <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold border border-2 border-body shadow-sm bg-body-secondary text-body"
+                                             style="width:32px;height:32px;font-size:.75rem;">
+                                            +{{ $viewers->count() - 10 }}
+                                        </div>
+                                    </div>
+                                @endif
+                            </div>
+
+                            {{-- Общее количество --}}
+                            <span class="text-muted small">
+                        {{ $viewers->count() }} чел.
+                    </span>
+                        </div>
+                    @else
+                        <div class="text-center py-3">
+                            <i class="bi bi-eye-slash display-6 text-muted"></i>
+                            <p class="text-muted mt-2 mb-0 small">Никто ещё не просмотрел</p>
+                        </div>
+                    @endif
+                </div>
+            </div>
+        </div>
+
         <!-- Дополнительные файлы (если есть связь с файлами) -->
         @if($news->files && $news->files->count() > 0)
             <div class="col-lg-12">

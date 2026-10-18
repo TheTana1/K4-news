@@ -17,6 +17,7 @@ class AdvertisementRepository
     private const PER_PAGE = 10;
     private const COMMENTS_PER_PAGE = 10;
     private const CACHE_TTL = 900;
+    private const VIEWERS_CACHE_TTL = 60;
 
     public function __construct(readonly AdvertisementFilter $advertisementFilter)
     {
@@ -42,10 +43,22 @@ class AdvertisementRepository
 
     final  public function show(Advertisement $advertisement, int $countPaginate = self::COMMENTS_PER_PAGE): array
     {
+        if(!$advertisement->views()->where('user_id', auth()->id())->exists())
+        {
+            Cache::tags(['advertisement:' . $advertisement->id . ':viewers'])->flush();
+            $advertisement->views()->create(['user_id' => auth()->id()]);
+        }
+        $viewers = Cache::tags(['advertisement:' . $advertisement->id . ':viewers'])->remember(
+            'advertisement:' . $advertisement->id . ':viewers',
+            self::VIEWERS_CACHE_TTL,
+            fn() => $advertisement->viewedByUsers()->with('role')
+                ->orderBy('views.created_at', 'desc')
+                ->get()
+        );
         $advertisement = Cache::tags(['advertisement:' . $advertisement->id])->remember(
             'advertisement:' . $advertisement->id,
             self::CACHE_TTL,
-            fn() => $advertisement->load(['files', 'role'])
+            fn() => $advertisement->load(['files', 'role', 'user'])
         );
         $comments = Cache::tags(['advertisement:' . $advertisement->id])->remember(
             'advertisement:' . $advertisement->id . ':comments:page:' . request()->query('page'),
@@ -56,7 +69,7 @@ class AdvertisementRepository
                 ->paginate($countPaginate)
                 ->withQueryString()
         );
-        return ['advertisement' => $advertisement, 'comments' => $comments];
+        return ['advertisement' => $advertisement, 'comments' => $comments, 'viewers' => $viewers];
     }
 
     public function edit(Advertisement $advertisement)
@@ -113,7 +126,10 @@ class AdvertisementRepository
             }
 
             Cache::tags(['advertisements-index'])->flush();
-            Cache::tags(['advertisement:' . $advertisement->id])->flush();
+            Cache::tags([
+                'advertisement:' . $advertisement->id,
+                'advertisement:' . $advertisement->id . ':viewers',
+            ])->flush();
             Cache::tags(['dashboard'])->flush();
 
             return $advertisement->load('files', 'role');
@@ -140,7 +156,10 @@ class AdvertisementRepository
             $this->deleteAllFiles($advertisement);
 
             Cache::tags(['advertisements-index'])->flush();
-            Cache::tags(['advertisement:' . $advertisement->id])->flush();
+            Cache::tags([
+                'advertisement:' . $advertisement->id,
+                'advertisement:' . $advertisement->id . ':viewers',
+            ])->flush();
             Cache::tags(['dashboard'])->flush();
 
             return $result;

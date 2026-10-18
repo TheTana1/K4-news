@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Support\Facades\Auth;
 
@@ -50,6 +51,7 @@ class Advertisement extends Model
         'published_at' => 'datetime',
         'role_id' => 'integer',
     ];
+
     public function scopeForRole($query, $roleId = null)
     {
         if ($roleId) {
@@ -57,10 +59,11 @@ class Advertisement extends Model
         }
         return $query;
     }
+
     protected function getSourceAttribute(): string
     {
         $model = $this->commentable;
-        if(!$model) return 'Удалено';
+        if (!$model) return 'Удалено';
         return match (get_class($model)) {
             \App\Models\Advertisement::class => $model->content ?? 'Объявление #' . $model->id,
             \App\Models\News::class => $model->content ?? 'Новость #' . $model->id,
@@ -68,6 +71,7 @@ class Advertisement extends Model
             default => 'Запись #' . $model->id,
         };
     }
+
     public function scopeForCurrentUser($query)
     {
         if (Auth::check()) {
@@ -85,15 +89,18 @@ class Advertisement extends Model
 
         return $query->whereNull('role_id');
     }
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
+
     public function role(): BelongsTo
     {
         return $this->belongsTo(Role::class);
     }
-    public function files():MorphMany
+
+    public function files(): MorphMany
     {
         return $this->morphMany(File::class, 'fileable');
     }
@@ -103,6 +110,16 @@ class Advertisement extends Model
         return $this->morphMany(Comment::class, 'commentable');
     }
 
+    public function views(): MorphMany
+    {
+        return $this->morphMany(View::class, 'viewable');
+    }
 
+    public function viewedByUsers(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'views', 'viewable_id', 'user_id')
+            ->where('viewable_type', self::class)
+            ->withTimestamps();
+    }
 
 }

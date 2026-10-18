@@ -27,11 +27,12 @@ class AdvertisementController extends Controller
 
     public function show(Advertisement $advertisement): View
     {
-
         $data = $this->advertisementRepository->show($advertisement);
+
         return view('advertisements.show', [
             'advertisement' => $data['advertisement'],
-            'comments' => $data['comments']
+            'comments' => $data['comments'],
+            'viewers' => $data['viewers'],
         ]);
     }
 

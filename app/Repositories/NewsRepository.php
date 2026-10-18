@@ -20,6 +20,8 @@ class NewsRepository
     private const PER_PAGE = 10;
     private const COMMENTS_PER_PAGE = 10;
     private const CACHE_TTL = 900;
+    private const VIEWERS_CACHE_TTL = 60;
+
 
     public function __construct(readonly NewsFilter $newsFilter)
     {
@@ -44,6 +46,18 @@ class NewsRepository
 
     final public function show(News $news, int $countPaginate = self::COMMENTS_PER_PAGE): array
     {
+        if(!$news->views()->where('user_id', auth()->id())->exists())
+        {
+            Cache::tags(['news:' . $news->id . ':viewers'])->flush();
+            $news->views()->create(['user_id' => auth()->id()]);
+        }
+        $viewers = Cache::tags(['news:' . $news->id . ':viewers'])->remember(
+            'news:' . $news->id . ':viewers',
+            self::VIEWERS_CACHE_TTL,
+            fn() => $news->viewedByUsers()->with('role')
+                ->orderBy('views.created_at', 'desc')
+                ->get()
+        );
         $news = Cache::tags(['news:' . $news->id])->remember(
             'news:' . $news->id,
             self::CACHE_TTL,
@@ -58,7 +72,7 @@ class NewsRepository
                 ->paginate($countPaginate)
                 ->withQueryString()
         );
-        return ['news' => $news, 'comments' => $comments];
+        return ['news' => $news, 'comments' => $comments, 'viewers' => $viewers];
 
     }
 
@@ -151,7 +165,10 @@ class NewsRepository
             DB::commit();
 
             Cache::tags(['news-index'])->flush();
-            Cache::tags(['news:' . $news->id])->flush();
+            Cache::tags([
+                'news:' . $news->id,
+                'news:' . $news->id . ':viewers',
+            ])->flush();
             Cache::tags(['dashboard'])->flush();
 
             return $news->load('files');
@@ -177,7 +194,10 @@ class NewsRepository
             DB::commit();
 
             Cache::tags(['news-index'])->flush();
-            Cache::tags(['news:' . $news->id])->flush();
+            Cache::tags([
+                'news:' . $news->id,
+                'news:' . $news->id . ':viewers',
+            ])->flush();
             Cache::tags(['dashboard'])->flush();
 
             return $result;

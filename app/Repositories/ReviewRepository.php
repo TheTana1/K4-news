@@ -17,6 +17,8 @@ class  ReviewRepository
     private const PER_PAGE = 10;
     private const COMMENTS_PER_PAGE = 10;
     private const CACHE_TTL = 900;
+    private const VIEWERS_CACHE_TTL = 60;
+
 
     public function __construct(readonly ReviewFilter $reviewFilter)
     {
@@ -38,6 +40,18 @@ class  ReviewRepository
 
     final function show(Review $review, int $countPaginate = self::COMMENTS_PER_PAGE)
     {
+        if(!$review->views()->where('user_id', auth()->id())->exists())
+        {
+            Cache::tags(['review:' . $review->id . ':viewers'])->flush();
+            $review->views()->create(['user_id' => auth()->id()]);
+        }
+        $viewers = Cache::tags(['review:' . $review->id . ':viewers'])->remember(
+            'review:' . $review->id . ':viewers',
+            self::VIEWERS_CACHE_TTL,
+            fn() => $review->viewedByUsers()->with('role')
+                ->orderBy('views.created_at', 'desc')
+                ->get()
+        );
         $review = Cache::tags(['review:' . $review->id])->remember(
             'review:' . $review->id,
             self::CACHE_TTL,
@@ -52,7 +66,7 @@ class  ReviewRepository
                 ->paginate($countPaginate)
                 ->withQueryString()
         );
-        return ['review' => $review, 'comments' => $comments];
+        return ['review' => $review, 'comments' => $comments, 'viewers' => $viewers];
     }
 
     public static function store($text, $count, $from, $publishedAt)

@@ -4,7 +4,9 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\Auth;
 
 /**
@@ -96,5 +98,17 @@ class News extends Model
     public function scopeActive($query)
     {
         return $query->where('status', 'active');
+    }
+
+    public function views():MorphMany
+    {
+        return $this->morphMany(View::class, 'viewable');
+    }
+
+    public function viewedByUsers(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'views', 'viewable_id', 'user_id')
+            ->where('viewable_type', self::class)
+            ->withTimestamps();
     }
 }

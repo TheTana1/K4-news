@@ -20,22 +20,13 @@ class ReviewController extends Controller
         return view('reviews.index', compact('reviews'));
     }
 
-//    public function create():View
-//    {
-//        return view('reviews.create');
-//    }
-
-//    public function edit(Review $review):View
-//    {
-//        return view('reviews.edit', compact('review'));
-//    }
-
     public function show(Review $review):View
     {
         $data = $this->reviewRepository->show($review);
         return view('reviews.show',[
             'review'=>$data['review'],
             'comments'=>$data['comments'],
+            'viewers' => $data['viewers']
         ]);
     }
 

@@ -81,7 +81,7 @@ class UserRequest extends FormRequest
                     'phones' => 'nullable|array',
                     'phones.*.id' => 'nullable|exists:phones,id',
                     'phones.*.number' => 'required_with:phones|string|max:20|distinct',
-                    'email_notifications' => 'required|boolean',
+                    'email_notifications' => 'nullable|boolean',
                     ];
         };
         return [];
