@@ -147,8 +147,14 @@
                         <div class="d-flex align-items-center flex-wrap gap-3">
 
                             {{-- Стопка аватаров --}}
-                            <div class="d-flex align-items-center flex-nowrap overflow-auto"
-                                 style="max-width: 100%; gap: 0;">
+                            <div class="d-flex align-items-center flex-nowrap"
+                                 style="
+         overflow-x: auto;
+         overflow-y: hidden;
+         padding: 4px 4px 6px;
+         max-width: 100%;
+         gap: 0;
+     ">
                                 @foreach($viewers as $viewer)
                                     <div class="position-relative"
                                          style="
@@ -180,28 +186,7 @@
                                         @endif
                                     </div>
                                 @endforeach
-
-                                {{-- Плашка +N --}}
-                                @if($viewers->count() > 10)
-                                    <div class="position-relative"
-                                         style="margin-left: -8px; z-index: 1; transition: transform .2s, z-index .2s;"
-                                         onmouseover="this.style.transform='translateY(-3px) scale(1.1)'; this.style.zIndex=10;"
-                                         onmouseout="this.style.transform=''; this.style.zIndex=1;"
-                                         data-bs-toggle="tooltip"
-                                         data-bs-placement="top"
-                                         title="{{ $viewers->count() - 10 }} ещё человек(а)">
-                                        <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold border border-2 border-body shadow-sm bg-body-secondary text-body"
-                                             style="width:32px;height:32px;font-size:.75rem;">
-                                            +{{ $viewers->count() - 10 }}
-                                        </div>
-                                    </div>
-                                @endif
                             </div>
-
-                            {{-- Общее количество --}}
-                            <span class="text-muted small">
-                        {{ $viewers->count() }} чел.
-                    </span>
                         </div>
                     @else
                         <div class="text-center py-3">
